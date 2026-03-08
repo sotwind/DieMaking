@@ -67,6 +67,9 @@ public partial class MainForm : Form
             reportMenu.DropDownItems.Add("完工统计", null, (s, e) => ShowForm<Report.CompletionStatsForm>());
             reportMenu.DropDownItems.Add("工序统计", null, (s, e) => ShowForm<Report.ProcessStatsForm>());
             reportMenu.DropDownItems.Add("库存统计", null, (s, e) => ShowForm<Report.InventoryStatsForm>());
+            reportMenu.DropDownItems.Add(new ToolStripSeparator());
+            reportMenu.DropDownItems.Add("员工绩效", null, (s, e) => ShowForm<Report.EmployeePerformanceForm>());
+            reportMenu.DropDownItems.Add("交期预警", null, (s, e) => ShowForm<Report.DeliveryWarningForm>());
         }
         menuStrip.Items.Add(reportMenu);
 

@@ -1,6 +1,5 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
-using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -9,138 +8,256 @@ public class WarehouseService
 {
     #region 库位管理
 
+    /// <summary>
+    /// 获取所有库位
+    /// </summary>
     public List<StorageLocation> GetAllLocations()
     {
-        var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
-                     Description, Status, CreateTime 
-                     FROM DM_StorageLocation 
-                     ORDER BY Area, ShelfNo, LayerNo, PositionNo";
+        try
+        {
+            var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
+                         Description, Status, CreateTime 
+                         FROM DM_StorageLocation 
+                         ORDER BY Area, ShelfNo, LayerNo, PositionNo";
 
-        return DbHelper.ExecuteQuery(sql, MapToStorageLocation);
+            return DbHelper.ExecuteQuery(sql, MapToStorageLocation);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有库位");
+            return new List<StorageLocation>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有库位");
+            return new List<StorageLocation>();
+        }
     }
 
+    /// <summary>
+    /// 根据状态获取库位
+    /// </summary>
     public List<StorageLocation> GetLocationsByStatus(LocationStatus status)
     {
-        var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
-                     Description, Status, CreateTime 
-                     FROM DM_StorageLocation 
-                     WHERE Status = @Status
-                     ORDER BY Area, ShelfNo, LayerNo, PositionNo";
+        try
+        {
+            var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
+                         Description, Status, CreateTime 
+                         FROM DM_StorageLocation 
+                         WHERE Status = @Status
+                         ORDER BY Area, ShelfNo, LayerNo, PositionNo";
 
-        return DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@Status", (int)status));
+            return DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@Status", (int)status));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库位(Status:{status})");
+            return new List<StorageLocation>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库位(Status:{status})");
+            return new List<StorageLocation>();
+        }
     }
 
+    /// <summary>
+    /// 搜索库位
+    /// </summary>
     public List<StorageLocation> SearchLocations(string keyword)
     {
-        var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
-                     Description, Status, CreateTime 
-                     FROM DM_StorageLocation 
-                     WHERE LocationCode LIKE @Keyword OR Area LIKE @Keyword OR Description LIKE @Keyword
-                     ORDER BY Area, ShelfNo, LayerNo, PositionNo";
+        try
+        {
+            var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
+                         Description, Status, CreateTime 
+                         FROM DM_StorageLocation 
+                         WHERE LocationCode LIKE @Keyword OR Area LIKE @Keyword OR Description LIKE @Keyword
+                         ORDER BY Area, ShelfNo, LayerNo, PositionNo";
 
-        return DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@Keyword", $"%{keyword}%"));
+            return DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@Keyword", $"%{keyword}%"));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "搜索库位");
+            return new List<StorageLocation>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "搜索库位");
+            return new List<StorageLocation>();
+        }
     }
 
+    /// <summary>
+    /// 根据ID获取库位
+    /// </summary>
     public StorageLocation? GetLocationById(int locationId)
     {
-        var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
-                     Description, Status, CreateTime 
-                     FROM DM_StorageLocation 
-                     WHERE LocationID = @LocationID";
+        try
+        {
+            var sql = @"SELECT LocationID, LocationCode, Area, ShelfNo, LayerNo, PositionNo, 
+                         Description, Status, CreateTime 
+                         FROM DM_StorageLocation 
+                         WHERE LocationID = @LocationID";
 
-        var locations = DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@LocationID", locationId));
-        return locations.FirstOrDefault();
+            var locations = DbHelper.ExecuteQuery(sql, MapToStorageLocation, new SqlParameter("@LocationID", locationId));
+            return locations.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库位(ID:{locationId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库位(ID:{locationId})");
+            return null;
+        }
     }
 
+    /// <summary>
+    /// 创建库位
+    /// </summary>
     public int CreateLocation(StorageLocation location)
     {
-        var sql = @"INSERT INTO DM_StorageLocation (LocationCode, Area, ShelfNo, LayerNo, PositionNo, Description, Status, CreateTime) 
-                     VALUES (@LocationCode, @Area, @ShelfNo, @LayerNo, @PositionNo, @Description, @Status, GETDATE());
-                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-        var result = DbHelper.ExecuteScalar(sql,
-            new SqlParameter("@LocationCode", location.LocationCode),
-            new SqlParameter("@Area", location.Area),
-            new SqlParameter("@ShelfNo", location.ShelfNo),
-            new SqlParameter("@LayerNo", location.LayerNo),
-            new SqlParameter("@PositionNo", location.PositionNo),
-            new SqlParameter("@Description", location.Description),
-            new SqlParameter("@Status", (int)location.Status));
-
-        var locationId = result == DBNull.Value ? 0 : Convert.ToInt32(result);
-
-        // 记录操作日志
-        if (locationId > 0)
+        try
         {
-            LogService.LogOperation("新增", $"新增库位：{location.LocationCode}");
-        }
+            var sql = @"INSERT INTO DM_StorageLocation (LocationCode, Area, ShelfNo, LayerNo, PositionNo, Description, Status, CreateTime) 
+                         VALUES (@LocationCode, @Area, @ShelfNo, @LayerNo, @PositionNo, @Description, @Status, GETDATE());
+                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-        return locationId;
+            var result = DbHelper.ExecuteScalar(sql,
+                new SqlParameter("@LocationCode", location.LocationCode),
+                new SqlParameter("@Area", location.Area),
+                new SqlParameter("@ShelfNo", location.ShelfNo),
+                new SqlParameter("@LayerNo", location.LayerNo),
+                new SqlParameter("@PositionNo", location.PositionNo),
+                new SqlParameter("@Description", location.Description),
+                new SqlParameter("@Status", (int)location.Status));
+
+            return result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        }
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+        {
+            ExceptionHelper.HandleException(new BusinessException("库位编号已存在，请使用其他编号。"), "创建库位");
+            return 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "创建库位");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "创建库位");
+            return 0;
+        }
     }
 
+    /// <summary>
+    /// 更新库位
+    /// </summary>
     public bool UpdateLocation(StorageLocation location)
     {
-        var sql = @"UPDATE DM_StorageLocation SET 
-                     LocationCode = @LocationCode,
-                     Area = @Area,
-                     ShelfNo = @ShelfNo,
-                     LayerNo = @LayerNo,
-                     PositionNo = @PositionNo,
-                     Description = @Description,
-                     Status = @Status
-                     WHERE LocationID = @LocationID";
-
-        var result = DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@LocationID", location.LocationID),
-            new SqlParameter("@LocationCode", location.LocationCode),
-            new SqlParameter("@Area", location.Area),
-            new SqlParameter("@ShelfNo", location.ShelfNo),
-            new SqlParameter("@LayerNo", location.LayerNo),
-            new SqlParameter("@PositionNo", location.PositionNo),
-            new SqlParameter("@Description", location.Description),
-            new SqlParameter("@Status", (int)location.Status)) > 0;
-
-        // 记录操作日志
-        if (result)
+        try
         {
-            LogService.LogOperation("修改", $"编辑库位：{location.LocationCode}");
-        }
+            var sql = @"UPDATE DM_StorageLocation SET 
+                         LocationCode = @LocationCode,
+                         Area = @Area,
+                         ShelfNo = @ShelfNo,
+                         LayerNo = @LayerNo,
+                         PositionNo = @PositionNo,
+                         Description = @Description,
+                         Status = @Status
+                         WHERE LocationID = @LocationID";
 
-        return result;
+            return DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@LocationID", location.LocationID),
+                new SqlParameter("@LocationCode", location.LocationCode),
+                new SqlParameter("@Area", location.Area),
+                new SqlParameter("@ShelfNo", location.ShelfNo),
+                new SqlParameter("@LayerNo", location.LayerNo),
+                new SqlParameter("@PositionNo", location.PositionNo),
+                new SqlParameter("@Description", location.Description),
+                new SqlParameter("@Status", (int)location.Status)) > 0;
+        }
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
+        {
+            ExceptionHelper.HandleException(new BusinessException("库位编号已存在，请使用其他编号。"), "更新库位");
+            return false;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库位(ID:{location.LocationID})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库位(ID:{location.LocationID})");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 删除库位
+    /// </summary>
     public bool DeleteLocation(int locationId)
     {
-        // 先获取库位信息用于日志记录
-        var location = GetLocationById(locationId);
-        var locationCode = location?.LocationCode ?? locationId.ToString();
-
-        var sql = "DELETE FROM DM_StorageLocation WHERE LocationID = @LocationID";
-        var result = DbHelper.ExecuteNonQuery(sql, new SqlParameter("@LocationID", locationId)) > 0;
-
-        // 记录操作日志
-        if (result)
+        try
         {
-            LogService.LogOperation("删除", $"删除库位：{locationCode}");
+            var sql = "DELETE FROM DM_StorageLocation WHERE LocationID = @LocationID";
+            return DbHelper.ExecuteNonQuery(sql, new SqlParameter("@LocationID", locationId)) > 0;
         }
-
-        return result;
+        catch (SqlException ex) when (ex.Number == 547)
+        {
+            ExceptionHelper.HandleException(new BusinessException("该库位有关联的刀模库存，无法删除。"), "删除库位");
+            return false;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"删除库位(ID:{locationId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"删除库位(ID:{locationId})");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 检查库位编号是否已存在
+    /// </summary>
     public bool IsLocationCodeExists(string locationCode, int? excludeLocationId = null)
     {
-        var sql = excludeLocationId.HasValue
-            ? "SELECT COUNT(*) FROM DM_StorageLocation WHERE LocationCode = @LocationCode AND LocationID != @LocationID"
-            : "SELECT COUNT(*) FROM DM_StorageLocation WHERE LocationCode = @LocationCode";
+        try
+        {
+            var sql = excludeLocationId.HasValue
+                ? "SELECT COUNT(*) FROM DM_StorageLocation WHERE LocationCode = @LocationCode AND LocationID != @LocationID"
+                : "SELECT COUNT(*) FROM DM_StorageLocation WHERE LocationCode = @LocationCode";
 
-        var parameters = new List<SqlParameter> { new SqlParameter("@LocationCode", locationCode) };
-        if (excludeLocationId.HasValue)
-            parameters.Add(new SqlParameter("@LocationID", excludeLocationId.Value));
+            var parameters = new List<SqlParameter> { new SqlParameter("@LocationCode", locationCode) };
+            if (excludeLocationId.HasValue)
+                parameters.Add(new SqlParameter("@LocationID", excludeLocationId.Value));
 
-        var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
-        return Convert.ToInt32(result) > 0;
+            var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
+            return Convert.ToInt32(result) > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "检查库位编号是否存在");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "检查库位编号是否存在");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 将数据读取器映射为库位对象
+    /// </summary>
     private StorageLocation MapToStorageLocation(SqlDataReader reader)
     {
         return new StorageLocation
@@ -161,90 +278,192 @@ public class WarehouseService
 
     #region 刀模库存管理
 
+    /// <summary>
+    /// 获取所有库存
+    /// </summary>
     public List<DieInventory> GetAllInventory()
     {
-        var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
-                     i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
-                     l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieInventory i
-                     LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
-                     LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
-                     ORDER BY i.UpdateTime DESC";
+        try
+        {
+            var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
+                         i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
+                         l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieInventory i
+                         LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
+                         LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
+                         ORDER BY i.UpdateTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieInventory);
+            return DbHelper.ExecuteQuery(sql, MapToDieInventory);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有库存");
+            return new List<DieInventory>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有库存");
+            return new List<DieInventory>();
+        }
     }
 
+    /// <summary>
+    /// 根据状态获取库存
+    /// </summary>
     public List<DieInventory> GetInventoryByStatus(StorageStatus status)
     {
-        var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
-                     i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
-                     l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieInventory i
-                     LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
-                     LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
-                     WHERE i.StorageStatus = @Status
-                     ORDER BY i.UpdateTime DESC";
+        try
+        {
+            var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
+                         i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
+                         l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieInventory i
+                         LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
+                         LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
+                         WHERE i.StorageStatus = @Status
+                         ORDER BY i.UpdateTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@Status", (int)status));
+            return DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@Status", (int)status));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(Status:{status})");
+            return new List<DieInventory>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(Status:{status})");
+            return new List<DieInventory>();
+        }
     }
 
+    /// <summary>
+    /// 获取在库库存
+    /// </summary>
     public List<DieInventory> GetInStockInventory()
     {
         return GetInventoryByStatus(StorageStatus.InStock);
     }
 
+    /// <summary>
+    /// 根据ID获取库存
+    /// </summary>
     public DieInventory? GetInventoryById(int inventoryId)
     {
-        var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
-                     i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
-                     l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieInventory i
-                     LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
-                     LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
-                     WHERE i.InventoryID = @InventoryID";
+        try
+        {
+            var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
+                         i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
+                         l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieInventory i
+                         LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
+                         LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
+                         WHERE i.InventoryID = @InventoryID";
 
-        var inventories = DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@InventoryID", inventoryId));
-        return inventories.FirstOrDefault();
+            var inventories = DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@InventoryID", inventoryId));
+            return inventories.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(ID:{inventoryId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(ID:{inventoryId})");
+            return null;
+        }
     }
 
+    /// <summary>
+    /// 根据刀模ID获取库存
+    /// </summary>
     public DieInventory? GetInventoryByDieId(int dieId)
     {
-        var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
-                     i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
-                     l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieInventory i
-                     LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
-                     LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
-                     WHERE i.DieID = @DieID";
+        try
+        {
+            var sql = @"SELECT i.InventoryID, i.DieID, i.LocationID, i.StorageStatus, i.InStockTime, 
+                         i.LastBorrowTime, i.LastReturnTime, i.TotalBorrowCount, i.Remark, i.UpdateTime,
+                         l.LocationCode, d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieInventory i
+                         LEFT JOIN DM_StorageLocation l ON i.LocationID = l.LocationID
+                         LEFT JOIN DM_DieInfo d ON i.DieID = d.DieID
+                         WHERE i.DieID = @DieID";
 
-        var inventories = DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@DieID", dieId));
-        return inventories.FirstOrDefault();
+            var inventories = DbHelper.ExecuteQuery(sql, MapToDieInventory, new SqlParameter("@DieID", dieId));
+            return inventories.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(DieID:{dieId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取库存(DieID:{dieId})");
+            return null;
+        }
     }
 
+    /// <summary>
+    /// 更新库存库位
+    /// </summary>
     public bool UpdateInventoryLocation(int inventoryId, int? locationId)
     {
-        var sql = @"UPDATE DM_DieInventory SET 
-                     LocationID = @LocationID,
-                     UpdateTime = GETDATE()
-                     WHERE InventoryID = @InventoryID";
+        try
+        {
+            var sql = @"UPDATE DM_DieInventory SET 
+                         LocationID = @LocationID,
+                         UpdateTime = GETDATE()
+                         WHERE InventoryID = @InventoryID";
 
-        return DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@InventoryID", inventoryId),
-            new SqlParameter("@LocationID", locationId ?? (object)DBNull.Value)) > 0;
+            return DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@InventoryID", inventoryId),
+                new SqlParameter("@LocationID", locationId ?? (object)DBNull.Value)) > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库存库位(InventoryID:{inventoryId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库存库位(InventoryID:{inventoryId})");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 更新库存状态
+    /// </summary>
     public bool UpdateInventoryStatus(int inventoryId, StorageStatus status)
     {
-        var sql = @"UPDATE DM_DieInventory SET 
-                     StorageStatus = @StorageStatus,
-                     UpdateTime = GETDATE()
-                     WHERE InventoryID = @InventoryID";
+        try
+        {
+            var sql = @"UPDATE DM_DieInventory SET 
+                         StorageStatus = @StorageStatus,
+                         UpdateTime = GETDATE()
+                         WHERE InventoryID = @InventoryID";
 
-        return DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@InventoryID", inventoryId),
-            new SqlParameter("@StorageStatus", (int)status)) > 0;
+            return DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@InventoryID", inventoryId),
+                new SqlParameter("@StorageStatus", (int)status)) > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库存状态(InventoryID:{inventoryId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新库存状态(InventoryID:{inventoryId})");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 将数据读取器映射为库存对象
+    /// </summary>
     private DieInventory MapToDieInventory(SqlDataReader reader)
     {
         return new DieInventory
@@ -266,197 +485,201 @@ public class WarehouseService
         };
     }
 
-    /// <summary>
-    /// 刀模入库 - 将完工的刀模入库到指定库位
-    /// </summary>
-    public bool InStockDie(int dieId, int locationId, DateTime inStockTime, string operatorName, string? remark = null)
-    {
-        using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
-
-        try
-        {
-            // 检查是否已存在库存记录
-            var checkSql = "SELECT COUNT(*) FROM DM_DieInventory WHERE DieID = @DieID";
-            using var checkCommand = new SqlCommand(checkSql, connection, transaction);
-            checkCommand.Parameters.AddWithValue("@DieID", dieId);
-            var count = Convert.ToInt32(checkCommand.ExecuteScalar());
-
-            if (count > 0)
-            {
-                throw new InvalidOperationException("该刀模已存在库存记录，不能重复入库");
-            }
-
-            // 获取刀模编号和库位信息用于日志
-            var dieCode = "";
-            var locationCode = "";
-            
-            var dieInfoSql = "SELECT DieCode FROM DM_DieInfo WHERE DieID = @DieID";
-            using var dieInfoCmd = new SqlCommand(dieInfoSql, connection, transaction);
-            dieInfoCmd.Parameters.AddWithValue("@DieID", dieId);
-            var dieResult = dieInfoCmd.ExecuteScalar();
-            if (dieResult != null && dieResult != DBNull.Value)
-                dieCode = dieResult.ToString() ?? "";
-            
-            var locInfoSql = "SELECT LocationCode FROM DM_StorageLocation WHERE LocationID = @LocationID";
-            using var locInfoCmd = new SqlCommand(locInfoSql, connection, transaction);
-            locInfoCmd.Parameters.AddWithValue("@LocationID", locationId);
-            var locResult = locInfoCmd.ExecuteScalar();
-            if (locResult != null && locResult != DBNull.Value)
-                locationCode = locResult.ToString() ?? "";
-
-            // 插入库存记录
-            var sql = @"INSERT INTO DM_DieInventory (DieID, LocationID, StorageStatus, InStockTime, TotalBorrowCount, Remark, UpdateTime) 
-                         VALUES (@DieID, @LocationID, @StorageStatus, @InStockTime, 0, @Remark, GETDATE());
-                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-            using var command = new SqlCommand(sql, connection, transaction);
-            command.Parameters.AddWithValue("@DieID", dieId);
-            command.Parameters.AddWithValue("@LocationID", locationId);
-            command.Parameters.AddWithValue("@StorageStatus", (int)StorageStatus.InStock);
-            command.Parameters.AddWithValue("@InStockTime", inStockTime);
-            command.Parameters.AddWithValue("@Remark", remark ?? (object)DBNull.Value);
-            command.ExecuteScalar();
-
-            // 更新库位状态为占用
-            var locationSql = "UPDATE DM_StorageLocation SET Status = @Status WHERE LocationID = @LocationID";
-            using var locationCommand = new SqlCommand(locationSql, connection, transaction);
-            locationCommand.Parameters.AddWithValue("@Status", (int)LocationStatus.Occupied);
-            locationCommand.Parameters.AddWithValue("@LocationID", locationId);
-            locationCommand.ExecuteNonQuery();
-
-            // 更新刀模状态为已入库
-            var dieSql = "UPDATE DM_DieInfo SET Status = @Status WHERE DieID = @DieID";
-            using var dieCommand = new SqlCommand(dieSql, connection, transaction);
-            dieCommand.Parameters.AddWithValue("@Status", 2); // 2 = 已入库
-            dieCommand.Parameters.AddWithValue("@DieID", dieId);
-            dieCommand.ExecuteNonQuery();
-
-            transaction.Commit();
-            
-            // 记录操作日志
-            LogService.LogOperation("入库", $"刀模入库：{dieCode}，库位：{locationCode}，操作人：{operatorName}", dieCode);
-            
-            return true;
-        }
-        catch
-        {
-            transaction.Rollback();
-            throw;
-        }
-    }
-
     #endregion
 
     #region 借用记录管理
 
+    /// <summary>
+    /// 获取所有借用记录
+    /// </summary>
     public List<DieBorrowRecord> GetAllBorrowRecords()
     {
-        var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
-                     r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
-                     r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieBorrowRecord r
-                     LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
-                     ORDER BY r.BorrowTime DESC";
+        try
+        {
+            var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
+                         r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
+                         r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieBorrowRecord r
+                         LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
+                         ORDER BY r.BorrowTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord);
+            return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有借用记录");
+            return new List<DieBorrowRecord>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有借用记录");
+            return new List<DieBorrowRecord>();
+        }
     }
 
+    /// <summary>
+    /// 根据状态获取借用记录
+    /// </summary>
     public List<DieBorrowRecord> GetBorrowRecordsByStatus(BorrowStatus status)
     {
-        var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
-                     r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
-                     r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieBorrowRecord r
-                     LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
-                     WHERE r.Status = @Status
-                     ORDER BY r.BorrowTime DESC";
+        try
+        {
+            var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
+                         r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
+                         r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieBorrowRecord r
+                         LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
+                         WHERE r.Status = @Status
+                         ORDER BY r.BorrowTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@Status", (int)status));
+            return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@Status", (int)status));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(Status:{status})");
+            return new List<DieBorrowRecord>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(Status:{status})");
+            return new List<DieBorrowRecord>();
+        }
     }
 
+    /// <summary>
+    /// 根据刀模ID获取借用记录
+    /// </summary>
     public List<DieBorrowRecord> GetBorrowRecordsByDieId(int dieId)
     {
-        var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
-                     r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
-                     r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieBorrowRecord r
-                     LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
-                     WHERE r.DieID = @DieID
-                     ORDER BY r.BorrowTime DESC";
+        try
+        {
+            var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
+                         r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
+                         r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieBorrowRecord r
+                         LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
+                         WHERE r.DieID = @DieID
+                         ORDER BY r.BorrowTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@DieID", dieId));
+            return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@DieID", dieId));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(DieID:{dieId})");
+            return new List<DieBorrowRecord>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(DieID:{dieId})");
+            return new List<DieBorrowRecord>();
+        }
     }
 
+    /// <summary>
+    /// 搜索借用记录
+    /// </summary>
     public List<DieBorrowRecord> SearchBorrowRecords(string? dieCode = null, string? borrowerName = null, DateTime? startDate = null, DateTime? endDate = null)
     {
-        var conditions = new List<string>();
-        var parameters = new List<SqlParameter>();
-
-        if (!string.IsNullOrEmpty(dieCode))
+        try
         {
-            conditions.Add("d.DieCode LIKE @DieCode");
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
-        }
+            var conditions = new List<string>();
+            var parameters = new List<SqlParameter>();
 
-        if (!string.IsNullOrEmpty(borrowerName))
+            if (!string.IsNullOrEmpty(dieCode))
+            {
+                conditions.Add("d.DieCode LIKE @DieCode");
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
+            if (!string.IsNullOrEmpty(borrowerName))
+            {
+                conditions.Add("r.BorrowerName LIKE @BorrowerName");
+                parameters.Add(new SqlParameter("@BorrowerName", $"%{borrowerName}%"));
+            }
+
+            if (startDate.HasValue)
+            {
+                conditions.Add("r.BorrowTime >= @StartDate");
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                conditions.Add("r.BorrowTime <= @EndDate");
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+
+            var sql = $@"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
+                         r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
+                         r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieBorrowRecord r
+                         LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
+                         {whereClause}
+                         ORDER BY r.BorrowTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, parameters.ToArray());
+        }
+        catch (SqlException ex)
         {
-            conditions.Add("r.BorrowerName LIKE @BorrowerName");
-            parameters.Add(new SqlParameter("@BorrowerName", $"%{borrowerName}%"));
+            ExceptionHelper.HandleException(ex, "搜索借用记录");
+            return new List<DieBorrowRecord>();
         }
-
-        if (startDate.HasValue)
+        catch (Exception ex)
         {
-            conditions.Add("r.BorrowTime >= @StartDate");
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            ExceptionHelper.HandleException(ex, "搜索借用记录");
+            return new List<DieBorrowRecord>();
         }
-
-        if (endDate.HasValue)
-        {
-            conditions.Add("r.BorrowTime <= @EndDate");
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
-        }
-
-        var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-
-        var sql = $@"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
-                     r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
-                     r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieBorrowRecord r
-                     LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
-                     {whereClause}
-                     ORDER BY r.BorrowTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, parameters.ToArray());
     }
 
+    /// <summary>
+    /// 根据ID获取借用记录
+    /// </summary>
     public DieBorrowRecord? GetBorrowRecordById(int borrowId)
     {
-        var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
-                     r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
-                     r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieBorrowRecord r
-                     LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
-                     WHERE r.BorrowID = @BorrowID";
+        try
+        {
+            var sql = @"SELECT r.BorrowID, r.DieID, r.InventoryID, r.BorrowType, r.BorrowerNo, r.BorrowerName, 
+                         r.BorrowDept, r.BorrowTime, r.ExpectedReturnTime, r.ActualReturnTime, r.Purpose, 
+                         r.Status, r.ReturnOperatorNo, r.ReturnOperatorName, r.Remark, r.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieBorrowRecord r
+                         LEFT JOIN DM_DieInfo d ON r.DieID = d.DieID
+                         WHERE r.BorrowID = @BorrowID";
 
-        var records = DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@BorrowID", borrowId));
-        return records.FirstOrDefault();
+            var records = DbHelper.ExecuteQuery(sql, MapToDieBorrowRecord, new SqlParameter("@BorrowID", borrowId));
+            return records.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(ID:{borrowId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取借用记录(ID:{borrowId})");
+            return null;
+        }
     }
 
+    /// <summary>
+    /// 创建借用记录
+    /// </summary>
     public int CreateBorrowRecord(DieBorrowRecord record)
     {
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             // 插入借用记录
             var sql = @"INSERT INTO DM_DieBorrowRecord (DieID, InventoryID, BorrowType, BorrowerNo, BorrowerName, 
                          BorrowDept, BorrowTime, ExpectedReturnTime, Purpose, Status, Remark, CreateTime) 
@@ -503,32 +726,42 @@ public class WarehouseService
             locationCommand.ExecuteNonQuery();
 
             transaction.Commit();
-
-            // 记录操作日志
-            var dieCode = GetDieCodeById(record.DieID);
-            LogService.LogOperation("领用", $"刀模领用：{dieCode}，领用人：{record.BorrowerName}", dieCode);
-
             return borrowId;
         }
-        catch
+        catch (SqlException ex)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, "创建借用记录");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, "创建借用记录");
+            return 0;
         }
     }
 
+    /// <summary>
+    /// 归还刀模
+    /// </summary>
     public bool ReturnDie(int borrowId, string returnOperatorNo, string returnOperatorName, string? remark = null)
     {
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             // 获取借用记录
             var record = GetBorrowRecordById(borrowId);
             if (record == null || record.Status == BorrowStatus.Returned)
+            {
+                ExceptionHelper.HandleException(new BusinessException("借用记录不存在或已归还。"), "归还刀模");
                 return false;
+            }
 
             var actualReturnTime = DateTime.Now;
 
@@ -564,36 +797,25 @@ public class WarehouseService
             updateCommand.ExecuteNonQuery();
 
             transaction.Commit();
-
-            // 记录操作日志
-            LogService.LogOperation("归还", $"刀模归还：{record.DieCode}，操作人：{returnOperatorName}", record.DieCode);
-
             return true;
         }
-        catch
+        catch (SqlException ex)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"归还刀模(BorrowID:{borrowId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"归还刀模(BorrowID:{borrowId})");
+            return false;
         }
     }
 
     /// <summary>
-    /// 根据刀模ID获取刀模编号
+    /// 将数据读取器映射为借用记录对象
     /// </summary>
-    private string GetDieCodeById(int dieId)
-    {
-        try
-        {
-            var sql = "SELECT DieCode FROM DM_DieInfo WHERE DieID = @DieID";
-            var result = DbHelper.ExecuteScalar(sql, new SqlParameter("@DieID", dieId));
-            return result?.ToString() ?? dieId.ToString();
-        }
-        catch
-        {
-            return dieId.ToString();
-        }
-    }
-
     private DieBorrowRecord MapToDieBorrowRecord(SqlDataReader reader)
     {
         return new DieBorrowRecord
@@ -624,85 +846,145 @@ public class WarehouseService
 
     #region 报废申请管理
 
+    /// <summary>
+    /// 获取所有报废记录
+    /// </summary>
     public List<DieScrapRecord> GetAllScrapRecords()
     {
-        var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
-                     s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
-                     s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieScrapRecord s
-                     LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
-                     ORDER BY s.ApplyTime DESC";
+        try
+        {
+            var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
+                         s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
+                         s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieScrapRecord s
+                         LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
+                         ORDER BY s.ApplyTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieScrapRecord);
+            return DbHelper.ExecuteQuery(sql, MapToDieScrapRecord);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有报废记录");
+            return new List<DieScrapRecord>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有报废记录");
+            return new List<DieScrapRecord>();
+        }
     }
 
+    /// <summary>
+    /// 根据状态获取报废记录
+    /// </summary>
     public List<DieScrapRecord> GetScrapRecordsByStatus(ScrapAuditStatus status)
     {
-        var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
-                     s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
-                     s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieScrapRecord s
-                     LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
-                     WHERE s.AuditStatus = @AuditStatus
-                     ORDER BY s.ApplyTime DESC";
+        try
+        {
+            var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
+                         s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
+                         s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieScrapRecord s
+                         LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
+                         WHERE s.AuditStatus = @AuditStatus
+                         ORDER BY s.ApplyTime DESC";
 
-        return DbHelper.ExecuteQuery(sql, MapToDieScrapRecord, new SqlParameter("@AuditStatus", (int)status));
+            return DbHelper.ExecuteQuery(sql, MapToDieScrapRecord, new SqlParameter("@AuditStatus", (int)status));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取报废记录(Status:{status})");
+            return new List<DieScrapRecord>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取报废记录(Status:{status})");
+            return new List<DieScrapRecord>();
+        }
     }
 
+    /// <summary>
+    /// 根据ID获取报废记录
+    /// </summary>
     public DieScrapRecord? GetScrapRecordById(int scrapId)
     {
-        var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
-                     s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
-                     s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
-                     d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieScrapRecord s
-                     LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
-                     WHERE s.ScrapID = @ScrapID";
+        try
+        {
+            var sql = @"SELECT s.ScrapID, s.DieID, s.InventoryID, s.ScrapReason, s.ScrapType, s.ApplicantNo, 
+                         s.ApplicantName, s.ApplyTime, s.AuditorNo, s.AuditorName, s.AuditTime, 
+                         s.AuditStatus, s.AuditRemark, s.ScrapTime, s.CreateTime,
+                         d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieScrapRecord s
+                         LEFT JOIN DM_DieInfo d ON s.DieID = d.DieID
+                         WHERE s.ScrapID = @ScrapID";
 
-        var records = DbHelper.ExecuteQuery(sql, MapToDieScrapRecord, new SqlParameter("@ScrapID", scrapId));
-        return records.FirstOrDefault();
+            var records = DbHelper.ExecuteQuery(sql, MapToDieScrapRecord, new SqlParameter("@ScrapID", scrapId));
+            return records.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取报废记录(ID:{scrapId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取报废记录(ID:{scrapId})");
+            return null;
+        }
     }
 
+    /// <summary>
+    /// 创建报废记录
+    /// </summary>
     public int CreateScrapRecord(DieScrapRecord record)
     {
-        var sql = @"INSERT INTO DM_DieScrapRecord (DieID, InventoryID, ScrapReason, ScrapType, ApplicantNo, 
-                     ApplicantName, ApplyTime, AuditStatus, CreateTime) 
-                     VALUES (@DieID, @InventoryID, @ScrapReason, @ScrapType, @ApplicantNo, 
-                     @ApplicantName, @ApplyTime, @AuditStatus, GETDATE());
-                     SELECT CAST(SCOPE_IDENTITY() AS INT);";
-
-        var result = DbHelper.ExecuteScalar(sql,
-            new SqlParameter("@DieID", record.DieID),
-            new SqlParameter("@InventoryID", record.InventoryID),
-            new SqlParameter("@ScrapReason", record.ScrapReason),
-            new SqlParameter("@ScrapType", record.ScrapType),
-            new SqlParameter("@ApplicantNo", record.ApplicantNo),
-            new SqlParameter("@ApplicantName", record.ApplicantName),
-            new SqlParameter("@ApplyTime", record.ApplyTime),
-            new SqlParameter("@AuditStatus", (int)ScrapAuditStatus.Pending));
-
-        var scrapId = result == DBNull.Value ? 0 : Convert.ToInt32(result);
-
-        // 记录操作日志
-        if (scrapId > 0)
+        try
         {
-            var dieCode = GetDieCodeById(record.DieID);
-            LogService.LogOperation("报废申请", $"提交报废申请：{dieCode}，原因：{record.ScrapReason}", dieCode);
-        }
+            var sql = @"INSERT INTO DM_DieScrapRecord (DieID, InventoryID, ScrapReason, ScrapType, ApplicantNo, 
+                         ApplicantName, ApplyTime, AuditStatus, CreateTime) 
+                         VALUES (@DieID, @InventoryID, @ScrapReason, @ScrapType, @ApplicantNo, 
+                         @ApplicantName, @ApplyTime, @AuditStatus, GETDATE());
+                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-        return scrapId;
+            var result = DbHelper.ExecuteScalar(sql,
+                new SqlParameter("@DieID", record.DieID),
+                new SqlParameter("@InventoryID", record.InventoryID),
+                new SqlParameter("@ScrapReason", record.ScrapReason),
+                new SqlParameter("@ScrapType", record.ScrapType),
+                new SqlParameter("@ApplicantNo", record.ApplicantNo),
+                new SqlParameter("@ApplicantName", record.ApplicantName),
+                new SqlParameter("@ApplyTime", record.ApplyTime),
+                new SqlParameter("@AuditStatus", (int)ScrapAuditStatus.Pending));
+
+            return result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "创建报废记录");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "创建报废记录");
+            return 0;
+        }
     }
 
+    /// <summary>
+    /// 审核报废记录
+    /// </summary>
     public bool AuditScrapRecord(int scrapId, bool approved, string auditorNo, string auditorName, string? auditRemark = null)
     {
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             var auditTime = DateTime.Now;
             var auditStatus = approved ? ScrapAuditStatus.Approved : ScrapAuditStatus.Rejected;
 
@@ -750,28 +1032,54 @@ public class WarehouseService
             }
 
             transaction.Commit();
-
-            // 记录操作日志
-            var actionText = approved ? "审核通过" : "审核驳回";
-            LogService.LogOperation("报废审核", $"{actionText}报废申请：{record.DieCode}，原因：{record.ScrapReason}", record.DieCode);
-
             return true;
         }
-        catch
+        catch (SqlException ex)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"审核报废记录(ID:{scrapId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"审核报废记录(ID:{scrapId})");
+            return false;
         }
     }
 
+    /// <summary>
+    /// 删除报废记录
+    /// </summary>
     public bool DeleteScrapRecord(int scrapId)
     {
-        var sql = "DELETE FROM DM_DieScrapRecord WHERE ScrapID = @ScrapID AND AuditStatus = @AuditStatus";
-        return DbHelper.ExecuteNonQuery(sql, 
-            new SqlParameter("@ScrapID", scrapId),
-            new SqlParameter("@AuditStatus", (int)ScrapAuditStatus.Pending)) > 0;
+        try
+        {
+            var sql = "DELETE FROM DM_DieScrapRecord WHERE ScrapID = @ScrapID AND AuditStatus = @AuditStatus";
+            return DbHelper.ExecuteNonQuery(sql, 
+                new SqlParameter("@ScrapID", scrapId),
+                new SqlParameter("@AuditStatus", (int)ScrapAuditStatus.Pending)) > 0;
+        }
+        catch (SqlException ex) when (ex.Number == 547)
+        {
+            ExceptionHelper.HandleException(new BusinessException("该报废记录有关联数据，无法删除。"), "删除报废记录");
+            return false;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"删除报废记录(ID:{scrapId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"删除报废记录(ID:{scrapId})");
+            return false;
+        }
     }
 
+    /// <summary>
+    /// 将数据读取器映射为报废记录对象
+    /// </summary>
     private DieScrapRecord MapToDieScrapRecord(SqlDataReader reader)
     {
         return new DieScrapRecord

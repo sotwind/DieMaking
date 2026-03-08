@@ -1,6 +1,5 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
-using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -14,21 +13,34 @@ public class ProductionService
     /// </summary>
     public ProductionBoardData GetProductionBoardData(DateTime? startDate, DateTime? endDate, string? customerName, string? dieCode)
     {
-        var data = new ProductionBoardData();
+        try
+        {
+            var data = new ProductionBoardData();
 
-        // 获取待生产刀模
-        data.PendingList = GetDieListByStatus(DieStatus.Pending, startDate, endDate, customerName, dieCode);
+            // 获取待生产刀模
+            data.PendingList = GetDieListByStatus(DieStatus.Pending, startDate, endDate, customerName, dieCode);
 
-        // 获取生产中刀模
-        data.InProgressList = GetDieListByStatus(DieStatus.InProgress, startDate, endDate, customerName, dieCode);
+            // 获取生产中刀模
+            data.InProgressList = GetDieListByStatus(DieStatus.InProgress, startDate, endDate, customerName, dieCode);
 
-        // 获取已完成刀模
-        data.CompletedList = GetDieListByStatus(DieStatus.Completed, startDate, endDate, customerName, dieCode);
+            // 获取已完成刀模
+            data.CompletedList = GetDieListByStatus(DieStatus.Completed, startDate, endDate, customerName, dieCode);
 
-        // 获取统计信息
-        data.Statistics = GetProductionStatistics(startDate, endDate, customerName, dieCode);
+            // 获取统计信息
+            data.Statistics = GetProductionStatistics(startDate, endDate, customerName, dieCode);
 
-        return data;
+            return data;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取生产看板数据");
+            return new ProductionBoardData();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取生产看板数据");
+            return new ProductionBoardData();
+        }
     }
 
     /// <summary>
@@ -36,53 +48,66 @@ public class ProductionService
     /// </summary>
     private List<DieBoardItem> GetDieListByStatus(DieStatus status, DateTime? startDate, DateTime? endDate, string? customerName, string? dieCode)
     {
-        var sql = @"SELECT d.DieID, d.DieCode, d.CustomerName, d.ProductName, d.DeliveryDate, 
-                            d.Status, d.CreateTime,
-                            (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID) as TotalProcesses,
-                            (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID AND Status = 2) as CompletedProcesses
-                     FROM DM_DieInfo d
-                     WHERE d.Status = @Status";
-
-        var parameters = new List<SqlParameter> { new SqlParameter("@Status", (int)status) };
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND d.CreateTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"SELECT d.DieID, d.DieCode, d.CustomerName, d.ProductName, d.DeliveryDate, 
+                                d.Status, d.CreateTime,
+                                (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID) as TotalProcesses,
+                                (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID AND Status = 2) as CompletedProcesses
+                         FROM DM_DieInfo d
+                         WHERE d.Status = @Status";
+
+            var parameters = new List<SqlParameter> { new SqlParameter("@Status", (int)status) };
+
+            if (startDate.HasValue)
+            {
+                sql += " AND d.CreateTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND d.CreateTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            if (!string.IsNullOrEmpty(customerName))
+            {
+                sql += " AND d.CustomerName LIKE @CustomerName";
+                parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            }
+
+            if (!string.IsNullOrEmpty(dieCode))
+            {
+                sql += " AND d.DieCode LIKE @DieCode";
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
+            sql += " ORDER BY d.CreateTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new DieBoardItem
+            {
+                DieID = Convert.ToInt32(reader["DieID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? "",
+                DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null,
+                Status = (DieStatus)Convert.ToInt32(reader["Status"]),
+                CreateTime = Convert.ToDateTime(reader["CreateTime"]),
+                TotalProcesses = Convert.ToInt32(reader["TotalProcesses"]),
+                CompletedProcesses = Convert.ToInt32(reader["CompletedProcesses"])
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND d.CreateTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, $"获取刀模列表(Status:{status})");
+            return new List<DieBoardItem>();
         }
-
-        if (!string.IsNullOrEmpty(customerName))
+        catch (Exception ex)
         {
-            sql += " AND d.CustomerName LIKE @CustomerName";
-            parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            ExceptionHelper.HandleException(ex, $"获取刀模列表(Status:{status})");
+            return new List<DieBoardItem>();
         }
-
-        if (!string.IsNullOrEmpty(dieCode))
-        {
-            sql += " AND d.DieCode LIKE @DieCode";
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
-        }
-
-        sql += " ORDER BY d.CreateTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new DieBoardItem
-        {
-            DieID = Convert.ToInt32(reader["DieID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? "",
-            DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null,
-            Status = (DieStatus)Convert.ToInt32(reader["Status"]),
-            CreateTime = Convert.ToDateTime(reader["CreateTime"]),
-            TotalProcesses = Convert.ToInt32(reader["TotalProcesses"]),
-            CompletedProcesses = Convert.ToInt32(reader["CompletedProcesses"])
-        }, parameters.ToArray());
     }
 
     /// <summary>
@@ -90,51 +115,48 @@ public class ProductionService
     /// </summary>
     private ProductionStatistics GetProductionStatistics(DateTime? startDate, DateTime? endDate, string? customerName, string? dieCode)
     {
-        var sql = @"SELECT 
-                        SUM(CASE WHEN Status = 0 THEN 1 ELSE 0 END) as PendingCount,
-                        SUM(CASE WHEN Status = 1 THEN 1 ELSE 0 END) as InProgressCount,
-                        SUM(CASE WHEN Status = 2 THEN 1 ELSE 0 END) as CompletedCount,
-                        COUNT(*) as TotalCount
-                     FROM DM_DieInfo d
-                     WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND d.CreateTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
-        }
+            var sql = @"SELECT 
+                            SUM(CASE WHEN Status = 0 THEN 1 ELSE 0 END) as PendingCount,
+                            SUM(CASE WHEN Status = 1 THEN 1 ELSE 0 END) as InProgressCount,
+                            SUM(CASE WHEN Status = 2 THEN 1 ELSE 0 END) as CompletedCount,
+                            COUNT(*) as TotalCount
+                         FROM DM_DieInfo d
+                         WHERE 1=1";
 
-        if (endDate.HasValue)
-        {
-            sql += " AND d.CreateTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
-        }
+            var parameters = new List<SqlParameter>();
 
-        if (!string.IsNullOrEmpty(customerName))
-        {
-            sql += " AND d.CustomerName LIKE @CustomerName";
-            parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
-        }
+            if (startDate.HasValue)
+            {
+                sql += " AND d.CreateTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
 
-        if (!string.IsNullOrEmpty(dieCode))
-        {
-            sql += " AND d.DieCode LIKE @DieCode";
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
-        }
+            if (endDate.HasValue)
+            {
+                sql += " AND d.CreateTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
 
-        var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
+            if (!string.IsNullOrEmpty(customerName))
+            {
+                sql += " AND d.CustomerName LIKE @CustomerName";
+                parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            }
 
-        if (result != null && result != DBNull.Value)
-        {
-            // 使用单独的查询获取统计
-            var statsSql = sql.Replace("SELECT ", "SELECT ").Replace("FROM DM_DieInfo", "FROM DM_DieInfo");
+            if (!string.IsNullOrEmpty(dieCode))
+            {
+                sql += " AND d.DieCode LIKE @DieCode";
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
             using var connection = DbHelper.CreateConnection();
             connection.Open();
-            using var command = new SqlCommand(statsSql, connection);
+            using var command = new SqlCommand(sql, connection);
             command.Parameters.AddRange(parameters.ToArray());
             using var reader = command.ExecuteReader();
+            
             if (reader.Read())
             {
                 return new ProductionStatistics
@@ -145,9 +167,19 @@ public class ProductionService
                     TotalCount = reader["TotalCount"] != DBNull.Value ? Convert.ToInt32(reader["TotalCount"]) : 0
                 };
             }
-        }
 
-        return new ProductionStatistics();
+            return new ProductionStatistics();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取生产统计信息");
+            return new ProductionStatistics();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取生产统计信息");
+            return new ProductionStatistics();
+        }
     }
 
     #endregion
@@ -159,53 +191,66 @@ public class ProductionService
     /// </summary>
     public List<CompletionRecord> QueryCompletions(DateTime? startDate, DateTime? endDate, string? dieCode, string? processName)
     {
-        var sql = @"SELECT c.CompletionID, c.DieID, d.DieCode, d.CustomerName, d.ProductName,
-                            c.CompleteTime, c.TotalAmount, c.OperatorNo, c.OperatorName, c.Remark
-                     FROM DM_DieCompletion c
-                     INNER JOIN DM_DieInfo d ON c.DieID = d.DieID
-                     WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND c.CompleteTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"SELECT c.CompletionID, c.DieID, d.DieCode, d.CustomerName, d.ProductName,
+                                c.CompleteTime, c.TotalAmount, c.OperatorNo, c.OperatorName, c.Remark
+                         FROM DM_DieCompletion c
+                         INNER JOIN DM_DieInfo d ON c.DieID = d.DieID
+                         WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND c.CompleteTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND c.CompleteTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            if (!string.IsNullOrEmpty(dieCode))
+            {
+                sql += " AND d.DieCode LIKE @DieCode";
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
+            if (!string.IsNullOrEmpty(processName))
+            {
+                sql += " AND EXISTS (SELECT 1 FROM DM_DieProcess p WHERE p.DieID = c.DieID AND p.ProcessName LIKE @ProcessName)";
+                parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
+            }
+
+            sql += " ORDER BY c.CompleteTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new CompletionRecord
+            {
+                CompletionID = Convert.ToInt32(reader["CompletionID"]),
+                DieID = Convert.ToInt32(reader["DieID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? "",
+                CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
+                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
+                OperatorNo = reader["OperatorNo"].ToString() ?? "",
+                OperatorName = reader["OperatorName"].ToString() ?? "",
+                Remark = reader["Remark"]?.ToString() ?? ""
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND c.CompleteTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "查询完工记录");
+            return new List<CompletionRecord>();
         }
-
-        if (!string.IsNullOrEmpty(dieCode))
+        catch (Exception ex)
         {
-            sql += " AND d.DieCode LIKE @DieCode";
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            ExceptionHelper.HandleException(ex, "查询完工记录");
+            return new List<CompletionRecord>();
         }
-
-        if (!string.IsNullOrEmpty(processName))
-        {
-            sql += " AND EXISTS (SELECT 1 FROM DM_DieProcess p WHERE p.DieID = c.DieID AND p.ProcessName LIKE @ProcessName)";
-            parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
-        }
-
-        sql += " ORDER BY c.CompleteTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new CompletionRecord
-        {
-            CompletionID = Convert.ToInt32(reader["CompletionID"]),
-            DieID = Convert.ToInt32(reader["DieID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? "",
-            CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
-            TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
-            OperatorNo = reader["OperatorNo"].ToString() ?? "",
-            OperatorName = reader["OperatorName"].ToString() ?? "",
-            Remark = reader["Remark"]?.ToString() ?? ""
-        }, parameters.ToArray());
     }
 
     #endregion
@@ -217,30 +262,43 @@ public class ProductionService
     /// </summary>
     public List<DieProcessForReport> GetDieProcessesForReport(int dieId)
     {
-        var sql = @"SELECT p.ProcessID, p.DieID, p.ProcessName, p.Status, p.StartTime, p.CompleteTime,
-                            p.OperatorNo, p.OperatorName, p.Amount, p.PrevProcessID,
-                            d.DieCode, d.CustomerName, d.ProductName
-                     FROM DM_DieProcess p
-                     INNER JOIN DM_DieInfo d ON p.DieID = d.DieID
-                     WHERE p.DieID = @DieID
-                     ORDER BY p.ProcessID";
-
-        return DbHelper.ExecuteQuery(sql, reader => new DieProcessForReport
+        try
         {
-            ProcessID = Convert.ToInt32(reader["ProcessID"]),
-            DieID = Convert.ToInt32(reader["DieID"]),
-            ProcessName = reader["ProcessName"].ToString() ?? "",
-            Status = (ProcessStatus)Convert.ToInt32(reader["Status"]),
-            StartTime = reader["StartTime"] != DBNull.Value ? Convert.ToDateTime(reader["StartTime"]) : null,
-            CompleteTime = reader["CompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["CompleteTime"]) : null,
-            OperatorNo = reader["OperatorNo"].ToString() ?? "",
-            OperatorName = reader["OperatorName"].ToString() ?? "",
-            Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : null,
-            PrevProcessID = reader["PrevProcessID"] != DBNull.Value ? Convert.ToInt32(reader["PrevProcessID"]) : null,
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? ""
-        }, new SqlParameter("@DieID", dieId));
+            var sql = @"SELECT p.ProcessID, p.DieID, p.ProcessName, p.Status, p.StartTime, p.CompleteTime,
+                                p.OperatorNo, p.OperatorName, p.Amount, p.PrevProcessID,
+                                d.DieCode, d.CustomerName, d.ProductName
+                         FROM DM_DieProcess p
+                         INNER JOIN DM_DieInfo d ON p.DieID = d.DieID
+                         WHERE p.DieID = @DieID
+                         ORDER BY p.ProcessID";
+
+            return DbHelper.ExecuteQuery(sql, reader => new DieProcessForReport
+            {
+                ProcessID = Convert.ToInt32(reader["ProcessID"]),
+                DieID = Convert.ToInt32(reader["DieID"]),
+                ProcessName = reader["ProcessName"].ToString() ?? "",
+                Status = (ProcessStatus)Convert.ToInt32(reader["Status"]),
+                StartTime = reader["StartTime"] != DBNull.Value ? Convert.ToDateTime(reader["StartTime"]) : null,
+                CompleteTime = reader["CompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["CompleteTime"]) : null,
+                OperatorNo = reader["OperatorNo"].ToString() ?? "",
+                OperatorName = reader["OperatorName"].ToString() ?? "",
+                Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : null,
+                PrevProcessID = reader["PrevProcessID"] != DBNull.Value ? Convert.ToInt32(reader["PrevProcessID"]) : null,
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? ""
+            }, new SqlParameter("@DieID", dieId));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取工序列表(DieID:{dieId})");
+            return new List<DieProcessForReport>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取工序列表(DieID:{dieId})");
+            return new List<DieProcessForReport>();
+        }
     }
 
     /// <summary>
@@ -248,20 +306,33 @@ public class ProductionService
     /// </summary>
     public List<DieInfoForReport> GetAvailableDiesForReport()
     {
-        var sql = @"SELECT DieID, DieCode, CustomerName, ProductName, Status, DeliveryDate
-                     FROM DM_DieInfo
-                     WHERE Status IN (0, 1)
-                     ORDER BY CreateTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new DieInfoForReport
+        try
         {
-            DieID = Convert.ToInt32(reader["DieID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? "",
-            Status = (DieStatus)Convert.ToInt32(reader["Status"]),
-            DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null
-        });
+            var sql = @"SELECT DieID, DieCode, CustomerName, ProductName, Status, DeliveryDate
+                         FROM DM_DieInfo
+                         WHERE Status IN (0, 1)
+                         ORDER BY CreateTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new DieInfoForReport
+            {
+                DieID = Convert.ToInt32(reader["DieID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? "",
+                Status = (DieStatus)Convert.ToInt32(reader["Status"]),
+                DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null
+            });
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取可报产刀模列表");
+            return new List<DieInfoForReport>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取可报产刀模列表");
+            return new List<DieInfoForReport>();
+        }
     }
 
     /// <summary>
@@ -269,31 +340,42 @@ public class ProductionService
     /// </summary>
     public bool StartProcess(int processId, string operatorNo, string operatorName)
     {
-        // 获取工序和刀模信息用于日志
-        var processInfo = GetProcessInfoForLog(processId);
-
-        var sql = @"UPDATE DM_DieProcess 
-                     SET Status = 1, StartTime = GETDATE(), OperatorNo = @OperatorNo, OperatorName = @OperatorName
-                     WHERE ProcessID = @ProcessID AND Status = 0";
-
-        var result = DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@ProcessID", processId),
-            new SqlParameter("@OperatorNo", operatorNo),
-            new SqlParameter("@OperatorName", operatorName));
-
-        // 同时更新刀模状态为生产中
-        if (result > 0)
+        try
         {
-            UpdateDieStatusToInProgress(processId);
-
-            // 记录操作日志
-            if (processInfo != null)
+            // 检查前道工序是否完成
+            if (!IsPrevProcessCompleted(processId))
             {
-                LogService.LogOperation("报产", $"开始工序：{processInfo.ProcessName}，刀模：{processInfo.DieCode}", processInfo.DieCode);
+                ExceptionHelper.HandleException(new BusinessException("前道工序尚未完成，无法开始当前工序。"), "开始工序生产");
+                return false;
             }
-        }
 
-        return result > 0;
+            var sql = @"UPDATE DM_DieProcess 
+                         SET Status = 1, StartTime = GETDATE(), OperatorNo = @OperatorNo, OperatorName = @OperatorName
+                         WHERE ProcessID = @ProcessID AND Status = 0";
+
+            var result = DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@ProcessID", processId),
+                new SqlParameter("@OperatorNo", operatorNo),
+                new SqlParameter("@OperatorName", operatorName));
+
+            // 同时更新刀模状态为生产中
+            if (result > 0)
+            {
+                UpdateDieStatusToInProgress(processId);
+            }
+
+            return result > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"开始工序生产(ProcessID:{processId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"开始工序生产(ProcessID:{processId})");
+            return false;
+        }
     }
 
     /// <summary>
@@ -301,34 +383,38 @@ public class ProductionService
     /// </summary>
     public bool CompleteProcess(int processId, decimal? amount, string operatorNo, string operatorName, string? remark)
     {
-        // 获取工序和刀模信息用于日志
-        var processInfo = GetProcessInfoForLog(processId);
-
-        var sql = @"UPDATE DM_DieProcess 
-                     SET Status = 2, CompleteTime = GETDATE(), 
-                         OperatorNo = @OperatorNo, OperatorName = @OperatorName,
-                         Amount = @Amount
-                     WHERE ProcessID = @ProcessID AND Status = 1";
-
-        var result = DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@ProcessID", processId),
-            new SqlParameter("@OperatorNo", operatorNo),
-            new SqlParameter("@OperatorName", operatorName),
-            new SqlParameter("@Amount", (object?)amount ?? DBNull.Value));
-
-        // 检查是否所有工序都已完成
-        if (result > 0)
+        try
         {
-            CheckAndCompleteDie(processId);
+            var sql = @"UPDATE DM_DieProcess 
+                         SET Status = 2, CompleteTime = GETDATE(), 
+                             OperatorNo = @OperatorNo, OperatorName = @OperatorName,
+                             Amount = @Amount
+                         WHERE ProcessID = @ProcessID AND Status = 1";
 
-            // 记录操作日志
-            if (processInfo != null)
+            var result = DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@ProcessID", processId),
+                new SqlParameter("@OperatorNo", operatorNo),
+                new SqlParameter("@OperatorName", operatorName),
+                new SqlParameter("@Amount", (object?)amount ?? DBNull.Value));
+
+            // 检查是否所有工序都已完成
+            if (result > 0)
             {
-                LogService.LogOperation("报产完成", $"完成工序：{processInfo.ProcessName}，刀模：{processInfo.DieCode}", processInfo.DieCode);
+                CheckAndCompleteDie(processId);
             }
-        }
 
-        return result > 0;
+            return result > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"完成工序生产(ProcessID:{processId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"完成工序生产(ProcessID:{processId})");
+            return false;
+        }
     }
 
     /// <summary>
@@ -336,11 +422,19 @@ public class ProductionService
     /// </summary>
     private void UpdateDieStatusToInProgress(int processId)
     {
-        var sql = @"UPDATE DM_DieInfo 
-                     SET Status = 1 
-                     WHERE DieID = (SELECT DieID FROM DM_DieProcess WHERE ProcessID = @ProcessID)
-                     AND Status = 0";
-        DbHelper.ExecuteNonQuery(sql, new SqlParameter("@ProcessID", processId));
+        try
+        {
+            var sql = @"UPDATE DM_DieInfo 
+                         SET Status = 1 
+                         WHERE DieID = (SELECT DieID FROM DM_DieProcess WHERE ProcessID = @ProcessID)
+                         AND Status = 0";
+            DbHelper.ExecuteNonQuery(sql, new SqlParameter("@ProcessID", processId));
+        }
+        catch (Exception ex)
+        {
+            // 状态更新失败不影响主流程，仅记录日志
+            ExceptionHelper.HandleExceptionSilent(ex, "更新刀模状态为生产中");
+        }
     }
 
     /// <summary>
@@ -348,26 +442,34 @@ public class ProductionService
     /// </summary>
     private void CheckAndCompleteDie(int processId)
     {
-        // 获取该工序所属的刀模ID
-        var getDieSql = "SELECT DieID FROM DM_DieProcess WHERE ProcessID = @ProcessID";
-        var dieId = DbHelper.ExecuteScalar(getDieSql, new SqlParameter("@ProcessID", processId));
-
-        if (dieId != null && dieId != DBNull.Value)
+        try
         {
-            // 检查是否所有工序都已完成
-            var checkSql = @"SELECT COUNT(*) FROM DM_DieProcess 
-                              WHERE DieID = @DieID AND Status != 2";
-            var incompleteCount = DbHelper.ExecuteScalar(checkSql, new SqlParameter("@DieID", dieId));
+            // 获取该工序所属的刀模ID
+            var getDieSql = "SELECT DieID FROM DM_DieProcess WHERE ProcessID = @ProcessID";
+            var dieId = DbHelper.ExecuteScalar(getDieSql, new SqlParameter("@ProcessID", processId));
 
-            if (Convert.ToInt32(incompleteCount) == 0)
+            if (dieId != null && dieId != DBNull.Value)
             {
-                // 所有工序已完成，更新刀模状态并创建完工记录
-                var updateSql = "UPDATE DM_DieInfo SET Status = 2 WHERE DieID = @DieID";
-                DbHelper.ExecuteNonQuery(updateSql, new SqlParameter("@DieID", dieId));
+                // 检查是否所有工序都已完成
+                var checkSql = @"SELECT COUNT(*) FROM DM_DieProcess 
+                                  WHERE DieID = @DieID AND Status != 2";
+                var incompleteCount = DbHelper.ExecuteScalar(checkSql, new SqlParameter("@DieID", dieId));
 
-                // 创建完工记录
-                CreateCompletionRecord(Convert.ToInt32(dieId));
+                if (Convert.ToInt32(incompleteCount) == 0)
+                {
+                    // 所有工序已完成，更新刀模状态并创建完工记录
+                    var updateSql = "UPDATE DM_DieInfo SET Status = 2 WHERE DieID = @DieID";
+                    DbHelper.ExecuteNonQuery(updateSql, new SqlParameter("@DieID", dieId));
+
+                    // 创建完工记录
+                    CreateCompletionRecord(Convert.ToInt32(dieId));
+                }
             }
+        }
+        catch (Exception ex)
+        {
+            // 状态更新失败不影响主流程，仅记录日志
+            ExceptionHelper.HandleExceptionSilent(ex, "检查并更新刀模完成状态");
         }
     }
 
@@ -376,12 +478,20 @@ public class ProductionService
     /// </summary>
     private void CreateCompletionRecord(int dieId)
     {
-        var sql = @"INSERT INTO DM_DieCompletion (DieID, CompleteTime, TotalAmount, OperatorNo, OperatorName, Remark)
-                     SELECT @DieID, GETDATE(), SUM(Amount), MAX(OperatorNo), MAX(OperatorName), ''
-                     FROM DM_DieProcess 
-                     WHERE DieID = @DieID";
+        try
+        {
+            var sql = @"INSERT INTO DM_DieCompletion (DieID, CompleteTime, TotalAmount, OperatorNo, OperatorName, Remark)
+                         SELECT @DieID, GETDATE(), SUM(Amount), MAX(OperatorNo), MAX(OperatorName), ''
+                         FROM DM_DieProcess 
+                         WHERE DieID = @DieID";
 
-        DbHelper.ExecuteNonQuery(sql, new SqlParameter("@DieID", dieId));
+            DbHelper.ExecuteNonQuery(sql, new SqlParameter("@DieID", dieId));
+        }
+        catch (Exception ex)
+        {
+            // 完工记录创建失败不影响主流程，仅记录日志
+            ExceptionHelper.HandleExceptionSilent(ex, "创建完工记录");
+        }
     }
 
     /// <summary>
@@ -389,51 +499,36 @@ public class ProductionService
     /// </summary>
     public bool IsPrevProcessCompleted(int processId)
     {
-        var sql = @"SELECT PrevProcessID FROM DM_DieProcess WHERE ProcessID = @ProcessID";
-        var result = DbHelper.ExecuteScalar(sql, new SqlParameter("@ProcessID", processId));
-
-        if (result == null || result == DBNull.Value)
-            return true; // 没有前道工序
-
-        var prevProcessId = Convert.ToInt32(result);
-
-        var checkSql = "SELECT Status FROM DM_DieProcess WHERE ProcessID = @ProcessID";
-        var statusResult = DbHelper.ExecuteScalar(checkSql, new SqlParameter("@ProcessID", prevProcessId));
-
-        if (statusResult != null && statusResult != DBNull.Value)
-        {
-            return Convert.ToInt32(statusResult) == 2; // 2 = 已完成
-        }
-
-        return false;
-    }
-
-    /// <summary>
-    /// 获取工序信息用于日志记录
-    /// </summary>
-    private (string ProcessName, string DieCode)? GetProcessInfoForLog(int processId)
-    {
         try
         {
-            var sql = @"SELECT p.ProcessName, d.DieCode 
-                         FROM DM_DieProcess p 
-                         INNER JOIN DM_DieInfo d ON p.DieID = d.DieID 
-                         WHERE p.ProcessID = @ProcessID";
-            using var connection = DbHelper.CreateConnection();
-            connection.Open();
-            using var command = new SqlCommand(sql, connection);
-            command.Parameters.AddWithValue("@ProcessID", processId);
-            using var reader = command.ExecuteReader();
-            if (reader.Read())
+            var sql = @"SELECT PrevProcessID FROM DM_DieProcess WHERE ProcessID = @ProcessID";
+            var result = DbHelper.ExecuteScalar(sql, new SqlParameter("@ProcessID", processId));
+
+            if (result == null || result == DBNull.Value)
+                return true; // 没有前道工序
+
+            var prevProcessId = Convert.ToInt32(result);
+
+            var checkSql = "SELECT Status FROM DM_DieProcess WHERE ProcessID = @ProcessID";
+            var statusResult = DbHelper.ExecuteScalar(checkSql, new SqlParameter("@ProcessID", prevProcessId));
+
+            if (statusResult != null && statusResult != DBNull.Value)
             {
-                return (reader["ProcessName"].ToString() ?? "", reader["DieCode"].ToString() ?? "");
+                return Convert.ToInt32(statusResult) == 2; // 2 = 已完成
             }
+
+            return false;
         }
-        catch
+        catch (SqlException ex)
         {
-            // 获取失败不影响主流程
+            ExceptionHelper.HandleException(ex, $"检查前道工序状态(ProcessID:{processId})");
+            return false;
         }
-        return null;
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"检查前道工序状态(ProcessID:{processId})");
+            return false;
+        }
     }
 
     #endregion

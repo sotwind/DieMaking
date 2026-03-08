@@ -444,14 +444,14 @@ public partial class InventoryStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                Filter = "CSV文件|*.csv",
                 Title = "导出数据",
                 FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                ExportToCsv(currentGrid, saveDialog.FileName);
+                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -461,32 +461,68 @@ public partial class InventoryStatsForm : Form
         }
     }
 
-    private void ExportToCsv(DataGridView dgv, string filePath)
+    private void BtnPrint_Click(object? sender, EventArgs e)
     {
-        using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-        
-        // 写入表头
-        var headers = new List<string>();
-        foreach (DataGridViewColumn col in dgv.Columns)
+        try
         {
-            headers.Add(col.HeaderText);
-        }
-        writer.WriteLine(string.Join(",", headers));
-
-        // 写入数据
-        foreach (DataGridViewRow row in dgv.Rows)
-        {
-            var values = new List<string>();
-            foreach (DataGridViewCell cell in row.Cells)
+            DataGridView currentGrid;
+            string sheetName;
+            
+            switch (_tabControl.SelectedIndex)
             {
-                var value = cell.Value?.ToString() ?? "";
-                if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-                {
-                    value = "\"" + value.Replace("\"", "\"\"") + "\"";
-                }
-                values.Add(value);
+                case 0:
+                    currentGrid = _dgvSummary;
+                    sheetName = "库存状态汇总";
+                    break;
+                case 1:
+                    currentGrid = _dgvLocation;
+                    sheetName = "库位分布";
+                    break;
+                case 2:
+                    currentGrid = _dgvDetail;
+                    sheetName = "库存明细";
+                    break;
+                default:
+                    return;
             }
-            writer.WriteLine(string.Join(",", values));
+            
+            if (currentGrid.Rows.Count == 0)
+            {
+                MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            var title = $"{this.Text} - {sheetName}";
+            var result = PrintDialogExtensions.ShowPrintOptions(currentGrid, title, _lblSummaryInfo.Text);
+
+            switch (result)
+            {
+                case DialogResult.OK: // 打印预览
+                    _printService.PrintPreview(currentGrid, title, _lblSummaryInfo.Text);
+                    break;
+                case DialogResult.Yes: // 直接打印
+                    _printService.Print(currentGrid, title, _lblSummaryInfo.Text);
+                    break;
+                case DialogResult.No: // 导出CSV
+                    using (var saveDialog = new SaveFileDialog
+                    {
+                        Filter = "CSV文件|*.csv",
+                        Title = "导出数据",
+                        FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                    })
+                    {
+                        if (saveDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打印失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }
