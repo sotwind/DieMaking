@@ -223,45 +223,86 @@ public class DieScrapRecord
 }
 
 // 枚举定义
+
+/// <summary>
+/// 库位状态枚举
+/// </summary>
 public enum LocationStatus
 {
-    Free = 0,      // 空闲
-    Occupied = 1,  // 占用
-    Disabled = 2   // 禁用
+    /// <summary>空闲</summary>
+    Free = 0,
+    /// <summary>占用</summary>
+    Occupied = 1,
+    /// <summary>禁用</summary>
+    Disabled = 2
 }
 
+/// <summary>
+/// 存储状态枚举
+/// </summary>
 public enum StorageStatus
 {
-    InStock = 0,   // 在库
-    Borrowed = 1,  // 借出
-    Scrapped = 2,  // 报废
-    Repairing = 3  // 维修中
+    /// <summary>在库</summary>
+    InStock = 0,
+    /// <summary>借出</summary>
+    Borrowed = 1,
+    /// <summary>报废</summary>
+    Scrapped = 2,
+    /// <summary>维修中</summary>
+    Repairing = 3
 }
 
+/// <summary>
+/// 借用类型枚举
+/// </summary>
 public enum BorrowType
 {
-    Production = 0,   // 生产领用
-    External = 1,     // 外借
-    Transfer = 2      // 调拨
+    /// <summary>生产领用</summary>
+    Production = 0,
+    /// <summary>外借</summary>
+    External = 1,
+    /// <summary>调拨</summary>
+    Transfer = 2
 }
 
+/// <summary>
+/// 借用状态枚举
+/// </summary>
 public enum BorrowStatus
 {
-    Borrowing = 0,    // 借用中
-    Returned = 1,     // 已归还
-    Overdue = 2       // 逾期
+    /// <summary>借用中</summary>
+    Borrowing = 0,
+    /// <summary>已归还</summary>
+    Returned = 1,
+    /// <summary>逾期</summary>
+    Overdue = 2
 }
 
+/// <summary>
+/// 报废审核状态枚举
+/// </summary>
 public enum ScrapAuditStatus
 {
-    Pending = 0,      // 待审核
-    Approved = 1,     // 已通过
-    Rejected = 2      // 已驳回
+    /// <summary>待审核</summary>
+    Pending = 0,
+    /// <summary>已通过</summary>
+    Approved = 1,
+    /// <summary>已驳回</summary>
+    Rejected = 2
 }
 
 // 扩展方法
+
+/// <summary>
+/// 仓库相关枚举扩展方法
+/// </summary>
 public static class WarehouseEnumExtensions
 {
+    /// <summary>
+    /// 获取库位状态显示名称
+    /// </summary>
+    /// <param name="status">库位状态</param>
+    /// <returns>显示名称</returns>
     public static string GetDisplayName(this LocationStatus status)
     {
         return status switch
@@ -273,6 +314,11 @@ public static class WarehouseEnumExtensions
         };
     }
 
+    /// <summary>
+    /// 获取存储状态显示名称
+    /// </summary>
+    /// <param name="status">存储状态</param>
+    /// <returns>显示名称</returns>
     public static string GetDisplayName(this StorageStatus status)
     {
         return status switch
@@ -285,6 +331,11 @@ public static class WarehouseEnumExtensions
         };
     }
 
+    /// <summary>
+    /// 获取借用类型显示名称
+    /// </summary>
+    /// <param name="type">借用类型</param>
+    /// <returns>显示名称</returns>
     public static string GetDisplayName(this BorrowType type)
     {
         return type switch
@@ -296,6 +347,11 @@ public static class WarehouseEnumExtensions
         };
     }
 
+    /// <summary>
+    /// 获取借用状态显示名称
+    /// </summary>
+    /// <param name="status">借用状态</param>
+    /// <returns>显示名称</returns>
     public static string GetDisplayName(this BorrowStatus status)
     {
         return status switch
@@ -307,6 +363,11 @@ public static class WarehouseEnumExtensions
         };
     }
 
+    /// <summary>
+    /// 获取报废审核状态显示名称
+    /// </summary>
+    /// <param name="status">报废审核状态</param>
+    /// <returns>显示名称</returns>
     public static string GetDisplayName(this ScrapAuditStatus status)
     {
         return status switch
