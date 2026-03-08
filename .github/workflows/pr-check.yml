@@ -1,0 +1,89 @@
+name: PR Check
+
+on:
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  # 编译检查
+  build-check:
+    runs-on: windows-latest  # Windows Forms 项目需要 Windows 环境
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Check for Compilation Errors
+      run: |
+        $buildOutput = dotnet build --no-restore --verbosity normal 2>&1
+        if ($LASTEXITCODE -ne 0) {
+          Write-Error "Build failed with exit code $LASTEXITCODE"
+          exit 1
+        }
+        # 检查是否有警告
+        $warnings = $buildOutput | Select-String -Pattern "warning"
+        if ($warnings) {
+          Write-Host "Build succeeded with warnings:"
+          $warnings | ForEach-Object { Write-Host $_ }
+        }
+
+  # 代码质量检查
+  code-quality:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore
+      run: dotnet restore
+
+    # 使用 .NET 分析器检查代码问题
+    - name: Analyze Code
+      run: |
+        dotnet build --no-restore --verbosity quiet /p:WarningLevel=4 /p:TreatWarningsAsErrors=false 2>&1 | tee build.log
+        # 统计警告数量
+        $warningCount = (Select-String -Path build.log -Pattern "warning" -AllMatches).Matches.Count
+        Write-Host "Total warnings: $warningCount"
+        if ($warningCount -gt 50) {
+          Write-Warning "Warning count ($warningCount) exceeds threshold (50)"
+        }
+
+  # 测试检查
+  test-check:
+    runs-on: windows-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore
+      run: dotnet restore
+
+    - name: Build
+      run: dotnet build --no-restore --configuration Release
+
+    - name: Run Tests
+      run: dotnet test --no-build --verbosity normal --logger trx
+
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: test-results
+        path: '**/TestResults/*.trx'

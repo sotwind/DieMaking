@@ -1,0 +1,72 @@
+name: Code Analysis
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+  schedule:
+    - cron: '0 0 * * 0'  # 每周日运行
+
+jobs:
+  analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    # 编译检查 - 使用详细输出捕获所有警告和错误
+    - name: Build with Analysis
+      run: |
+        dotnet build --no-restore --configuration Release \
+          -p:TreatWarningsAsErrors=true \
+          -p:CodeAnalysisTreatWarningsAsErrors=true \
+          -v detailed
+
+    # Roslyn 分析器
+    - name: Run Roslyn Analyzers
+      run: |
+        dotnet build --no-restore --configuration Release \
+          -p:RunAnalyzersDuringBuild=true \
+          -p:RunAnalyzers=true
+
+    # 代码格式检查
+    - name: Check Code Formatting
+      run: |
+        dotnet format --verify-no-changes --verbosity diagnostic || true
+
+    # 静态代码分析 (SonarCloud 可选)
+    # - name: SonarCloud Scan
+    #   uses: SonarSource/sonarcloud-github-action@master
+    #   env:
+    #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    #     SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+  security-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    # 安全漏洞扫描
+    - name: Run Security Scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'security-scan-results.sarif'
+      continue-on-error: true
+
+    # NuGet 包漏洞检查
+    - name: Check NuGet Vulnerabilities
+      run: |
+        dotnet list package --vulnerable --include-transitive 2>/dev/null || true
