@@ -219,7 +219,7 @@ public static class DatabaseMigration
                 await transaction.CommitAsync(cancellationToken);
                 result.Success = true;
                 result.CurrentVersion = pendingMigrations.Last().Version;
-                result.Message = $"数据库升级成功，从 {currentVersion} 升级到 {result.CurrentVersion}"";
+                result.Message = $"数据库升级成功，从 {currentVersion} 升级到 {result.CurrentVersion}";
             }
             catch (Exception ex)
             {

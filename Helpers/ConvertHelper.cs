@@ -400,7 +400,7 @@ public static class ConvertHelper
     /// </summary>
     public static string FormatPercent(decimal value, int decimals = 2)
     {
-        return $"{value:P{decimals}}";
+        return value.ToString($"P{decimals}");
     }
 
     /// <summary>

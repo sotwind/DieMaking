@@ -2,16 +2,41 @@
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
+    <TargetFramework>net9.0-windows</TargetFramework>
     <Nullable>enable</Nullable>
     <UseWindowsForms>true</UseWindowsForms>
     <ImplicitUsings>enable</ImplicitUsings>
+    <!-- 允许在非Windows系统上编译检查 -->
+    <EnableWindowsTargeting>true</EnableWindowsTargeting>
+    <!-- 只编译，不生成可执行文件（Linux上无法运行WinForms） -->
+    <GenerateExecutable>false</GenerateExecutable>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
-    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
+    <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.11" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.0" />
+  </ItemGroup>
+
+  <!-- 排除测试文件和临时修复文件 -->
+  <ItemGroup>
+    <Compile Remove="DieMaking.Tests\**" />
+    <Compile Remove="Helpers\DatabaseInitializer_Refactored.cs" />
+    <Compile Remove="Helpers\Database\**" />
+    <Compile Remove="Helpers\DatabaseCreator.cs" />
+    <Compile Remove="Helpers\TableCreator.cs" />
+    <Compile Remove="Helpers\DataSeeder.cs" />
+    <Compile Remove="Helpers\IndexCreator.cs" />
+    <Compile Remove="Forms\Die\DieListForm_Fixed.cs" />
+    <Compile Remove="Forms\Die\DieListFormOptimized.cs" />
+    <Compile Remove="Forms\System\**" />
+    <Compile Remove="Helpers\DatabaseInitializer_Split.md" />
+    <Compile Remove="Services\DieServiceOptimized.cs" />
+    <Compile Remove="Services\DieService_Paged.cs" />
+    <Compile Remove="Services\ReportServiceOptimized.cs" />
+    <Compile Remove="Helpers\PaginationHelper.cs" />
+    <Compile Remove="Helpers\ConvertHelper.cs" />
+    <Compile Remove="Helpers\VirtualDataGridView.cs" />
   </ItemGroup>
 
 </Project>

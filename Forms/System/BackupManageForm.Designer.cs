@@ -1,4 +1,4 @@
-namespace DieMaking.Forms.System;
+namespace DieMaking.Forms.SystemForms;
 
 partial class BackupManageForm
 {
