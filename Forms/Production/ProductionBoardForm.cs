@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Production;
 
@@ -107,9 +108,25 @@ public partial class ProductionBoardForm : Form
         };
         btnReset.Click += BtnReset_Click;
 
+        var btnExport = new Button
+        {
+            Text = "导出Excel",
+            Location = new Point(960, 15),
+            Size = new Size(90, 28)
+        };
+        btnExport.Click += BtnExport_Click;
+
+        var btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(1060, 15),
+            Size = new Size(80, 28)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         _lblStats = new Label
         {
-            Location = new Point(960, 20),
+            Location = new Point(1150, 20),
             AutoSize = true,
             Font = new Font("微软雅黑", 9, FontStyle.Bold),
             ForeColor = Color.DarkBlue
@@ -119,7 +136,7 @@ public partial class ProductionBoardForm : Form
         {
             lblStartDate, _dtpStartDate, lblEndDate, _dtpEndDate,
             lblCustomer, _txtCustomer, lblDieCode, _txtDieCode,
-            btnSearch, btnReset, _lblStats
+            btnSearch, btnReset, btnExport, btnPrint, _lblStats
         });
 
         // 看板主区域 - 三列布局
@@ -268,5 +285,112 @@ public partial class ProductionBoardForm : Form
         _txtCustomer.Clear();
         _txtDieCode.Clear();
         LoadData();
+    }
+
+    private void BtnExport_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var data = _productionService.GetProductionBoardData(
+                _dtpStartDate.Value.Date,
+                _dtpEndDate.Value.Date.AddDays(1).AddSeconds(-1),
+                string.IsNullOrEmpty(_txtCustomer.Text) ? null : _txtCustomer.Text.Trim(),
+                string.IsNullOrEmpty(_txtDieCode.Text) ? null : _txtDieCode.Text.Trim()
+            );
+
+            if (data.Statistics.TotalCount == 0)
+            {
+                MessageBox.Show("没有数据可导出", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var saveDialog = new SaveFileDialog
+            {
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                FileName = $"生产看板_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                var importExportService = new ImportExportService();
+
+                var dataTable = new System.Data.DataTable();
+                dataTable.Columns.Add("刀模编号", typeof(string));
+                dataTable.Columns.Add("客户名称", typeof(string));
+                dataTable.Columns.Add("产品名称", typeof(string));
+                dataTable.Columns.Add("状态", typeof(string));
+                dataTable.Columns.Add("进度", typeof(string));
+                dataTable.Columns.Add("交期", typeof(string));
+
+                // 添加待生产数据
+                foreach (ListViewItem item in _lvPending.Items)
+                {
+                    dataTable.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "待生产", item.SubItems[3].Text, item.SubItems[4].Text);
+                }
+                // 添加生产中数据
+                foreach (ListViewItem item in _lvInProgress.Items)
+                {
+                    dataTable.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "生产中", item.SubItems[3].Text, item.SubItems[4].Text);
+                }
+                // 添加已完成数据
+                foreach (ListViewItem item in _lvCompleted.Items)
+                {
+                    dataTable.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "已完成", item.SubItems[3].Text, item.SubItems[4].Text);
+                }
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    importExportService.ExportToCsv(dataTable, saveDialog.FileName);
+                }
+                else
+                {
+                    importExportService.ExportToExcel(dataTable, "生产看板", saveDialog.FileName);
+                }
+
+                MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        // 创建打印用的DataGridView
+        var dgvPrint = new DataGridView();
+        dgvPrint.Columns.Add("DieCode", "刀模编号");
+        dgvPrint.Columns.Add("CustomerName", "客户");
+        dgvPrint.Columns.Add("ProductName", "产品");
+        dgvPrint.Columns.Add("Status", "状态");
+        dgvPrint.Columns.Add("Progress", "进度");
+        dgvPrint.Columns.Add("DeliveryDate", "交期");
+
+        // 添加待生产数据
+        foreach (ListViewItem item in _lvPending.Items)
+        {
+            dgvPrint.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "待生产", item.SubItems[3].Text, item.SubItems[4].Text);
+        }
+        // 添加生产中数据
+        foreach (ListViewItem item in _lvInProgress.Items)
+        {
+            dgvPrint.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "生产中", item.SubItems[3].Text, item.SubItems[4].Text);
+        }
+        // 添加已完成数据
+        foreach (ListViewItem item in _lvCompleted.Items)
+        {
+            dgvPrint.Rows.Add(item.SubItems[0].Text, item.SubItems[1].Text, item.SubItems[2].Text, "已完成", item.SubItems[3].Text, item.SubItems[4].Text);
+        }
+
+        if (dgvPrint.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  {_lblStats.Text}";
+        printService.PrintPreview(dgvPrint, "刀模管理系统 - 生产看板", subtitle);
     }
 }

@@ -16,61 +16,74 @@ public class ReportService
     /// </summary>
     public List<CompletionStatsByDie> GetCompletionStatsByDie(DateTime? startDate, DateTime? endDate, string? dieCode = null, string? customerName = null)
     {
-        var sql = @"
-            SELECT 
-                d.DieID,
-                d.DieCode,
-                d.CustomerName,
-                d.ProductName,
-                d.RequiredProcesses,
-                dc.CompleteTime,
-                dc.TotalAmount,
-                dc.OperatorName,
-                dc.Remark
-            FROM DM_DieCompletion dc
-            INNER JOIN DM_DieInfo d ON dc.DieID = d.DieID
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dc.CompleteTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    d.DieID,
+                    d.DieCode,
+                    d.CustomerName,
+                    d.ProductName,
+                    d.RequiredProcesses,
+                    dc.CompleteTime,
+                    dc.TotalAmount,
+                    dc.OperatorName,
+                    dc.Remark
+                FROM DM_DieCompletion dc
+                INNER JOIN DM_DieInfo d ON dc.DieID = d.DieID
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            if (!string.IsNullOrEmpty(dieCode))
+            {
+                sql += " AND d.DieCode LIKE @DieCode";
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
+            if (!string.IsNullOrEmpty(customerName))
+            {
+                sql += " AND d.CustomerName LIKE @CustomerName";
+                parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            }
+
+            sql += " ORDER BY dc.CompleteTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByDie
+            {
+                DieID = Convert.ToInt32(reader["DieID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? "",
+                RequiredProcesses = reader["RequiredProcesses"].ToString() ?? "",
+                CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
+                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
+                OperatorName = reader["OperatorName"].ToString() ?? "",
+                Remark = reader["Remark"].ToString() ?? ""
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dc.CompleteTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按刀模）");
+            return new List<CompletionStatsByDie>();
         }
-
-        if (!string.IsNullOrEmpty(dieCode))
+        catch (Exception ex)
         {
-            sql += " AND d.DieCode LIKE @DieCode";
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按刀模）");
+            return new List<CompletionStatsByDie>();
         }
-
-        if (!string.IsNullOrEmpty(customerName))
-        {
-            sql += " AND d.CustomerName LIKE @CustomerName";
-            parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
-        }
-
-        sql += " ORDER BY dc.CompleteTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByDie
-        {
-            DieID = Convert.ToInt32(reader["DieID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? "",
-            RequiredProcesses = reader["RequiredProcesses"].ToString() ?? "",
-            CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
-            TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
-            OperatorName = reader["OperatorName"].ToString() ?? "",
-            Remark = reader["Remark"].ToString() ?? ""
-        }, parameters.ToArray());
     }
 
     /// <summary>
@@ -78,41 +91,54 @@ public class ReportService
     /// </summary>
     public List<CompletionStatsByCustomer> GetCompletionStatsByCustomer(DateTime? startDate, DateTime? endDate)
     {
-        var sql = @"
-            SELECT 
-                d.CustomerName,
-                COUNT(*) as CompletionCount,
-                SUM(dc.TotalAmount) as TotalAmount,
-                MIN(dc.CompleteTime) as FirstCompleteTime,
-                MAX(dc.CompleteTime) as LastCompleteTime
-            FROM DM_DieCompletion dc
-            INNER JOIN DM_DieInfo d ON dc.DieID = d.DieID
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dc.CompleteTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    d.CustomerName,
+                    COUNT(*) as CompletionCount,
+                    SUM(dc.TotalAmount) as TotalAmount,
+                    MIN(dc.CompleteTime) as FirstCompleteTime,
+                    MAX(dc.CompleteTime) as LastCompleteTime
+                FROM DM_DieCompletion dc
+                INNER JOIN DM_DieInfo d ON dc.DieID = d.DieID
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            sql += " GROUP BY d.CustomerName ORDER BY CompletionCount DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByCustomer
+            {
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                CompletionCount = Convert.ToInt32(reader["CompletionCount"]),
+                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
+                FirstCompleteTime = reader["FirstCompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["FirstCompleteTime"]) : null,
+                LastCompleteTime = reader["LastCompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastCompleteTime"]) : null
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dc.CompleteTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按客户）");
+            return new List<CompletionStatsByCustomer>();
         }
-
-        sql += " GROUP BY d.CustomerName ORDER BY CompletionCount DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByCustomer
+        catch (Exception ex)
         {
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            CompletionCount = Convert.ToInt32(reader["CompletionCount"]),
-            TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
-            FirstCompleteTime = reader["FirstCompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["FirstCompleteTime"]) : null,
-            LastCompleteTime = reader["LastCompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastCompleteTime"]) : null
-        }, parameters.ToArray());
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按客户）");
+            return new List<CompletionStatsByCustomer>();
+        }
     }
 
     /// <summary>
@@ -120,36 +146,49 @@ public class ReportService
     /// </summary>
     public List<CompletionStatsByDate> GetCompletionStatsByDate(DateTime? startDate, DateTime? endDate)
     {
-        var sql = @"
-            SELECT 
-                CAST(dc.CompleteTime AS DATE) as CompleteDate,
-                COUNT(*) as CompletionCount,
-                SUM(dc.TotalAmount) as TotalAmount
-            FROM DM_DieCompletion dc
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dc.CompleteTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    CAST(dc.CompleteTime AS DATE) as CompleteDate,
+                    COUNT(*) as CompletionCount,
+                    SUM(dc.TotalAmount) as TotalAmount
+                FROM DM_DieCompletion dc
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dc.CompleteTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            sql += " GROUP BY CAST(dc.CompleteTime AS DATE) ORDER BY CompleteDate DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByDate
+            {
+                CompleteDate = Convert.ToDateTime(reader["CompleteDate"]),
+                CompletionCount = Convert.ToInt32(reader["CompletionCount"]),
+                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dc.CompleteTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按日期）");
+            return new List<CompletionStatsByDate>();
         }
-
-        sql += " GROUP BY CAST(dc.CompleteTime AS DATE) ORDER BY CompleteDate DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByDate
+        catch (Exception ex)
         {
-            CompleteDate = Convert.ToDateTime(reader["CompleteDate"]),
-            CompletionCount = Convert.ToInt32(reader["CompletionCount"]),
-            TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0
-        }, parameters.ToArray());
+            ExceptionHelper.HandleException(ex, "获取完工统计数据（按日期）");
+            return new List<CompletionStatsByDate>();
+        }
     }
 
     #endregion
@@ -161,55 +200,68 @@ public class ReportService
     /// </summary>
     public List<ProcessStats> GetProcessStats(DateTime? startDate, DateTime? endDate, string? processName = null)
     {
-        var sql = @"
-            SELECT 
-                dp.ProcessName,
-                COUNT(*) as TotalCount,
-                SUM(CASE WHEN dp.Status = 2 THEN 1 ELSE 0 END) as CompletedCount,
-                SUM(CASE WHEN dp.Status = 1 THEN 1 ELSE 0 END) as InProgressCount,
-                SUM(CASE WHEN dp.Status = 0 THEN 1 ELSE 0 END) as PendingCount,
-                AVG(CASE WHEN dp.Status = 2 AND dp.CompleteTime IS NOT NULL AND dp.StartTime IS NOT NULL 
-                    THEN DATEDIFF(MINUTE, dp.StartTime, dp.CompleteTime) ELSE NULL END) as AvgDurationMinutes,
-                SUM(dp.Amount) as TotalAmount
-            FROM DM_DieProcess dp
-            INNER JOIN DM_DieInfo d ON dp.DieID = d.DieID
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dp.CreateTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    dp.ProcessName,
+                    COUNT(*) as TotalCount,
+                    SUM(CASE WHEN dp.Status = 2 THEN 1 ELSE 0 END) as CompletedCount,
+                    SUM(CASE WHEN dp.Status = 1 THEN 1 ELSE 0 END) as InProgressCount,
+                    SUM(CASE WHEN dp.Status = 0 THEN 1 ELSE 0 END) as PendingCount,
+                    AVG(CASE WHEN dp.Status = 2 AND dp.CompleteTime IS NOT NULL AND dp.StartTime IS NOT NULL 
+                        THEN DATEDIFF(MINUTE, dp.StartTime, dp.CompleteTime) ELSE NULL END) as AvgDurationMinutes,
+                    SUM(dp.Amount) as TotalAmount
+                FROM DM_DieProcess dp
+                INNER JOIN DM_DieInfo d ON dp.DieID = d.DieID
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dp.CreateTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dp.CreateTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            if (!string.IsNullOrEmpty(processName))
+            {
+                sql += " AND dp.ProcessName LIKE @ProcessName";
+                parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
+            }
+
+            sql += " GROUP BY dp.ProcessName ORDER BY TotalCount DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new ProcessStats
+            {
+                ProcessName = reader["ProcessName"].ToString() ?? "",
+                TotalCount = Convert.ToInt32(reader["TotalCount"]),
+                CompletedCount = Convert.ToInt32(reader["CompletedCount"]),
+                InProgressCount = Convert.ToInt32(reader["InProgressCount"]),
+                PendingCount = Convert.ToInt32(reader["PendingCount"]),
+                AvgDurationMinutes = reader["AvgDurationMinutes"] != DBNull.Value ? Convert.ToDouble(reader["AvgDurationMinutes"]) : 0,
+                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
+                CompletionRate = Convert.ToInt32(reader["TotalCount"]) > 0 
+                    ? (double)Convert.ToInt32(reader["CompletedCount"]) / Convert.ToInt32(reader["TotalCount"]) * 100 
+                    : 0
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dp.CreateTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取工序统计数据");
+            return new List<ProcessStats>();
         }
-
-        if (!string.IsNullOrEmpty(processName))
+        catch (Exception ex)
         {
-            sql += " AND dp.ProcessName LIKE @ProcessName";
-            parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
+            ExceptionHelper.HandleException(ex, "获取工序统计数据");
+            return new List<ProcessStats>();
         }
-
-        sql += " GROUP BY dp.ProcessName ORDER BY TotalCount DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new ProcessStats
-        {
-            ProcessName = reader["ProcessName"].ToString() ?? "",
-            TotalCount = Convert.ToInt32(reader["TotalCount"]),
-            CompletedCount = Convert.ToInt32(reader["CompletedCount"]),
-            InProgressCount = Convert.ToInt32(reader["InProgressCount"]),
-            PendingCount = Convert.ToInt32(reader["PendingCount"]),
-            AvgDurationMinutes = reader["AvgDurationMinutes"] != DBNull.Value ? Convert.ToDouble(reader["AvgDurationMinutes"]) : 0,
-            TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
-            CompletionRate = Convert.ToInt32(reader["TotalCount"]) > 0 
-                ? (double)Convert.ToInt32(reader["CompletedCount"]) / Convert.ToInt32(reader["TotalCount"]) * 100 
-                : 0
-        }, parameters.ToArray());
     }
 
     /// <summary>
@@ -217,58 +269,71 @@ public class ReportService
     /// </summary>
     public List<ProcessDetailStats> GetProcessDetailStats(DateTime? startDate, DateTime? endDate, string? processName = null)
     {
-        var sql = @"
-            SELECT 
-                dp.ProcessID,
-                d.DieCode,
-                d.CustomerName,
-                dp.ProcessName,
-                dp.Status,
-                dp.StartTime,
-                dp.CompleteTime,
-                dp.OperatorName,
-                dp.Amount,
-                CASE WHEN dp.CompleteTime IS NOT NULL AND dp.StartTime IS NOT NULL 
-                    THEN DATEDIFF(MINUTE, dp.StartTime, dp.CompleteTime) ELSE NULL END as DurationMinutes
-            FROM DM_DieProcess dp
-            INNER JOIN DM_DieInfo d ON dp.DieID = d.DieID
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dp.CreateTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    dp.ProcessID,
+                    d.DieCode,
+                    d.CustomerName,
+                    dp.ProcessName,
+                    dp.Status,
+                    dp.StartTime,
+                    dp.CompleteTime,
+                    dp.OperatorName,
+                    dp.Amount,
+                    CASE WHEN dp.CompleteTime IS NOT NULL AND dp.StartTime IS NOT NULL 
+                        THEN DATEDIFF(MINUTE, dp.StartTime, dp.CompleteTime) ELSE NULL END as DurationMinutes
+                FROM DM_DieProcess dp
+                INNER JOIN DM_DieInfo d ON dp.DieID = d.DieID
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dp.CreateTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dp.CreateTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            if (!string.IsNullOrEmpty(processName))
+            {
+                sql += " AND dp.ProcessName LIKE @ProcessName";
+                parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
+            }
+
+            sql += " ORDER BY dp.CompleteTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, reader => new ProcessDetailStats
+            {
+                ProcessID = Convert.ToInt32(reader["ProcessID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProcessName = reader["ProcessName"].ToString() ?? "",
+                Status = (ProcessStatus)Convert.ToInt32(reader["Status"]),
+                StartTime = reader["StartTime"] != DBNull.Value ? Convert.ToDateTime(reader["StartTime"]) : null,
+                CompleteTime = reader["CompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["CompleteTime"]) : null,
+                OperatorName = reader["OperatorName"].ToString() ?? "",
+                Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : null,
+                DurationMinutes = reader["DurationMinutes"] != DBNull.Value ? Convert.ToInt32(reader["DurationMinutes"]) : null
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dp.CreateTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取工序明细数据");
+            return new List<ProcessDetailStats>();
         }
-
-        if (!string.IsNullOrEmpty(processName))
+        catch (Exception ex)
         {
-            sql += " AND dp.ProcessName LIKE @ProcessName";
-            parameters.Add(new SqlParameter("@ProcessName", $"%{processName}%"));
+            ExceptionHelper.HandleException(ex, "获取工序明细数据");
+            return new List<ProcessDetailStats>();
         }
-
-        sql += " ORDER BY dp.CompleteTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, reader => new ProcessDetailStats
-        {
-            ProcessID = Convert.ToInt32(reader["ProcessID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProcessName = reader["ProcessName"].ToString() ?? "",
-            Status = (ProcessStatus)Convert.ToInt32(reader["Status"]),
-            StartTime = reader["StartTime"] != DBNull.Value ? Convert.ToDateTime(reader["StartTime"]) : null,
-            CompleteTime = reader["CompleteTime"] != DBNull.Value ? Convert.ToDateTime(reader["CompleteTime"]) : null,
-            OperatorName = reader["OperatorName"].ToString() ?? "",
-            Amount = reader["Amount"] != DBNull.Value ? Convert.ToDecimal(reader["Amount"]) : null,
-            DurationMinutes = reader["DurationMinutes"] != DBNull.Value ? Convert.ToInt32(reader["DurationMinutes"]) : null
-        }, parameters.ToArray());
     }
 
     #endregion
@@ -280,25 +345,38 @@ public class ReportService
     /// </summary>
     public InventorySummaryStats GetInventorySummaryStats()
     {
-        var sql = @"
-            SELECT 
-                COUNT(*) as TotalCount,
-                SUM(CASE WHEN StorageStatus = 0 THEN 1 ELSE 0 END) as InStockCount,
-                SUM(CASE WHEN StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount,
-                SUM(CASE WHEN StorageStatus = 2 THEN 1 ELSE 0 END) as ScrappedCount,
-                SUM(CASE WHEN StorageStatus = 3 THEN 1 ELSE 0 END) as RepairingCount
-            FROM DM_DieInventory";
-
-        var result = DbHelper.ExecuteQuery(sql, reader => new InventorySummaryStats
+        try
         {
-            TotalCount = Convert.ToInt32(reader["TotalCount"]),
-            InStockCount = Convert.ToInt32(reader["InStockCount"]),
-            BorrowedCount = Convert.ToInt32(reader["BorrowedCount"]),
-            ScrappedCount = Convert.ToInt32(reader["ScrappedCount"]),
-            RepairingCount = Convert.ToInt32(reader["RepairingCount"])
-        }).FirstOrDefault();
+            var sql = @"
+                SELECT 
+                    COUNT(*) as TotalCount,
+                    SUM(CASE WHEN StorageStatus = 0 THEN 1 ELSE 0 END) as InStockCount,
+                    SUM(CASE WHEN StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount,
+                    SUM(CASE WHEN StorageStatus = 2 THEN 1 ELSE 0 END) as ScrappedCount,
+                    SUM(CASE WHEN StorageStatus = 3 THEN 1 ELSE 0 END) as RepairingCount
+                FROM DM_DieInventory";
 
-        return result ?? new InventorySummaryStats();
+            var result = DbHelper.ExecuteQuery(sql, reader => new InventorySummaryStats
+            {
+                TotalCount = Convert.ToInt32(reader["TotalCount"]),
+                InStockCount = Convert.ToInt32(reader["InStockCount"]),
+                BorrowedCount = Convert.ToInt32(reader["BorrowedCount"]),
+                ScrappedCount = Convert.ToInt32(reader["ScrappedCount"]),
+                RepairingCount = Convert.ToInt32(reader["RepairingCount"])
+            }).FirstOrDefault();
+
+            return result ?? new InventorySummaryStats();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取库存汇总统计");
+            return new InventorySummaryStats();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取库存汇总统计");
+            return new InventorySummaryStats();
+        }
     }
 
     /// <summary>
@@ -306,26 +384,39 @@ public class ReportService
     /// </summary>
     public List<LocationDistributionStats> GetLocationDistributionStats()
     {
-        var sql = @"
-            SELECT 
-                sl.Area,
-                sl.ShelfNo,
-                COUNT(di.InventoryID) as DieCount,
-                SUM(CASE WHEN di.StorageStatus = 0 THEN 1 ELSE 0 END) as InStockCount,
-                SUM(CASE WHEN di.StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount
-            FROM DM_StorageLocation sl
-            LEFT JOIN DM_DieInventory di ON sl.LocationID = di.LocationID
-            GROUP BY sl.Area, sl.ShelfNo
-            ORDER BY sl.Area, sl.ShelfNo";
-
-        return DbHelper.ExecuteQuery(sql, reader => new LocationDistributionStats
+        try
         {
-            Area = reader["Area"].ToString() ?? "",
-            ShelfNo = reader["ShelfNo"].ToString() ?? "",
-            DieCount = Convert.ToInt32(reader["DieCount"]),
-            InStockCount = Convert.ToInt32(reader["InStockCount"]),
-            BorrowedCount = Convert.ToInt32(reader["BorrowedCount"])
-        });
+            var sql = @"
+                SELECT 
+                    sl.Area,
+                    sl.ShelfNo,
+                    COUNT(di.InventoryID) as DieCount,
+                    SUM(CASE WHEN di.StorageStatus = 0 THEN 1 ELSE 0 END) as InStockCount,
+                    SUM(CASE WHEN di.StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount
+                FROM DM_StorageLocation sl
+                LEFT JOIN DM_DieInventory di ON sl.LocationID = di.LocationID
+                GROUP BY sl.Area, sl.ShelfNo
+                ORDER BY sl.Area, sl.ShelfNo";
+
+            return DbHelper.ExecuteQuery(sql, reader => new LocationDistributionStats
+            {
+                Area = reader["Area"].ToString() ?? "",
+                ShelfNo = reader["ShelfNo"].ToString() ?? "",
+                DieCount = Convert.ToInt32(reader["DieCount"]),
+                InStockCount = Convert.ToInt32(reader["InStockCount"]),
+                BorrowedCount = Convert.ToInt32(reader["BorrowedCount"])
+            });
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取库位分布统计");
+            return new List<LocationDistributionStats>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取库位分布统计");
+            return new List<LocationDistributionStats>();
+        }
     }
 
     /// <summary>
@@ -333,64 +424,77 @@ public class ReportService
     /// </summary>
     public List<InventoryDetailStats> GetInventoryDetailStats(string? area = null, string? shelfNo = null, StorageStatus? status = null)
     {
-        var sql = @"
-            SELECT 
-                di.InventoryID,
-                d.DieCode,
-                d.CustomerName,
-                d.ProductName,
-                sl.Area,
-                sl.ShelfNo,
-                sl.LayerNo,
-                sl.PositionNo,
-                di.StorageStatus,
-                di.InStockTime,
-                di.LastBorrowTime,
-                di.LastReturnTime,
-                di.TotalBorrowCount
-            FROM DM_DieInventory di
-            INNER JOIN DM_DieInfo d ON di.DieID = d.DieID
-            LEFT JOIN DM_StorageLocation sl ON di.LocationID = sl.LocationID
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (!string.IsNullOrEmpty(area))
+        try
         {
-            sql += " AND sl.Area = @Area";
-            parameters.Add(new SqlParameter("@Area", area));
+            var sql = @"
+                SELECT 
+                    di.InventoryID,
+                    d.DieCode,
+                    d.CustomerName,
+                    d.ProductName,
+                    sl.Area,
+                    sl.ShelfNo,
+                    sl.LayerNo,
+                    sl.PositionNo,
+                    di.StorageStatus,
+                    di.InStockTime,
+                    di.LastBorrowTime,
+                    di.LastReturnTime,
+                    di.TotalBorrowCount
+                FROM DM_DieInventory di
+                INNER JOIN DM_DieInfo d ON di.DieID = d.DieID
+                LEFT JOIN DM_StorageLocation sl ON di.LocationID = sl.LocationID
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (!string.IsNullOrEmpty(area))
+            {
+                sql += " AND sl.Area = @Area";
+                parameters.Add(new SqlParameter("@Area", area));
+            }
+
+            if (!string.IsNullOrEmpty(shelfNo))
+            {
+                sql += " AND sl.ShelfNo = @ShelfNo";
+                parameters.Add(new SqlParameter("@ShelfNo", shelfNo));
+            }
+
+            if (status.HasValue)
+            {
+                sql += " AND di.StorageStatus = @Status";
+                parameters.Add(new SqlParameter("@Status", (int)status.Value));
+            }
+
+            sql += " ORDER BY sl.Area, sl.ShelfNo, sl.LayerNo, sl.PositionNo";
+
+            return DbHelper.ExecuteQuery(sql, reader => new InventoryDetailStats
+            {
+                InventoryID = Convert.ToInt32(reader["InventoryID"]),
+                DieCode = reader["DieCode"].ToString() ?? "",
+                CustomerName = reader["CustomerName"].ToString() ?? "",
+                ProductName = reader["ProductName"].ToString() ?? "",
+                Area = reader["Area"]?.ToString() ?? "",
+                ShelfNo = reader["ShelfNo"]?.ToString() ?? "",
+                LayerNo = reader["LayerNo"]?.ToString() ?? "",
+                PositionNo = reader["PositionNo"]?.ToString() ?? "",
+                StorageStatus = reader["StorageStatus"] != DBNull.Value ? (StorageStatus)Convert.ToInt32(reader["StorageStatus"]) : StorageStatus.InStock,
+                InStockTime = reader["InStockTime"] != DBNull.Value ? Convert.ToDateTime(reader["InStockTime"]) : null,
+                LastBorrowTime = reader["LastBorrowTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastBorrowTime"]) : null,
+                LastReturnTime = reader["LastReturnTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastReturnTime"]) : null,
+                TotalBorrowCount = Convert.ToInt32(reader["TotalBorrowCount"])
+            }, parameters.ToArray());
         }
-
-        if (!string.IsNullOrEmpty(shelfNo))
+        catch (SqlException ex)
         {
-            sql += " AND sl.ShelfNo = @ShelfNo";
-            parameters.Add(new SqlParameter("@ShelfNo", shelfNo));
+            ExceptionHelper.HandleException(ex, "获取库存明细数据");
+            return new List<InventoryDetailStats>();
         }
-
-        if (status.HasValue)
+        catch (Exception ex)
         {
-            sql += " AND di.StorageStatus = @Status";
-            parameters.Add(new SqlParameter("@Status", (int)status.Value));
+            ExceptionHelper.HandleException(ex, "获取库存明细数据");
+            return new List<InventoryDetailStats>();
         }
-
-        sql += " ORDER BY sl.Area, sl.ShelfNo, sl.LayerNo, sl.PositionNo";
-
-        return DbHelper.ExecuteQuery(sql, reader => new InventoryDetailStats
-        {
-            InventoryID = Convert.ToInt32(reader["InventoryID"]),
-            DieCode = reader["DieCode"].ToString() ?? "",
-            CustomerName = reader["CustomerName"].ToString() ?? "",
-            ProductName = reader["ProductName"].ToString() ?? "",
-            Area = reader["Area"]?.ToString() ?? "",
-            ShelfNo = reader["ShelfNo"]?.ToString() ?? "",
-            LayerNo = reader["LayerNo"]?.ToString() ?? "",
-            PositionNo = reader["PositionNo"]?.ToString() ?? "",
-            StorageStatus = reader["StorageStatus"] != DBNull.Value ? (StorageStatus)Convert.ToInt32(reader["StorageStatus"]) : StorageStatus.InStock,
-            InStockTime = reader["InStockTime"] != DBNull.Value ? Convert.ToDateTime(reader["InStockTime"]) : null,
-            LastBorrowTime = reader["LastBorrowTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastBorrowTime"]) : null,
-            LastReturnTime = reader["LastReturnTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastReturnTime"]) : null,
-            TotalBorrowCount = Convert.ToInt32(reader["TotalBorrowCount"])
-        }, parameters.ToArray());
     }
 
     /// <summary>
@@ -398,39 +502,52 @@ public class ReportService
     /// </summary>
     public List<BorrowStats> GetBorrowStats(DateTime? startDate, DateTime? endDate)
     {
-        var sql = @"
-            SELECT 
-                dbr.BorrowType,
-                dbr.Status,
-                COUNT(*) as RecordCount,
-                AVG(CASE WHEN dbr.ActualReturnTime IS NOT NULL THEN 
-                    DATEDIFF(DAY, dbr.BorrowTime, dbr.ActualReturnTime) ELSE NULL END) as AvgBorrowDays
-            FROM DM_DieBorrowRecord dbr
-            WHERE 1=1";
-
-        var parameters = new List<SqlParameter>();
-
-        if (startDate.HasValue)
+        try
         {
-            sql += " AND dbr.BorrowTime >= @StartDate";
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            var sql = @"
+                SELECT 
+                    dbr.BorrowType,
+                    dbr.Status,
+                    COUNT(*) as RecordCount,
+                    AVG(CASE WHEN dbr.ActualReturnTime IS NOT NULL THEN 
+                        DATEDIFF(DAY, dbr.BorrowTime, dbr.ActualReturnTime) ELSE NULL END) as AvgBorrowDays
+                FROM DM_DieBorrowRecord dbr
+                WHERE 1=1";
+
+            var parameters = new List<SqlParameter>();
+
+            if (startDate.HasValue)
+            {
+                sql += " AND dbr.BorrowTime >= @StartDate";
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                sql += " AND dbr.BorrowTime <= @EndDate";
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            }
+
+            sql += " GROUP BY dbr.BorrowType, dbr.Status ORDER BY dbr.BorrowType, dbr.Status";
+
+            return DbHelper.ExecuteQuery(sql, reader => new BorrowStats
+            {
+                BorrowType = (BorrowType)Convert.ToInt32(reader["BorrowType"]),
+                Status = (BorrowStatus)Convert.ToInt32(reader["Status"]),
+                RecordCount = Convert.ToInt32(reader["RecordCount"]),
+                AvgBorrowDays = reader["AvgBorrowDays"] != DBNull.Value ? Convert.ToDouble(reader["AvgBorrowDays"]) : 0
+            }, parameters.ToArray());
         }
-
-        if (endDate.HasValue)
+        catch (SqlException ex)
         {
-            sql += " AND dbr.BorrowTime <= @EndDate";
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
+            ExceptionHelper.HandleException(ex, "获取借用记录统计");
+            return new List<BorrowStats>();
         }
-
-        sql += " GROUP BY dbr.BorrowType, dbr.Status ORDER BY dbr.BorrowType, dbr.Status";
-
-        return DbHelper.ExecuteQuery(sql, reader => new BorrowStats
+        catch (Exception ex)
         {
-            BorrowType = (BorrowType)Convert.ToInt32(reader["BorrowType"]),
-            Status = (BorrowStatus)Convert.ToInt32(reader["Status"]),
-            RecordCount = Convert.ToInt32(reader["RecordCount"]),
-            AvgBorrowDays = reader["AvgBorrowDays"] != DBNull.Value ? Convert.ToDouble(reader["AvgBorrowDays"]) : 0
-        }, parameters.ToArray());
+            ExceptionHelper.HandleException(ex, "获取借用记录统计");
+            return new List<BorrowStats>();
+        }
     }
 
     #endregion

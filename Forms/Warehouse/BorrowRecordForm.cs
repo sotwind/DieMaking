@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Warehouse;
 
@@ -28,7 +29,7 @@ public partial class BorrowRecordForm : Form
         var btnRefresh = new ToolStripButton("刷新") { Image = SystemIcons.Question.ToBitmap() };
         btnRefresh.Click += (s, e) => LoadRecords();
         
-        var btnExport = new ToolStripButton("导出") { Image = SystemIcons.Question.ToBitmap() };
+        var btnExport = new ToolStripButton("导出Excel") { Image = SystemIcons.Question.ToBitmap() };
         btnExport.Click += (s, e) => ExportData();
 
         toolStrip.Items.AddRange(new ToolStripItem[] { btnRefresh, new ToolStripSeparator(), btnExport });
@@ -323,27 +324,55 @@ public partial class BorrowRecordForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
-                FileName = $"借用记录_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                FileName = $"借用记录_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                var lines = new List<string>
-                {
-                    "刀模编号,客户名称,产品名称,借用类型,领用人,部门,借用时间,预计归还,实际归还,状态,用途,归还操作人"
-                };
+                var importExportService = new ImportExportService();
+
+                var dataTable = new System.Data.DataTable();
+                dataTable.Columns.Add("刀模编号", typeof(string));
+                dataTable.Columns.Add("客户名称", typeof(string));
+                dataTable.Columns.Add("产品名称", typeof(string));
+                dataTable.Columns.Add("借用类型", typeof(string));
+                dataTable.Columns.Add("领用人", typeof(string));
+                dataTable.Columns.Add("部门", typeof(string));
+                dataTable.Columns.Add("借用时间", typeof(string));
+                dataTable.Columns.Add("预计归还", typeof(string));
+                dataTable.Columns.Add("实际归还", typeof(string));
+                dataTable.Columns.Add("状态", typeof(string));
+                dataTable.Columns.Add("用途", typeof(string));
+                dataTable.Columns.Add("归还操作人", typeof(string));
 
                 foreach (var record in _records)
                 {
-                    lines.Add($"{record.DieCode},{record.CustomerName},{record.ProductName},{record.BorrowTypeText}," +
-                              $"{record.BorrowerName},{record.BorrowDept},{record.BorrowTime:yyyy-MM-dd HH:mm}," +
-                              $"{record.ExpectedReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? ""}," +
-                              $"{record.ActualReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? ""}," +
-                              $"{record.StatusText},{record.Purpose},{record.ReturnOperatorName}");
+                    dataTable.Rows.Add(
+                        record.DieCode,
+                        record.CustomerName,
+                        record.ProductName,
+                        record.BorrowTypeText,
+                        record.BorrowerName,
+                        record.BorrowDept,
+                        record.BorrowTime.ToString("yyyy-MM-dd HH:mm"),
+                        record.ExpectedReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
+                        record.ActualReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
+                        record.StatusText,
+                        record.Purpose,
+                        record.ReturnOperatorName
+                    );
                 }
 
-                File.WriteAllLines(saveDialog.FileName, lines, System.Text.Encoding.UTF8);
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    importExportService.ExportToCsv(dataTable, saveDialog.FileName);
+                }
+                else
+                {
+                    importExportService.ExportToExcel(dataTable, "借用记录", saveDialog.FileName);
+                }
+
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }

@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Production;
 
@@ -113,6 +114,14 @@ public partial class CompletionQueryForm : Form
         };
         btnExport.Click += BtnExport_Click;
 
+        var btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(1070, 20),
+            Size = new Size(80, 28)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         _lblCount = new Label
         {
             Location = new Point(1070, 25),
@@ -125,7 +134,7 @@ public partial class CompletionQueryForm : Form
         {
             lblStartDate, _dtpStartDate, lblEndDate, _dtpEndDate,
             lblDieCode, _txtDieCode, lblProcessName, _txtProcessName,
-            btnSearch, btnReset, btnExport, _lblCount
+            btnSearch, btnReset, btnExport, btnPrint, _lblCount
         });
 
         // 数据表格区域
@@ -281,23 +290,26 @@ public partial class CompletionQueryForm : Form
         {
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
-                FileName = $"完工查询_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                FileName = $"完工查询_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                using var writer = new StreamWriter(saveDialog.FileName, false, System.Text.Encoding.UTF8);
+                var importExportService = new ImportExportService();
 
-                // 写入表头
-                var headers = new[] { "刀模编号", "客户名称", "产品名称", "完工时间", "总金额", "操作员", "备注" };
-                writer.WriteLine(string.Join(",", headers));
+                var dataTable = new System.Data.DataTable();
+                dataTable.Columns.Add("刀模编号", typeof(string));
+                dataTable.Columns.Add("客户名称", typeof(string));
+                dataTable.Columns.Add("产品名称", typeof(string));
+                dataTable.Columns.Add("完工时间", typeof(string));
+                dataTable.Columns.Add("总金额", typeof(string));
+                dataTable.Columns.Add("操作员", typeof(string));
+                dataTable.Columns.Add("备注", typeof(string));
 
-                // 写入数据
                 foreach (DataGridViewRow row in _dgvCompletions.Rows)
                 {
-                    var values = new[]
-                    {
+                    dataTable.Rows.Add(
                         row.Cells["DieCode"].Value?.ToString() ?? "",
                         row.Cells["CustomerName"].Value?.ToString() ?? "",
                         row.Cells["ProductName"].Value?.ToString() ?? "",
@@ -305,8 +317,16 @@ public partial class CompletionQueryForm : Form
                         row.Cells["TotalAmount"].Value?.ToString() ?? "",
                         row.Cells["OperatorName"].Value?.ToString() ?? "",
                         row.Cells["Remark"].Value?.ToString() ?? ""
-                    };
-                    writer.WriteLine(string.Join(",", values.Select(v => $"\"{v}\"")));
+                    );
+                }
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    importExportService.ExportToCsv(dataTable, saveDialog.FileName);
+                }
+                else
+                {
+                    importExportService.ExportToExcel(dataTable, "完工查询", saveDialog.FileName);
                 }
 
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -316,5 +336,18 @@ public partial class CompletionQueryForm : Form
         {
             MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        if (_dgvCompletions.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  {_lblCount.Text}";
+        printService.PrintPreview(_dgvCompletions, "刀模管理系统 - 完工查询", subtitle);
     }
 }

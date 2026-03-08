@@ -1,9 +1,10 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
 
 namespace DieMaking.Forms.Die;
 
-public partial class DieAddForm : Form
+public partial class DieAddForm : BaseEditForm
 {
     private readonly DieService _dieService;
     private readonly int? _dieId;
@@ -25,6 +26,7 @@ public partial class DieAddForm : Form
         _dieService = new DieService();
         _dieId = dieId;
         _isViewMode = false;
+        IsEditMode = true;
         InitializeComponent();
         LoadDieData();
     }
@@ -42,7 +44,7 @@ public partial class DieAddForm : Form
     private void InitializeComponent()
     {
         this.Text = _isViewMode ? "查看刀模" : (_dieId.HasValue ? "编辑刀模" : "新增刀模");
-        this.Size = new Size(900, 750);
+        this.Size = UIStyleHelper.SizeEditForm;
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -54,82 +56,89 @@ public partial class DieAddForm : Form
         int rowHeight = 30;
 
         // ===== 基本信息区域 =====
-        var grpBasic = new GroupBox
-        {
-            Text = "基本信息",
-            Location = new Point(10, 10),
-            Size = new Size(860, 150)
-        };
+        var grpBasic = UIStyleHelper.CreateGroupBox("基本信息", new Point(10, 10), new Size(760, 150));
 
         // 刀模编号
-        var lblDieCode = new Label { Text = "刀模编号：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        txtDieCode = new TextBox { Location = new Point(100, y), Size = new Size(inputWidth, 23) };
+        var lblDieCode = UIStyleHelper.CreateLabel("刀模编号：", new Point(15, y), new Size(labelWidth, 23));
+        txtDieCode = UIStyleHelper.CreateTextBox(new Point(100, y), new Size(inputWidth, 23), "请输入刀模编号");
         grpBasic.Controls.Add(lblDieCode);
         grpBasic.Controls.Add(txtDieCode);
 
         // 客户名称
-        var lblCustomer = new Label { Text = "客户名称：", Location = new Point(300, y), Size = new Size(labelWidth, 23) };
-        txtCustomer = new TextBox { Location = new Point(385, y), Size = new Size(inputWidth, 23) };
+        var lblCustomer = UIStyleHelper.CreateLabel("客户名称：", new Point(300, y), new Size(labelWidth, 23));
+        txtCustomer = UIStyleHelper.CreateTextBox(new Point(385, y), new Size(inputWidth, 23), "请输入客户名称");
         grpBasic.Controls.Add(lblCustomer);
         grpBasic.Controls.Add(txtCustomer);
 
         // 产品名称
-        var lblProduct = new Label { Text = "产品名称：", Location = new Point(585, y), Size = new Size(labelWidth, 23) };
-        txtProduct = new TextBox { Location = new Point(670, y), Size = new Size(inputWidth, 23) };
+        var lblProduct = UIStyleHelper.CreateLabel("产品名称：", new Point(585, y), new Size(labelWidth, 23));
+        txtProduct = UIStyleHelper.CreateTextBox(new Point(670, y), new Size(inputWidth, 23), "请输入产品名称");
         grpBasic.Controls.Add(lblProduct);
         grpBasic.Controls.Add(txtProduct);
 
         y += rowHeight;
 
         // 结构类型
-        var lblStructure = new Label { Text = "结构类型：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        txtStructure = new TextBox { Location = new Point(100, y), Size = new Size(inputWidth, 23) };
+        var lblStructure = UIStyleHelper.CreateLabel("结构类型：", new Point(15, y), new Size(labelWidth, 23));
+        txtStructure = UIStyleHelper.CreateTextBox(new Point(100, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblStructure);
         grpBasic.Controls.Add(txtStructure);
 
         // 模型类型
-        var lblModelType = new Label { Text = "模型类型：", Location = new Point(300, y), Size = new Size(labelWidth, 23) };
-        txtModelType = new TextBox { Location = new Point(385, y), Size = new Size(inputWidth, 23) };
+        var lblModelType = UIStyleHelper.CreateLabel("模型类型：", new Point(300, y), new Size(labelWidth, 23));
+        txtModelType = UIStyleHelper.CreateTextBox(new Point(385, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblModelType);
         grpBasic.Controls.Add(txtModelType);
 
         // 排版方式
-        var lblLayout = new Label { Text = "排版方式：", Location = new Point(585, y), Size = new Size(labelWidth, 23) };
-        txtLayoutType = new TextBox { Location = new Point(670, y), Size = new Size(inputWidth, 23) };
+        var lblLayout = UIStyleHelper.CreateLabel("排版方式：", new Point(585, y), new Size(labelWidth, 23));
+        txtLayoutType = UIStyleHelper.CreateTextBox(new Point(670, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblLayout);
         grpBasic.Controls.Add(txtLayoutType);
 
         y += rowHeight;
 
         // 瓦楞类型
-        var lblFlute = new Label { Text = "瓦楞类型：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        txtFluteType = new TextBox { Location = new Point(100, y), Size = new Size(inputWidth, 23) };
+        var lblFlute = UIStyleHelper.CreateLabel("瓦楞类型：", new Point(15, y), new Size(labelWidth, 23));
+        txtFluteType = UIStyleHelper.CreateTextBox(new Point(100, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblFlute);
         grpBasic.Controls.Add(txtFluteType);
 
         // 材质
-        var lblMaterial = new Label { Text = "材质：", Location = new Point(300, y), Size = new Size(labelWidth, 23) };
-        txtMaterial = new TextBox { Location = new Point(385, y), Size = new Size(inputWidth, 23) };
+        var lblMaterial = UIStyleHelper.CreateLabel("材质：", new Point(300, y), new Size(labelWidth, 23));
+        txtMaterial = UIStyleHelper.CreateTextBox(new Point(385, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblMaterial);
         grpBasic.Controls.Add(txtMaterial);
 
         // 来源工厂
-        var lblSource = new Label { Text = "来源工厂：", Location = new Point(585, y), Size = new Size(labelWidth, 23) };
-        txtSourceFactory = new TextBox { Location = new Point(670, y), Size = new Size(inputWidth, 23) };
+        var lblSource = UIStyleHelper.CreateLabel("来源工厂：", new Point(585, y), new Size(labelWidth, 23));
+        txtSourceFactory = UIStyleHelper.CreateTextBox(new Point(670, y), new Size(inputWidth, 23));
         grpBasic.Controls.Add(lblSource);
         grpBasic.Controls.Add(txtSourceFactory);
 
         y += rowHeight;
 
         // 交货日期
-        var lblDelivery = new Label { Text = "交货日期：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        dtpDelivery = new DateTimePicker { Location = new Point(100, y), Size = new Size(inputWidth, 23), Format = DateTimePickerFormat.Short };
+        var lblDelivery = UIStyleHelper.CreateLabel("交货日期：", new Point(15, y), new Size(labelWidth, 23));
+        dtpDelivery = new DateTimePicker
+        {
+            Location = new Point(100, y),
+            Size = new Size(inputWidth, 23),
+            Format = DateTimePickerFormat.Short,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
+        };
         grpBasic.Controls.Add(lblDelivery);
         grpBasic.Controls.Add(dtpDelivery);
 
         // 状态
-        var lblStatus = new Label { Text = "状态：", Location = new Point(300, y), Size = new Size(labelWidth, 23) };
-        cmbStatus = new ComboBox { Location = new Point(385, y), Size = new Size(inputWidth, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblStatus = UIStyleHelper.CreateLabel("状态：", new Point(300, y), new Size(labelWidth, 23));
+        cmbStatus = new ComboBox
+        {
+            Location = new Point(385, y),
+            Size = new Size(inputWidth, 23),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
+        };
         cmbStatus.Items.AddRange(Enum.GetNames(typeof(DieStatus)).Select(s => ((DieStatus)Enum.Parse(typeof(DieStatus), s)).GetDisplayName()).ToArray());
         cmbStatus.SelectedIndex = 0;
         grpBasic.Controls.Add(lblStatus);
@@ -137,20 +146,17 @@ public partial class DieAddForm : Form
 
         // ===== 尺寸信息区域 =====
         y = 15;
-        var grpSize = new GroupBox
-        {
-            Text = "尺寸信息",
-            Location = new Point(10, 170),
-            Size = new Size(860, 100)
-        };
+        var grpSize = UIStyleHelper.CreateGroupBox("尺寸信息", new Point(10, 170), new Size(760, 100));
 
         // 制造尺寸
-        var lblManuSize = new Label { Text = "制造尺寸：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        txtManuLength = new TextBox { Location = new Point(100, y), Size = new Size(60, 23) };
-        var lblX1 = new Label { Text = "×", Location = new Point(165, y), Size = new Size(15, 23), TextAlign = ContentAlignment.MiddleCenter };
-        txtManuWidth = new TextBox { Location = new Point(185, y), Size = new Size(60, 23) };
-        var lblX2 = new Label { Text = "×", Location = new Point(250, y), Size = new Size(15, 23), TextAlign = ContentAlignment.MiddleCenter };
-        txtManuHeight = new TextBox { Location = new Point(270, y), Size = new Size(60, 23) };
+        var lblManuSize = UIStyleHelper.CreateLabel("制造尺寸：", new Point(15, y), new Size(labelWidth, 23));
+        txtManuLength = UIStyleHelper.CreateTextBox(new Point(100, y), new Size(60, 23));
+        var lblX1 = UIStyleHelper.CreateLabel("×", new Point(165, y), new Size(15, 23));
+        lblX1.TextAlign = ContentAlignment.MiddleCenter;
+        txtManuWidth = UIStyleHelper.CreateTextBox(new Point(185, y), new Size(60, 23));
+        var lblX2 = UIStyleHelper.CreateLabel("×", new Point(250, y), new Size(15, 23));
+        lblX2.TextAlign = ContentAlignment.MiddleCenter;
+        txtManuHeight = UIStyleHelper.CreateTextBox(new Point(270, y), new Size(60, 23));
         grpSize.Controls.Add(lblManuSize);
         grpSize.Controls.Add(txtManuLength);
         grpSize.Controls.Add(lblX1);
@@ -159,10 +165,11 @@ public partial class DieAddForm : Form
         grpSize.Controls.Add(txtManuHeight);
 
         // 毛坯尺寸
-        var lblBlankSize = new Label { Text = "毛坯尺寸：", Location = new Point(350, y), Size = new Size(labelWidth, 23) };
-        txtBlankLength = new TextBox { Location = new Point(435, y), Size = new Size(60, 23) };
-        var lblX3 = new Label { Text = "×", Location = new Point(500, y), Size = new Size(15, 23), TextAlign = ContentAlignment.MiddleCenter };
-        txtBlankWidth = new TextBox { Location = new Point(520, y), Size = new Size(60, 23) };
+        var lblBlankSize = UIStyleHelper.CreateLabel("毛坯尺寸：", new Point(350, y), new Size(labelWidth, 23));
+        txtBlankLength = UIStyleHelper.CreateTextBox(new Point(435, y), new Size(60, 23));
+        var lblX3 = UIStyleHelper.CreateLabel("×", new Point(500, y), new Size(15, 23));
+        lblX3.TextAlign = ContentAlignment.MiddleCenter;
+        txtBlankWidth = UIStyleHelper.CreateTextBox(new Point(520, y), new Size(60, 23));
         grpSize.Controls.Add(lblBlankSize);
         grpSize.Controls.Add(txtBlankLength);
         grpSize.Controls.Add(lblX3);
@@ -171,37 +178,35 @@ public partial class DieAddForm : Form
         y += rowHeight + 5;
 
         // 工艺说明
-        var lblProcessDesc = new Label { Text = "工艺说明：", Location = new Point(15, y), Size = new Size(labelWidth, 23) };
-        txtProcessDesc = new TextBox { Location = new Point(100, y), Size = new Size(480, 50), Multiline = true, ScrollBars = ScrollBars.Vertical };
+        var lblProcessDesc = UIStyleHelper.CreateLabel("工艺说明：", new Point(15, y), new Size(labelWidth, 23));
+        txtProcessDesc = new TextBox
+        {
+            Location = new Point(100, y),
+            Size = new Size(480, 50),
+            Multiline = true,
+            ScrollBars = ScrollBars.Vertical,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
+        };
         grpSize.Controls.Add(lblProcessDesc);
         grpSize.Controls.Add(txtProcessDesc);
 
         // ===== 工序设置区域 =====
-        var grpProcess = new GroupBox
-        {
-            Text = "工序设置",
-            Location = new Point(10, 280),
-            Size = new Size(860, 280)
-        };
+        var grpProcess = UIStyleHelper.CreateGroupBox("工序设置", new Point(10, 280), new Size(760, 200));
 
         // 工序列表
         dgvProcesses = new DataGridView
         {
             Location = new Point(15, 25),
-            Size = new Size(830, 200),
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = false,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            Size = new Size(730, 130)
         };
+        ApplyDataGridViewStyle(dgvProcesses);
 
         dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessID", HeaderText = "ID", Visible = false });
         dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessName", HeaderText = "工序名称", Width = 120 });
-        dgvProcesses.Columns.Add(new DataGridViewComboBoxColumn 
-        { 
-            Name = "Status", 
-            HeaderText = "状态", 
+        dgvProcesses.Columns.Add(new DataGridViewComboBoxColumn
+        {
+            Name = "Status",
+            HeaderText = "状态",
             Width = 80,
             DataSource = Enum.GetValues(typeof(ProcessStatus)).Cast<ProcessStatus>().Select(s => new { Value = s, Text = s.GetDisplayName() }).ToList(),
             DisplayMember = "Text",
@@ -213,19 +218,27 @@ public partial class DieAddForm : Form
         dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "Amount", HeaderText = "金额", Width = 80 });
 
         // 工序按钮
-        btnAddProcess = new Button { Text = "添加工序", Location = new Point(15, 235), Size = new Size(80, 28) };
+        btnAddProcess = UIStyleHelper.CreateAddButton("添加工序");
+        btnAddProcess.Size = new Size(90, 28);
+        btnAddProcess.Location = new Point(15, 165);
         btnAddProcess.Click += BtnAddProcess_Click;
 
-        btnEditProcess = new Button { Text = "编辑工序", Location = new Point(105, 235), Size = new Size(80, 28) };
+        btnEditProcess = UIStyleHelper.CreateEditButton("编辑工序");
+        btnEditProcess.Size = new Size(90, 28);
+        btnEditProcess.Location = new Point(115, 165);
         btnEditProcess.Click += BtnEditProcess_Click;
 
-        btnDeleteProcess = new Button { Text = "删除工序", Location = new Point(195, 235), Size = new Size(80, 28) };
+        btnDeleteProcess = UIStyleHelper.CreateDeleteButton("删除工序");
+        btnDeleteProcess.Size = new Size(90, 28);
+        btnDeleteProcess.Location = new Point(215, 165);
         btnDeleteProcess.Click += BtnDeleteProcess_Click;
 
-        btnMoveUp = new Button { Text = "上移", Location = new Point(285, 235), Size = new Size(60, 28) };
+        btnMoveUp = new Button { Text = "上移", Location = new Point(315, 165), Size = new Size(60, 28) };
+        ApplyButtonStyle(btnMoveUp, ButtonStyle.Default);
         btnMoveUp.Click += BtnMoveUp_Click;
 
-        btnMoveDown = new Button { Text = "下移", Location = new Point(355, 235), Size = new Size(60, 28) };
+        btnMoveDown = new Button { Text = "下移", Location = new Point(385, 165), Size = new Size(60, 28) };
+        ApplyButtonStyle(btnMoveDown, ButtonStyle.Default);
         btnMoveDown.Click += BtnMoveDown_Click;
 
         grpProcess.Controls.Add(dgvProcesses);
@@ -236,36 +249,35 @@ public partial class DieAddForm : Form
         grpProcess.Controls.Add(btnMoveDown);
 
         // ===== 备注区域 =====
-        var grpRemark = new GroupBox
-        {
-            Text = "备注",
-            Location = new Point(10, 570),
-            Size = new Size(860, 80)
-        };
+        var grpRemark = UIStyleHelper.CreateGroupBox("备注", new Point(10, 490), new Size(760, 60));
 
         txtRemark = new TextBox
         {
             Location = new Point(15, 20),
-            Size = new Size(830, 50),
+            Size = new Size(730, 35),
             Multiline = true,
-            ScrollBars = ScrollBars.Vertical
+            ScrollBars = ScrollBars.Vertical,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         grpRemark.Controls.Add(txtRemark);
 
         // ===== 按钮区域 =====
-        int btnY = 660;
+        int btnY = 560;
         if (!_isViewMode)
         {
-            btnSave = new Button { Text = "保存", Location = new Point(300, btnY), Size = new Size(90, 35) };
+            btnSave = UIStyleHelper.CreateSaveButton();
+            btnSave.Location = new Point(250, btnY);
             btnSave.Click += BtnSave_Click;
             this.Controls.Add(btnSave);
 
-            btnSaveDraft = new Button { Text = "保存草稿", Location = new Point(400, btnY), Size = new Size(90, 35) };
+            btnSaveDraft = new Button { Text = "保存草稿", Location = new Point(360, btnY), Size = UIStyleHelper.SizeButton };
+            ApplyButtonStyle(btnSaveDraft, ButtonStyle.Default);
             btnSaveDraft.Click += BtnSaveDraft_Click;
             this.Controls.Add(btnSaveDraft);
         }
 
-        btnCancel = new Button { Text = _isViewMode ? "关闭" : "取消", Location = new Point(500, btnY), Size = new Size(90, 35) };
+        btnCancel = UIStyleHelper.CreateCancelButton(_isViewMode ? "关闭" : "取消");
+        btnCancel.Location = new Point(470, btnY);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
         this.Controls.Add(btnCancel);
 
@@ -280,6 +292,9 @@ public partial class DieAddForm : Form
         {
             SetControlsReadOnly(this, true);
         }
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
 
     #region 控件声明
@@ -452,7 +467,7 @@ public partial class DieAddForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载刀模数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载刀模数据失败：{ex.Message}");
         }
     }
 
@@ -465,30 +480,36 @@ public partial class DieAddForm : Form
     private void SaveDie(bool isDraft)
     {
         // 验证必填字段
-        if (string.IsNullOrWhiteSpace(txtDieCode.Text))
+        if (string.IsNullOrWhiteSpace(txtDieCode.Text) || txtDieCode.Text == (string?)txtDieCode.Tag)
         {
+            UIStyleHelper.SetValidationError(txtDieCode, true);
             MessageBox.Show("请输入刀模编号", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtDieCode.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtDieCode, false);
 
-        if (string.IsNullOrWhiteSpace(txtCustomer.Text))
+        if (string.IsNullOrWhiteSpace(txtCustomer.Text) || txtCustomer.Text == (string?)txtCustomer.Tag)
         {
+            UIStyleHelper.SetValidationError(txtCustomer, true);
             MessageBox.Show("请输入客户名称", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtCustomer.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtCustomer, false);
 
         // 检查刀模编号是否重复
         if (!_dieId.HasValue || (_dieId.HasValue && _dieService.GetDieById(_dieId.Value)?.DieCode != txtDieCode.Text.Trim()))
         {
             if (_dieService.IsDieCodeExists(txtDieCode.Text.Trim(), _dieId))
             {
+                UIStyleHelper.SetValidationError(txtDieCode, true);
                 MessageBox.Show("刀模编号已存在", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 txtDieCode.Focus();
                 return;
             }
         }
+        UIStyleHelper.SetValidationError(txtDieCode, false);
 
         // 解析尺寸
         if (!decimal.TryParse(txtManuLength.Text, out decimal manuLength))
@@ -536,12 +557,13 @@ public partial class DieAddForm : Form
                 // 更新
                 if (_dieService.UpdateDie(die, _processes))
                 {
-                    MessageBox.Show("保存成功", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess("保存成功");
                     this.DialogResult = DialogResult.OK;
+                    this.Close();
                 }
                 else
                 {
-                    MessageBox.Show("保存失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("保存失败");
                 }
             }
             else
@@ -550,18 +572,19 @@ public partial class DieAddForm : Form
                 int newId = _dieService.CreateDie(die, _processes);
                 if (newId > 0)
                 {
-                    MessageBox.Show("保存成功", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess("保存成功");
                     this.DialogResult = DialogResult.OK;
+                    this.Close();
                 }
                 else
                 {
-                    MessageBox.Show("保存失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("保存失败");
                 }
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"保存失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"保存失败：{ex.Message}");
         }
     }
 
@@ -585,13 +608,19 @@ public partial class DieAddForm : Form
         }
     }
 
+    protected override bool SaveData()
+    {
+        // 此方法在基类中被调用，实际逻辑在SaveDie中实现
+        return true;
+    }
+
     #endregion
 }
 
 /// <summary>
 /// 工序编辑对话框
 /// </summary>
-public class DieProcessEditForm : Form
+public class DieProcessEditForm : BaseDialogForm
 {
     private DieProcess? _process;
     public DieProcess? Process => _process;
@@ -616,7 +645,7 @@ public class DieProcessEditForm : Form
     private void InitializeComponent()
     {
         this.Text = _process == null ? "添加工序" : "编辑工序";
-        this.Size = new Size(400, 350);
+        this.Size = UIStyleHelper.SizeDialog;
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -627,15 +656,21 @@ public class DieProcessEditForm : Form
         int rowHeight = 35;
 
         // 工序名称
-        var lblName = new Label { Text = "工序名称：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        txtProcessName = new TextBox { Location = new Point(110, y), Size = new Size(250, 23) };
+        var lblName = UIStyleHelper.CreateLabel("工序名称：", new Point(20, y), new Size(labelWidth, 23));
+        txtProcessName = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(250, 23), "请输入工序名称");
         this.Controls.Add(lblName);
         this.Controls.Add(txtProcessName);
         y += rowHeight;
 
         // 状态
-        var lblStatus = new Label { Text = "状态：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        cmbStatus = new ComboBox { Location = new Point(110, y), Size = new Size(150, 23), DropDownStyle = ComboBoxStyle.DropDownList };
+        var lblStatus = UIStyleHelper.CreateLabel("状态：", new Point(20, y), new Size(labelWidth, 23));
+        cmbStatus = new ComboBox
+        {
+            Location = new Point(110, y),
+            Size = new Size(150, 23),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
+        };
         cmbStatus.Items.AddRange(Enum.GetNames(typeof(ProcessStatus)).Select(s => ((ProcessStatus)Enum.Parse(typeof(ProcessStatus), s)).GetDisplayName()).ToArray());
         cmbStatus.SelectedIndex = 0;
         this.Controls.Add(lblStatus);
@@ -643,41 +678,46 @@ public class DieProcessEditForm : Form
         y += rowHeight;
 
         // 操作员工号
-        var lblOpNo = new Label { Text = "员工号：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        txtOperatorNo = new TextBox { Location = new Point(110, y), Size = new Size(150, 23) };
+        var lblOpNo = UIStyleHelper.CreateLabel("员工号：", new Point(20, y), new Size(labelWidth, 23));
+        txtOperatorNo = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(150, 23));
         this.Controls.Add(lblOpNo);
         this.Controls.Add(txtOperatorNo);
         y += rowHeight;
 
         // 操作员姓名
-        var lblOpName = new Label { Text = "员工姓名：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        txtOperatorName = new TextBox { Location = new Point(110, y), Size = new Size(150, 23) };
+        var lblOpName = UIStyleHelper.CreateLabel("员工姓名：", new Point(20, y), new Size(labelWidth, 23));
+        txtOperatorName = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(150, 23));
         this.Controls.Add(lblOpName);
         this.Controls.Add(txtOperatorName);
         y += rowHeight;
 
         // 计算公式
-        var lblFormula = new Label { Text = "计算公式：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        txtFormula = new TextBox { Location = new Point(110, y), Size = new Size(250, 23) };
+        var lblFormula = UIStyleHelper.CreateLabel("计算公式：", new Point(20, y), new Size(labelWidth, 23));
+        txtFormula = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(250, 23));
         this.Controls.Add(lblFormula);
         this.Controls.Add(txtFormula);
         y += rowHeight;
 
         // 金额
-        var lblAmount = new Label { Text = "金额：", Location = new Point(20, y), Size = new Size(labelWidth, 23) };
-        txtAmount = new TextBox { Location = new Point(110, y), Size = new Size(150, 23) };
+        var lblAmount = UIStyleHelper.CreateLabel("金额：", new Point(20, y), new Size(labelWidth, 23));
+        txtAmount = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(150, 23), "0.00");
         this.Controls.Add(lblAmount);
         this.Controls.Add(txtAmount);
         y += rowHeight + 20;
 
         // 按钮
-        var btnOk = new Button { Text = "确定", Location = new Point(110, y), Size = new Size(90, 30) };
+        var btnOk = UIStyleHelper.CreateSaveButton("确定");
+        btnOk.Location = new Point(110, y);
         btnOk.Click += BtnOk_Click;
         this.Controls.Add(btnOk);
 
-        var btnCancel = new Button { Text = "取消", Location = new Point(220, y), Size = new Size(90, 30) };
+        var btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Location = new Point(220, y);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
         this.Controls.Add(btnCancel);
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
 
     private void LoadProcessData()
@@ -693,14 +733,16 @@ public class DieProcessEditForm : Form
 
     private void BtnOk_Click(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(txtProcessName.Text))
+        if (string.IsNullOrWhiteSpace(txtProcessName.Text) || txtProcessName.Text == (string?)txtProcessName.Tag)
         {
+            UIStyleHelper.SetValidationError(txtProcessName, true);
             MessageBox.Show("请输入工序名称", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
+        UIStyleHelper.SetValidationError(txtProcessName, false);
 
         decimal? amount = null;
-        if (!string.IsNullOrWhiteSpace(txtAmount.Text) && decimal.TryParse(txtAmount.Text, out decimal amt))
+        if (!string.IsNullOrWhiteSpace(txtAmount.Text) && txtAmount.Text != (string?)txtAmount.Tag && decimal.TryParse(txtAmount.Text, out decimal amt))
         {
             amount = amt;
         }

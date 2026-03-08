@@ -142,6 +142,15 @@ public partial class OperationLogForm : Form
         };
         btnExport.Click += BtnExport_Click;
 
+        // 打印按钮
+        btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(1090, filterY - 4),
+            Size = new Size(80, 30)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         // 数据表格
         dgvLogs = new DataGridView
         {
@@ -228,6 +237,7 @@ public partial class OperationLogForm : Form
         this.Controls.Add(btnSearch);
         this.Controls.Add(btnReset);
         this.Controls.Add(btnExport);
+        this.Controls.Add(btnPrint);
         this.Controls.Add(dgvLogs);
         this.Controls.Add(lblStats);
     }
@@ -376,6 +386,19 @@ public partial class OperationLogForm : Form
         }
     }
 
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        if (dgvLogs.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  {lblStats.Text}";
+        printService.PrintPreview(dgvLogs, "刀模管理系统 - 操作日志", subtitle);
+    }
+
     private string EscapeCsv(string value)
     {
         if (string.IsNullOrEmpty(value))
@@ -395,6 +418,7 @@ public partial class OperationLogForm : Form
     private Button btnSearch = null!;
     private Button btnReset = null!;
     private Button btnExport = null!;
+    private Button btnPrint = null!;
     private DataGridView dgvLogs = null!;
     private Label lblStats = null!;
 }

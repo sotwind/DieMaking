@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Warehouse;
 
@@ -36,8 +37,11 @@ public partial class ScrapApplyForm : Form
         
         var btnDelete = new ToolStripButton("删除") { Image = SystemIcons.Question.ToBitmap() };
         btnDelete.Click += (s, e) => DeleteRecord();
+        
+        var btnPrint = new ToolStripButton("打印") { Image = SystemIcons.Question.ToBitmap() };
+        btnPrint.Click += (s, e) => PrintData();
 
-        toolStrip.Items.AddRange(new ToolStripItem[] { btnApply, new ToolStripSeparator(), btnAudit, btnDelete, new ToolStripSeparator(), btnRefresh });
+        toolStrip.Items.AddRange(new ToolStripItem[] { btnApply, new ToolStripSeparator(), btnAudit, btnDelete, new ToolStripSeparator(), btnRefresh, new ToolStripSeparator(), btnPrint });
 
         // 搜索区域
         var panelSearch = new Panel
@@ -298,6 +302,19 @@ public partial class ScrapApplyForm : Form
                 MessageBox.Show($"删除失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
+    }
+
+    private void PrintData()
+    {
+        if (dgvRecords.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  {lblStatus.Text}";
+        printService.PrintPreview(dgvRecords, "刀模管理系统 - 报废申请", subtitle);
     }
 
     private DataGridView dgvRecords = null!;

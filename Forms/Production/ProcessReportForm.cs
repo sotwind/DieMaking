@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Production;
 
@@ -239,11 +240,23 @@ public partial class ProcessReportForm : Form
         };
         _btnComplete.Click += BtnComplete_Click;
 
+        // 打印按钮
+        var btnPrint = new Button
+        {
+            Text = "打印工序表",
+            Location = new Point(20, 320),
+            Size = new Size(120, 35),
+            BackColor = Color.SteelBlue,
+            ForeColor = Color.White,
+            Font = new Font("微软雅黑", 10, FontStyle.Bold)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         // 状态说明
         var lblStatusTip = new Label
         {
             Text = "状态说明：\n• 待生产（橙色）- 可以开始生产\n• 生产中（蓝色）- 可以完成生产\n• 已完成（绿色）- 已完工",
-            Location = new Point(20, 320),
+            Location = new Point(20, 365),
             Size = new Size(400, 80),
             Font = new Font("微软雅黑", 9),
             ForeColor = Color.Gray
@@ -254,7 +267,7 @@ public partial class ProcessReportForm : Form
             lblOperationTitle, _lblSelectedProcess,
             lblOperatorNo, _txtOperatorNo, lblOperatorName, _txtOperatorName,
             lblAmount, _txtAmount, lblRemark, _txtRemark,
-            _btnStart, _btnComplete, lblStatusTip
+            _btnStart, _btnComplete, btnPrint, lblStatusTip
         });
 
         this.Controls.Add(panelRight);
@@ -504,5 +517,26 @@ public partial class ProcessReportForm : Form
         {
             MessageBox.Show($"操作失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        if (_dgvProcesses.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}";
+        
+        // 获取当前选中的刀模信息
+        string dieInfo = "";
+        if (_cmbDie.SelectedItem is DieInfoForReport die)
+        {
+            dieInfo = $"  刀模：{die.DieCode} - {die.CustomerName}";
+        }
+        
+        printService.PrintPreview(_dgvProcesses, "刀模管理系统 - 工序报产记录" + dieInfo, subtitle);
     }
 }

@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Warehouse;
 
@@ -127,10 +128,13 @@ public partial class DieReturnForm : Form
         y += 80;
 
         // 按钮
-        var btnSave = new Button { Text = "确认归还", Location = new Point(200, y), Size = new Size(120, 35) };
+        var btnSave = new Button { Text = "确认归还", Location = new Point(140, y), Size = new Size(120, 35) };
         btnSave.Click += BtnSave_Click;
 
-        var btnCancel = new Button { Text = "取消", Location = new Point(350, y), Size = new Size(100, 35) };
+        var btnPrint = new Button { Text = "打印", Location = new Point(280, y), Size = new Size(100, 35) };
+        btnPrint.Click += BtnPrint_Click;
+
+        var btnCancel = new Button { Text = "取消", Location = new Point(400, y), Size = new Size(100, 35) };
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
 
         this.Controls.AddRange(new Control[] {
@@ -138,7 +142,7 @@ public partial class DieReturnForm : Form
             lblRecord, cboRecord, lblDieInfo, lblDieInfoValue, lblBorrowInfo, lblBorrowInfoValue,
             lblBorrower, lblBorrowerValue, lblPurpose, lblPurposeValue,
             lblReturnTime, dtpReturnTime, lblOperator, txtOperator, lblRemark, txtRemark,
-            btnSave, btnCancel
+            btnSave, btnPrint, btnCancel
         });
     }
 
@@ -232,6 +236,43 @@ public partial class DieReturnForm : Form
         {
             MessageBox.Show($"归还失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
+    }
+
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        if (cboRecord.SelectedValue == null)
+        {
+            MessageBox.Show("请先选择借用记录", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        // 创建打印用的DataGridView
+        var dgvPrint = new DataGridView();
+        dgvPrint.Columns.Add("Item", "项目");
+        dgvPrint.Columns.Add("Value", "内容");
+
+        var borrowId = (int)cboRecord.SelectedValue;
+        var record = _borrowingRecords.FirstOrDefault(r => r.BorrowID == borrowId);
+        
+        if (record != null)
+        {
+            dgvPrint.Rows.Add("刀模编号", record.DieCode);
+            dgvPrint.Rows.Add("客户名称", record.CustomerName);
+            dgvPrint.Rows.Add("产品名称", record.ProductName);
+            dgvPrint.Rows.Add("借用类型", record.BorrowTypeText);
+            dgvPrint.Rows.Add("借用时间", record.BorrowTime.ToString("yyyy-MM-dd HH:mm"));
+            dgvPrint.Rows.Add("领用人", record.BorrowerName);
+            dgvPrint.Rows.Add("领用部门", record.BorrowDept);
+            dgvPrint.Rows.Add("用途", record.Purpose);
+        }
+
+        dgvPrint.Rows.Add("归还时间", dtpReturnTime.Value.ToString("yyyy-MM-dd HH:mm:ss"));
+        dgvPrint.Rows.Add("归还操作人", txtOperator.Text.Trim());
+        dgvPrint.Rows.Add("归还备注", txtRemark.Text.Trim());
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}";
+        printService.PrintPreview(dgvPrint, "刀模管理系统 - 归还记录", subtitle);
     }
 
     private ComboBox cboRecord = null!;

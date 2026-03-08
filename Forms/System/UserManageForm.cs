@@ -119,6 +119,14 @@ public partial class UserManageForm : Form
         };
         btnRefresh.Click += BtnRefresh_Click;
 
+        btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(970, 50),
+            Size = new Size(90, 30)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         // 数据表格
         dgvUsers = new DataGridView
         {
@@ -203,6 +211,7 @@ public partial class UserManageForm : Form
         this.Controls.Add(btnResetPassword);
         this.Controls.Add(btnToggleStatus);
         this.Controls.Add(btnRefresh);
+        this.Controls.Add(btnPrint);
         this.Controls.Add(dgvUsers);
     }
 
@@ -388,6 +397,19 @@ public partial class UserManageForm : Form
         LoadUsers();
     }
 
+    private void BtnPrint_Click(object? sender, EventArgs e)
+    {
+        if (dgvUsers.Rows.Count == 0)
+        {
+            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var printService = new PrintService();
+        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  共 {dgvUsers.Rows.Count} 条记录";
+        printService.PrintPreview(dgvUsers, "刀模管理系统 - 用户列表", subtitle);
+    }
+
     private void LogOperation(string operationType, string operationDesc)
     {
         try
@@ -413,6 +435,7 @@ public partial class UserManageForm : Form
     private Button btnResetPassword = null!;
     private Button btnToggleStatus = null!;
     private Button btnRefresh = null!;
+    private Button btnPrint = null!;
     private DataGridView dgvUsers = null!;
 }
 

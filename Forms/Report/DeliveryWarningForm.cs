@@ -1,4 +1,5 @@
 using DieMaking.Services;
+using DieMaking.Helpers;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Forms.Report;

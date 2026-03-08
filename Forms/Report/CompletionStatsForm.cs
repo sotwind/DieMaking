@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Report;
 
@@ -129,9 +130,9 @@ public partial class CompletionStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出CSV",
+            Text = "导出Excel",
             Location = new Point(100, 45),
-            Size = new Size(80, 28)
+            Size = new Size(90, 28)
         };
         btnExport.Click += BtnExport_Click;
 
@@ -341,14 +342,25 @@ public partial class CompletionStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                var importExportService = new ImportExportService();
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                }
+                else
+                {
+                    var dataTable = importExportService.ConvertDataGridViewToDataTable(_dgvData);
+                    importExportService.ExportToExcel(dataTable, "完工统计", saveDialog.FileName);
+                }
+
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }

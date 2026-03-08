@@ -1,9 +1,10 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
 
 namespace DieMaking.Forms.Warehouse;
 
-public partial class DieStorageForm : Form
+public partial class DieStorageForm : BaseListForm
 {
     private readonly WarehouseService _warehouseService;
     private readonly DieService _dieService;
@@ -12,47 +13,51 @@ public partial class DieStorageForm : Form
 
     public DieStorageForm()
     {
-        InitializeComponent();
         _warehouseService = new WarehouseService();
         _dieService = new DieService();
-        LoadData();
+        InitializeComponent();
     }
 
     private void InitializeComponent()
     {
         this.Text = "刀模入库";
-        this.Size = new Size(900, 600);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
 
         // 创建工具栏
-        var toolStrip = new ToolStrip();
-        
-        var btnRefresh = new ToolStripButton("刷新") { Image = SystemIcons.Question.ToBitmap() };
-        btnRefresh.Click += (s, e) => LoadData();
-        
-        var btnInStock = new ToolStripButton("入库") { Image = SystemIcons.Question.ToBitmap() };
-        btnInStock.Click += (s, e) => ShowInStockDialog();
-
-        toolStrip.Items.AddRange(new ToolStripItem[] { btnRefresh, new ToolStripSeparator(), btnInStock });
-
-        // 搜索区域
-        var panelSearch = new Panel
+        var toolPanel = new Panel
         {
             Dock = DockStyle.Top,
             Height = 50,
             Padding = new Padding(10, 5, 10, 5)
         };
 
-        var lblSearch = new Label { Text = "搜索：", Location = new Point(10, 12), AutoSize = true };
-        txtSearch = new TextBox { Location = new Point(50, 9), Size = new Size(200, 25) };
-        
-        var btnSearch = new Button { Text = "查询", Location = new Point(260, 8), Size = new Size(80, 28) };
+        // 搜索区域
+        var lblSearch = UIStyleHelper.CreateLabel("搜索：", new Point(10, 12), new Size(50, 25));
+        txtSearch = UIStyleHelper.CreateTextBox(new Point(60, 9), new Size(200, 25), "输入刀模编号或客户名称");
+
+        btnSearch = UIStyleHelper.CreateSearchButton();
+        btnSearch.Location = new Point(270, 8);
         btnSearch.Click += (s, e) => SearchRecords();
-        
-        var btnClear = new Button { Text = "清空", Location = new Point(350, 8), Size = new Size(80, 28) };
+
+        btnClear = UIStyleHelper.CreateCancelButton("清空");
+        btnClear.Location = new Point(380, 8);
         btnClear.Click += (s, e) => ClearFilters();
 
-        panelSearch.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch, btnClear });
+        btnRefresh = new Button { Text = "刷新", Location = new Point(490, 8), Size = UIStyleHelper.SizeButton };
+        ApplyButtonStyle(btnRefresh, ButtonStyle.Default);
+        btnRefresh.Click += (s, e) => LoadData();
+
+        btnInStock = UIStyleHelper.CreateAddButton("入库");
+        btnInStock.Location = new Point(600, 8);
+        btnInStock.Click += (s, e) => ShowInStockDialog();
+
+        toolPanel.Controls.Add(lblSearch);
+        toolPanel.Controls.Add(txtSearch);
+        toolPanel.Controls.Add(btnSearch);
+        toolPanel.Controls.Add(btnClear);
+        toolPanel.Controls.Add(btnRefresh);
+        toolPanel.Controls.Add(btnInStock);
 
         // 数据表格
         dgvRecords = new DataGridView
@@ -65,10 +70,9 @@ public partial class DieStorageForm : Form
             AllowUserToAddRows = false,
             AllowUserToDeleteRows = false,
             BackgroundColor = Color.White,
-            BorderStyle = BorderStyle.Fixed3D,
-            RowHeadersVisible = false,
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.AliceBlue }
+            BorderStyle = BorderStyle.None
         };
+        ApplyDataGridViewStyle(dgvRecords);
 
         // 添加列
         dgvRecords.Columns.Add(new DataGridViewTextBoxColumn
@@ -136,33 +140,57 @@ public partial class DieStorageForm : Form
             Width = 200
         });
 
+        // 添加右键菜单
+        var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
+            onView: null,
+            onEdit: () => ShowInStockDialog(),
+            onDelete: null
+        );
+        dgvRecords.ContextMenuStrip = contextMenu;
+
         // 状态栏
-        var statusStrip = new StatusStrip();
-        lblStatus = new ToolStripStatusLabel("就绪");
-        statusStrip.Items.Add(lblStatus);
+        var statusStrip = CreateStatusBar();
 
         // 布局
         var panelContent = new Panel { Dock = DockStyle.Fill };
         panelContent.Controls.Add(dgvRecords);
 
         this.Controls.Add(panelContent);
-        this.Controls.Add(panelSearch);
-        this.Controls.Add(toolStrip);
+        this.Controls.Add(toolPanel);
         this.Controls.Add(statusStrip);
     }
 
-    private void LoadData()
+    private DataGridView dgvRecords = null!;
+    private TextBox txtSearch = null!;
+    private Button btnSearch = null!;
+    private Button btnClear = null!;
+    private Button btnRefresh = null!;
+    private Button btnInStock = null!;
+
+    protected override void LoadData()
     {
+        Form? loadingForm = null;
         try
         {
+            loadingForm = UIStyleHelper.ShowLoading(this, "正在加载数据...");
+
             // 加载已完工但未入库的刀模
             _completedDies = _dieService.GetCompletedDiesNotInStock();
             dgvRecords.DataSource = _completedDies;
-            lblStatus.Text = $"共 {_completedDies.Count} 条待入库记录";
+
+            // 更新状态栏
+            if (StatusUserLabel != null)
+            {
+                StatusUserLabel.Text = $"共 {_completedDies.Count} 条待入库记录";
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
+        }
+        finally
+        {
+            loadingForm?.Close();
         }
     }
 
@@ -171,23 +199,27 @@ public partial class DieStorageForm : Form
         try
         {
             var keyword = txtSearch.Text.Trim();
-            if (string.IsNullOrEmpty(keyword))
+            if (string.IsNullOrEmpty(keyword) || keyword == (string?)txtSearch.Tag)
             {
                 LoadData();
                 return;
             }
 
-            var filtered = _completedDies.Where(d => 
-                d.DieCode.Contains(keyword) || 
-                d.CustomerName.Contains(keyword) || 
+            var filtered = _completedDies.Where(d =>
+                d.DieCode.Contains(keyword) ||
+                d.CustomerName.Contains(keyword) ||
                 d.ProductName.Contains(keyword)).ToList();
-            
+
             dgvRecords.DataSource = filtered;
-            lblStatus.Text = $"共 {filtered.Count} 条记录";
+
+            if (StatusUserLabel != null)
+            {
+                StatusUserLabel.Text = $"共 {filtered.Count} 条记录";
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"搜索失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"搜索失败：{ex.Message}");
         }
     }
 
@@ -207,23 +239,20 @@ public partial class DieStorageForm : Form
 
         var dieId = (int)dgvRecords.SelectedRows[0].Cells["DieID"].Value;
         var die = _completedDies.FirstOrDefault(d => d.DieID == dieId);
-        
+
         if (die == null) return;
 
         using var form = new DieInStockEditForm(die);
         if (form.ShowDialog(this) == DialogResult.OK)
         {
+            ShowSuccess("入库成功");
             LoadData();
         }
     }
-
-    private DataGridView dgvRecords = null!;
-    private TextBox txtSearch = null!;
-    private ToolStripStatusLabel lblStatus = null!;
 }
 
 // 刀模入库编辑窗体
-public class DieInStockEditForm : Form
+public class DieInStockEditForm : BaseDialogForm
 {
     private readonly WarehouseService _warehouseService;
     private readonly DieInfo _die;
@@ -240,7 +269,7 @@ public class DieInStockEditForm : Form
     private void InitializeComponent()
     {
         this.Text = "刀模入库";
-        this.Size = new Size(600, 450);
+        this.Size = UIStyleHelper.SizeDialog;
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -255,79 +284,77 @@ public class DieInStockEditForm : Form
         var lblTitle = new Label
         {
             Text = "刀模入库登记",
-            Font = new Font("微软雅黑", 14, FontStyle.Bold),
+            Font = UIStyleHelper.GetLargeTitleFont(),
             AutoSize = true,
             Location = new Point(220, y)
         };
         y += 50;
 
         // 刀模编号
-        var lblDieCode = new Label { Text = "刀模编号：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblDieCodeValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblDieCode = UIStyleHelper.CreateLabel("刀模编号：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblDieCodeValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25),
-            Font = new Font("微软雅黑", 9, FontStyle.Bold),
-            ForeColor = Color.Blue
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Bold, GraphicsUnit.Point, 134),
+            ForeColor = UIStyleHelper.ColorInfo
         };
         y += 40;
 
         // 客户名称
-        var lblCustomer = new Label { Text = "客户名称：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblCustomerValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblCustomer = UIStyleHelper.CreateLabel("客户名称：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblCustomerValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25)
         };
         y += 40;
 
         // 产品名称
-        var lblProduct = new Label { Text = "产品名称：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblProductValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblProduct = UIStyleHelper.CreateLabel("产品名称：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblProductValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25)
         };
         y += 40;
 
         // 规格尺寸
-        var lblSize = new Label { Text = "规格尺寸：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblSizeValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblSize = UIStyleHelper.CreateLabel("规格尺寸：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblSizeValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25)
         };
         y += 40;
 
         // 入库库位选择
-        var lblLocation = new Label { Text = "入库库位：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        cboLocation = new ComboBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblLocation = UIStyleHelper.CreateLabel("入库库位：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        cboLocation = new ComboBox
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(250, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         y += 40;
 
         // 入库时间
-        var lblInStockTime = new Label { Text = "入库时间：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        dtpInStockTime = new DateTimePicker 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblInStockTime = UIStyleHelper.CreateLabel("入库时间：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        dtpInStockTime = new DateTimePicker
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(200, 25),
             Format = DateTimePickerFormat.Custom,
             CustomFormat = "yyyy-MM-dd HH:mm:ss",
-            Value = DateTime.Now
+            Value = DateTime.Now,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         y += 40;
 
         // 入库操作人
-        var lblOperator = new Label { Text = "入库操作人：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        txtOperator = new TextBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
-            Size = new Size(200, 25)
-        };
+        var lblOperator = UIStyleHelper.CreateLabel("入库操作人：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        txtOperator = UIStyleHelper.CreateTextBox(new Point(leftMargin + labelWidth, y), new Size(200, 25));
         // 默认填充当前用户
         if (CurrentUser.User != null)
         {
@@ -336,21 +363,26 @@ public class DieInStockEditForm : Form
         y += 40;
 
         // 入库备注
-        var lblRemark = new Label { Text = "入库备注：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        txtRemark = new TextBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblRemark = UIStyleHelper.CreateLabel("入库备注：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        txtRemark = new TextBox
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 60),
             Multiline = true,
-            ScrollBars = ScrollBars.Vertical
+            ScrollBars = ScrollBars.Vertical,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         y += 80;
 
         // 按钮
-        var btnSave = new Button { Text = "确认入库", Location = new Point(180, y), Size = new Size(120, 35) };
+        var btnSave = UIStyleHelper.CreateSaveButton("确认入库");
+        btnSave.Size = new Size(120, 35);
+        btnSave.Location = new Point(180, y);
         btnSave.Click += BtnSave_Click;
 
-        var btnCancel = new Button { Text = "取消", Location = new Point(320, y), Size = new Size(100, 35) };
+        var btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Size = new Size(100, 35);
+        btnCancel.Location = new Point(320, y);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
 
         this.Controls.AddRange(new Control[] {
@@ -360,6 +392,9 @@ public class DieInStockEditForm : Form
             lblOperator, txtOperator, lblRemark, txtRemark,
             btnSave, btnCancel
         });
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
 
     private void LoadData()
@@ -374,7 +409,7 @@ public class DieInStockEditForm : Form
 
             // 加载空闲库位
             _availableLocations = _warehouseService.GetLocationsByStatus(LocationStatus.Free);
-            
+
             if (_availableLocations.Count == 0)
             {
                 MessageBox.Show("当前没有空闲库位，请先添加库位", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -382,12 +417,12 @@ public class DieInStockEditForm : Form
             }
 
             // 创建显示列表
-            var displayList = _availableLocations.Select(l => new 
-            { 
-                l.LocationID, 
+            var displayList = _availableLocations.Select(l => new
+            {
+                l.LocationID,
                 Display = $"{l.LocationCode} ({l.Area}-{l.ShelfNo}-{l.LayerNo}-{l.PositionNo})"
             }).ToList();
-            
+
             cboLocation.DataSource = displayList;
             cboLocation.DisplayMember = "Display";
             cboLocation.ValueMember = "LocationID";
@@ -399,7 +434,7 @@ public class DieInStockEditForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
         }
     }
 
@@ -413,10 +448,12 @@ public class DieInStockEditForm : Form
 
         if (string.IsNullOrWhiteSpace(txtOperator.Text))
         {
+            UIStyleHelper.SetValidationError(txtOperator, true);
             MessageBox.Show("请输入入库操作人", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtOperator.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtOperator, false);
 
         try
         {
@@ -424,20 +461,19 @@ public class DieInStockEditForm : Form
             var operatorName = txtOperator.Text.Trim();
 
             var result = _warehouseService.InStockDie(_die.DieID, locationId, dtpInStockTime.Value, operatorName, txtRemark.Text.Trim());
-            
+
             if (result)
             {
-                MessageBox.Show("入库成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
             }
             else
             {
-                MessageBox.Show("入库失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError("入库失败");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"入库失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"入库失败：{ex.Message}");
         }
     }
 
