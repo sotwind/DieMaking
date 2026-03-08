@@ -45,6 +45,7 @@ public static class PermissionKeys
     public const string ScrapAudit = "报废审核";
     public const string Report = "报表统计";
     public const string UserManage = "用户管理";
+    public const string SystemAdmin = "系统管理员";
 }
 
 public static class CurrentUser

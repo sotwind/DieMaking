@@ -5,7 +5,7 @@ using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Forms.System;
 
-public partial class UserManageForm : Form
+public partial class UserManageForm : BaseListForm
 {
     private readonly UserService _userService;
     private BindingSource _bindingSource = new();
@@ -15,7 +15,7 @@ public partial class UserManageForm : Form
     {
         InitializeComponent();
         _userService = new UserService();
-        
+
         // 检查权限
         if (!CurrentUser.HasPermission(PermissionKeys.UserManage))
         {
@@ -23,122 +23,72 @@ public partial class UserManageForm : Form
             this.Close();
             return;
         }
-        
+
         this.Text = "用户管理";
-        LoadUsers();
     }
 
     private void InitializeComponent()
     {
-        this.Size = new Size(1000, 600);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
-        this.FormBorderStyle = FormBorderStyle.FixedDialog;
-        this.MaximizeBox = false;
-        this.MinimizeBox = false;
 
         // 标题标签
         var lblTitle = new Label
         {
             Text = "用户管理",
-            Font = new Font("微软雅黑", 16, FontStyle.Bold),
+            Font = UIStyleHelper.GetTitleFont(),
             AutoSize = true,
             Location = new Point(20, 15)
         };
 
         // 搜索区域
-        var lblSearch = new Label
-        {
-            Text = "搜索：",
-            Location = new Point(20, 55),
-            Size = new Size(50, 25)
-        };
+        var lblSearch = UIStyleHelper.CreateLabel("搜索：", new Point(20, 55), new Size(50, 25));
 
-        txtSearch = new TextBox
-        {
-            Location = new Point(75, 52),
-            Size = new Size(200, 25)
-        };
+        txtSearch = UIStyleHelper.CreateTextBox(new Point(75, 52), new Size(200, 25), "输入用户名或姓名");
         txtSearch.TextChanged += TxtSearch_TextChanged;
 
         // 状态筛选
-        var lblStatus = new Label
-        {
-            Text = "状态：",
-            Location = new Point(290, 55),
-            Size = new Size(50, 25)
-        };
+        var lblStatus = UIStyleHelper.CreateLabel("状态：", new Point(290, 55), new Size(50, 25));
 
         cmbStatus = new ComboBox
         {
             Location = new Point(345, 52),
             Size = new Size(100, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         cmbStatus.Items.AddRange(new object[] { "全部", "启用", "禁用" });
         cmbStatus.SelectedIndex = 0;
         cmbStatus.SelectedIndexChanged += CmbStatus_SelectedIndexChanged;
 
         // 按钮区域
-        btnAdd = new Button
-        {
-            Text = "新增用户",
-            Location = new Point(470, 50),
-            Size = new Size(90, 30)
-        };
+        btnAdd = UIStyleHelper.CreateAddButton("新增用户");
+        btnAdd.Location = new Point(470, 50);
         btnAdd.Click += BtnAdd_Click;
 
-        btnEdit = new Button
-        {
-            Text = "编辑用户",
-            Location = new Point(570, 50),
-            Size = new Size(90, 30)
-        };
+        btnEdit = UIStyleHelper.CreateEditButton("编辑用户");
+        btnEdit.Location = new Point(580, 50);
         btnEdit.Click += BtnEdit_Click;
 
-        btnResetPassword = new Button
-        {
-            Text = "重置密码",
-            Location = new Point(670, 50),
-            Size = new Size(90, 30)
-        };
+        btnResetPassword = new Button { Text = "重置密码", Location = new Point(690, 50), Size = UIStyleHelper.SizeButton };
+        ApplyButtonStyle(btnResetPassword, ButtonStyle.Default);
         btnResetPassword.Click += BtnResetPassword_Click;
 
-        btnToggleStatus = new Button
-        {
-            Text = "启用/禁用",
-            Location = new Point(770, 50),
-            Size = new Size(90, 30)
-        };
+        btnToggleStatus = new Button { Text = "启用/禁用", Location = new Point(800, 50), Size = UIStyleHelper.SizeButton };
+        ApplyButtonStyle(btnToggleStatus, ButtonStyle.Default);
         btnToggleStatus.Click += BtnToggleStatus_Click;
 
-        btnRefresh = new Button
-        {
-            Text = "刷新",
-            Location = new Point(870, 50),
-            Size = new Size(90, 30)
-        };
+        btnRefresh = UIStyleHelper.CreateSearchButton("刷新");
+        btnRefresh.Location = new Point(910, 50);
         btnRefresh.Click += BtnRefresh_Click;
-
-        btnPrint = new Button
-        {
-            Text = "打印",
-            Location = new Point(970, 50),
-            Size = new Size(90, 30)
-        };
-        btnPrint.Click += BtnPrint_Click;
 
         // 数据表格
         dgvUsers = new DataGridView
         {
             Location = new Point(20, 95),
-            Size = new Size(940, 440),
-            AllowUserToAddRows = false,
-            AllowUserToDeleteRows = false,
-            ReadOnly = true,
-            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
-            MultiSelect = false,
-            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill
+            Size = new Size(1140, 500)
         };
+        ApplyDataGridViewStyle(dgvUsers);
 
         // 添加列
         dgvUsers.Columns.Add(new DataGridViewTextBoxColumn
@@ -200,6 +150,17 @@ public partial class UserManageForm : Form
         dgvUsers.CellFormatting += DgvUsers_CellFormatting;
         dgvUsers.CellDoubleClick += DgvUsers_CellDoubleClick;
 
+        // 添加右键菜单
+        var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
+            onView: null,
+            onEdit: () => BtnEdit_Click(null, EventArgs.Empty),
+            onDelete: null
+        );
+        dgvUsers.ContextMenuStrip = contextMenu;
+
+        // 状态栏
+        var statusStrip = CreateStatusBar();
+
         // 添加控件
         this.Controls.Add(lblTitle);
         this.Controls.Add(lblSearch);
@@ -211,11 +172,20 @@ public partial class UserManageForm : Form
         this.Controls.Add(btnResetPassword);
         this.Controls.Add(btnToggleStatus);
         this.Controls.Add(btnRefresh);
-        this.Controls.Add(btnPrint);
         this.Controls.Add(dgvUsers);
+        this.Controls.Add(statusStrip);
     }
 
-    private void LoadUsers()
+    private TextBox txtSearch = null!;
+    private ComboBox cmbStatus = null!;
+    private Button btnAdd = null!;
+    private Button btnEdit = null!;
+    private Button btnResetPassword = null!;
+    private Button btnToggleStatus = null!;
+    private Button btnRefresh = null!;
+    private DataGridView dgvUsers = null!;
+
+    protected override void LoadData()
     {
         try
         {
@@ -224,7 +194,7 @@ public partial class UserManageForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载用户数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载用户数据失败：{ex.Message}");
         }
     }
 
@@ -234,7 +204,7 @@ public partial class UserManageForm : Form
 
         // 搜索过滤
         var searchText = txtSearch.Text.Trim().ToLower();
-        if (!string.IsNullOrEmpty(searchText))
+        if (!string.IsNullOrEmpty(searchText) && searchText != ((string?)txtSearch.Tag)?.ToLower())
         {
             filteredUsers = filteredUsers.Where(u =>
                 u.Username.ToLower().Contains(searchText) ||
@@ -253,6 +223,12 @@ public partial class UserManageForm : Form
 
         _bindingSource.DataSource = filteredUsers.ToList();
         dgvUsers.DataSource = _bindingSource;
+
+        // 更新状态栏
+        if (StatusUserLabel != null)
+        {
+            StatusUserLabel.Text = $"共 {filteredUsers.Count()} 位用户";
+        }
     }
 
     private void TxtSearch_TextChanged(object? sender, EventArgs e)
@@ -271,7 +247,7 @@ public partial class UserManageForm : Form
         {
             var user = (User)dgvUsers.Rows[e.RowIndex].DataBoundItem;
             e.Value = user.IsActive ? "启用" : "禁用";
-            e.CellStyle!.ForeColor = user.IsActive ? Color.Green : Color.Red;
+            e.CellStyle!.ForeColor = user.IsActive ? UIStyleHelper.ColorSuccess : UIStyleHelper.ColorDanger;
         }
 
         if (e.ColumnIndex == dgvUsers.Columns["LastLoginTime"].Index && e.RowIndex >= 0)
@@ -296,7 +272,7 @@ public partial class UserManageForm : Form
         var form = new UserEditForm();
         if (form.ShowDialog(this) == DialogResult.OK)
         {
-            LoadUsers();
+            LoadData();
         }
     }
 
@@ -312,7 +288,7 @@ public partial class UserManageForm : Form
         var form = new UserEditForm(user);
         if (form.ShowDialog(this) == DialogResult.OK)
         {
-            LoadUsers();
+            LoadData();
         }
     }
 
@@ -325,25 +301,25 @@ public partial class UserManageForm : Form
         }
 
         var user = (User)dgvUsers.CurrentRow.DataBoundItem;
-        
-        if (MessageBox.Show($"确定要重置用户 [{user.Username}] 的密码吗？\n密码将重置为：123456", 
+
+        if (MessageBox.Show($"确定要重置用户 [{user.Username}] 的密码吗？\n密码将重置为：123456",
             "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             try
             {
                 if (_userService.UpdatePassword(user.UserID, "123456"))
                 {
-                    MessageBox.Show("密码重置成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess("密码重置成功！");
                     LogOperation("重置密码", $"重置用户 {user.Username} 的密码");
                 }
                 else
                 {
-                    MessageBox.Show("密码重置失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("密码重置失败！");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"密码重置失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"密码重置失败：{ex.Message}");
             }
         }
     }
@@ -357,7 +333,7 @@ public partial class UserManageForm : Form
         }
 
         var user = (User)dgvUsers.CurrentRow.DataBoundItem;
-        
+
         // 不能禁用自己
         if (user.UserID == CurrentUser.User?.UserID)
         {
@@ -367,8 +343,8 @@ public partial class UserManageForm : Form
 
         var newStatus = !user.IsActive;
         var actionText = newStatus ? "启用" : "禁用";
-        
-        if (MessageBox.Show($"确定要{actionText}用户 [{user.Username}] 吗？", 
+
+        if (MessageBox.Show($"确定要{actionText}用户 [{user.Username}] 吗？",
             "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             try
@@ -376,38 +352,25 @@ public partial class UserManageForm : Form
                 user.IsActive = newStatus;
                 if (_userService.UpdateUser(user))
                 {
-                    MessageBox.Show($"用户{actionText}成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess($"用户{actionText}成功！");
                     LogOperation($"{actionText}用户", $"{actionText}用户 {user.Username}");
-                    LoadUsers();
+                    LoadData();
                 }
                 else
                 {
-                    MessageBox.Show($"用户{actionText}失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError($"用户{actionText}失败！");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"操作失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"操作失败：{ex.Message}");
             }
         }
     }
 
     private void BtnRefresh_Click(object? sender, EventArgs e)
     {
-        LoadUsers();
-    }
-
-    private void BtnPrint_Click(object? sender, EventArgs e)
-    {
-        if (dgvUsers.Rows.Count == 0)
-        {
-            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
-        var printService = new PrintService();
-        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  共 {dgvUsers.Rows.Count} 条记录";
-        printService.PrintPreview(dgvUsers, "刀模管理系统 - 用户列表", subtitle);
+        LoadData();
     }
 
     private void LogOperation(string operationType, string operationDesc)
@@ -427,22 +390,12 @@ public partial class UserManageForm : Form
             // 日志记录失败不影响主流程
         }
     }
-
-    private TextBox txtSearch = null!;
-    private ComboBox cmbStatus = null!;
-    private Button btnAdd = null!;
-    private Button btnEdit = null!;
-    private Button btnResetPassword = null!;
-    private Button btnToggleStatus = null!;
-    private Button btnRefresh = null!;
-    private Button btnPrint = null!;
-    private DataGridView dgvUsers = null!;
 }
 
 /// <summary>
 /// 用户编辑窗体（新增/编辑）
 /// </summary>
-public partial class UserEditForm : Form
+public partial class UserEditForm : BaseDialogForm
 {
     private readonly UserService _userService;
     private readonly User? _user;
@@ -450,22 +403,30 @@ public partial class UserEditForm : Form
 
     public UserEditForm(User? user = null)
     {
-        InitializeComponent();
         _userService = new UserService();
         _user = user;
         _isEdit = user != null;
-        
+
         this.Text = _isEdit ? "编辑用户" : "新增用户";
-        
+
         if (_isEdit && _user != null)
         {
             LoadUserData();
         }
     }
 
+    private TextBox txtUsername = null!;
+    private TextBox txtPassword = null!;
+    private TextBox txtRealName = null!;
+    private TextBox txtWorkstation = null!;
+    private CheckedListBox clbPermissions = null!;
+    private CheckBox chkIsActive = null!;
+    private Button btnSave = null!;
+    private Button btnCancel = null!;
+
     private void InitializeComponent()
     {
-        this.Size = new Size(450, 400);
+        this.Size = new Size(450, 450);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -477,32 +438,17 @@ public partial class UserEditForm : Form
         int rowHeight = 45;
 
         // 用户名
-        var lblUsername = new Label
-        {
-            Text = "用户名：",
-            Location = new Point(30, startY),
-            Size = new Size(labelWidth, 25)
-        };
-
-        txtUsername = new TextBox
-        {
-            Location = new Point(115, startY),
-            Size = new Size(inputWidth, 25)
-        };
+        var lblUsername = UIStyleHelper.CreateLabel("用户名：", new Point(30, startY), new Size(labelWidth, 25));
+        txtUsername = UIStyleHelper.CreateTextBox(new Point(115, startY), new Size(inputWidth, 25), "请输入用户名");
 
         // 密码
-        var lblPassword = new Label
-        {
-            Text = "密码：",
-            Location = new Point(30, startY + rowHeight),
-            Size = new Size(labelWidth, 25)
-        };
-
+        var lblPassword = UIStyleHelper.CreateLabel("密码：", new Point(30, startY + rowHeight), new Size(labelWidth, 25));
         txtPassword = new TextBox
         {
             Location = new Point(115, startY + rowHeight),
             Size = new Size(inputWidth, 25),
-            PasswordChar = '*'
+            PasswordChar = '*',
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         var lblPasswordHint = new Label
@@ -511,50 +457,25 @@ public partial class UserEditForm : Form
             Location = new Point(115, startY + rowHeight + 25),
             Size = new Size(250, 20),
             ForeColor = Color.Gray,
-            Font = new Font("微软雅黑", 9)
+            Font = new Font(UIStyleHelper.FontName, 9f, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 姓名
-        var lblRealName = new Label
-        {
-            Text = "姓名：",
-            Location = new Point(30, startY + rowHeight * 2 + 10),
-            Size = new Size(labelWidth, 25)
-        };
-
-        txtRealName = new TextBox
-        {
-            Location = new Point(115, startY + rowHeight * 2 + 10),
-            Size = new Size(inputWidth, 25)
-        };
+        var lblRealName = UIStyleHelper.CreateLabel("姓名：", new Point(30, startY + rowHeight * 2 + 10), new Size(labelWidth, 25));
+        txtRealName = UIStyleHelper.CreateTextBox(new Point(115, startY + rowHeight * 2 + 10), new Size(inputWidth, 25), "请输入姓名");
 
         // 工位
-        var lblWorkstation = new Label
-        {
-            Text = "工位：",
-            Location = new Point(30, startY + rowHeight * 3 + 10),
-            Size = new Size(labelWidth, 25)
-        };
-
-        txtWorkstation = new TextBox
-        {
-            Location = new Point(115, startY + rowHeight * 3 + 10),
-            Size = new Size(inputWidth, 25)
-        };
+        var lblWorkstation = UIStyleHelper.CreateLabel("工位：", new Point(30, startY + rowHeight * 3 + 10), new Size(labelWidth, 25));
+        txtWorkstation = UIStyleHelper.CreateTextBox(new Point(115, startY + rowHeight * 3 + 10), new Size(inputWidth, 25), "请输入工位");
 
         // 权限
-        var lblPermissions = new Label
-        {
-            Text = "权限：",
-            Location = new Point(30, startY + rowHeight * 4 + 10),
-            Size = new Size(labelWidth, 25)
-        };
-
+        var lblPermissions = UIStyleHelper.CreateLabel("权限：", new Point(30, startY + rowHeight * 4 + 10), new Size(labelWidth, 25));
         clbPermissions = new CheckedListBox
         {
             Location = new Point(115, startY + rowHeight * 4 + 10),
             Size = new Size(inputWidth, 120),
-            CheckOnClick = true
+            CheckOnClick = true,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 添加权限选项
@@ -579,24 +500,17 @@ public partial class UserEditForm : Form
             Text = "启用",
             Location = new Point(115, startY + rowHeight * 4 + 140),
             Size = new Size(100, 25),
-            Checked = true
+            Checked = true,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 按钮
-        btnSave = new Button
-        {
-            Text = "保存",
-            Location = new Point(115, 315),
-            Size = new Size(90, 30)
-        };
+        btnSave = UIStyleHelper.CreateSaveButton();
+        btnSave.Location = new Point(115, 365);
         btnSave.Click += BtnSave_Click;
 
-        btnCancel = new Button
-        {
-            Text = "取消",
-            Location = new Point(225, 315),
-            Size = new Size(90, 30)
-        };
+        btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Location = new Point(225, 365);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
 
         // 添加控件
@@ -614,6 +528,9 @@ public partial class UserEditForm : Form
         this.Controls.Add(chkIsActive);
         this.Controls.Add(btnSave);
         this.Controls.Add(btnCancel);
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
 
     private void LoadUserData()
@@ -645,26 +562,47 @@ public partial class UserEditForm : Form
         var password = txtPassword.Text;
         var realName = txtRealName.Text.Trim();
 
-        if (string.IsNullOrEmpty(username))
+        if (string.IsNullOrEmpty(username) || username == (string?)txtUsername.Tag)
         {
+            UIStyleHelper.SetValidationError(txtUsername, true);
             MessageBox.Show("请输入用户名", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtUsername.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtUsername, false);
 
         if (!_isEdit && string.IsNullOrEmpty(password))
         {
+            UIStyleHelper.SetValidationError(txtPassword, true);
             MessageBox.Show("请输入密码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtPassword.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtPassword, false);
 
-        if (string.IsNullOrEmpty(realName))
+        // 验证密码策略（新增用户或修改密码时）
+        if (!string.IsNullOrEmpty(password))
         {
+            var configService = new ConfigService();
+            var (isValid, message) = configService.ValidatePassword(password);
+            if (!isValid)
+            {
+                UIStyleHelper.SetValidationError(txtPassword, true);
+                MessageBox.Show($"密码不符合策略要求：{message}", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                txtPassword.Focus();
+                return;
+            }
+            UIStyleHelper.SetValidationError(txtPassword, false);
+        }
+
+        if (string.IsNullOrEmpty(realName) || realName == (string?)txtRealName.Tag)
+        {
+            UIStyleHelper.SetValidationError(txtRealName, true);
             MessageBox.Show("请输入姓名", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtRealName.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtRealName, false);
 
         // 获取选中的权限
         var selectedPermissions = new List<string>();
@@ -691,12 +629,12 @@ public partial class UserEditForm : Form
                         _userService.UpdatePassword(_user.UserID, password);
                     }
 
-                    MessageBox.Show("用户更新成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess("用户更新成功！");
                     this.DialogResult = DialogResult.OK;
                 }
                 else
                 {
-                    MessageBox.Show("用户更新失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("用户更新失败！");
                 }
             }
             else
@@ -704,10 +642,12 @@ public partial class UserEditForm : Form
                 // 检查用户名是否已存在
                 if (_userService.IsUsernameExists(username))
                 {
+                    UIStyleHelper.SetValidationError(txtUsername, true);
                     MessageBox.Show("该用户名已存在！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                     txtUsername.Focus();
                     return;
                 }
+                UIStyleHelper.SetValidationError(txtUsername, false);
 
                 // 新增用户
                 var newUser = new User
@@ -723,27 +663,18 @@ public partial class UserEditForm : Form
                 var userId = _userService.CreateUser(newUser);
                 if (userId > 0)
                 {
-                    MessageBox.Show("用户创建成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    ShowSuccess("用户创建成功！");
                     this.DialogResult = DialogResult.OK;
                 }
                 else
                 {
-                    MessageBox.Show("用户创建失败！", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("用户创建失败！");
                 }
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"保存失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"保存失败：{ex.Message}");
         }
     }
-
-    private TextBox txtUsername = null!;
-    private TextBox txtPassword = null!;
-    private TextBox txtRealName = null!;
-    private TextBox txtWorkstation = null!;
-    private CheckedListBox clbPermissions = null!;
-    private CheckBox chkIsActive = null!;
-    private Button btnSave = null!;
-    private Button btnCancel = null!;
 }

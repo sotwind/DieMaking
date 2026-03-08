@@ -300,6 +300,13 @@ public static class DatabaseInitializer
                 messages.Add("创建表: DM_DatabaseVersion");
             }
 
+            // 创建用户偏好设置表
+            if (CreateTableIfNotExists(connection, "DM_UserPreference", GetUserPreferenceTableSql()))
+            {
+                tablesCreated++;
+                messages.Add("创建表: DM_UserPreference");
+            }
+
             // 创建索引
             CreateIndexes(connection);
 
@@ -408,6 +415,13 @@ public static class DatabaseInitializer
             {
                 tablesCreated++;
                 messages.Add("创建表: DM_DatabaseVersion");
+            }
+
+            // 创建用户偏好设置表
+            if (await CreateTableIfNotExistsAsync(connection, "DM_UserPreference", GetUserPreferenceTableSql(), cancellationToken))
+            {
+                tablesCreated++;
+                messages.Add("创建表: DM_UserPreference");
             }
 
             // 创建索引
@@ -646,14 +660,41 @@ public static class DatabaseInitializer
     {
         var configs = new[]
         {
+            // 基本设置
             ("SystemName", "刀模管理系统", "系统名称"),
             ("CompanyName", "", "公司名称"),
-            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
-            ("AutoBackup", "false", "自动备份"),
-            ("BackupRetentionDays", "30", "备份保留天数"),
+            ("SystemVersion", "1.0.0", "系统版本"),
+            ("DefaultPageSize", "20", "默认分页大小"),
+            ("DateFormat", "yyyy-MM-dd", "日期格式"),
+            ("TimeFormat", "HH:mm:ss", "时间格式"),
+            ("DateTimeFormat", "yyyy-MM-dd HH:mm:ss", "日期时间格式"),
+            ("FileUploadPath", @"C:\DieMaking\Uploads", "文件上传路径"),
+
+            // 安全设置 - 密码策略
+            ("PasswordMinLength", "6", "密码最小长度"),
+            ("PasswordRequireUppercase", "false", "密码要求大写字母"),
+            ("PasswordRequireLowercase", "false", "密码要求小写字母"),
+            ("PasswordRequireDigit", "false", "密码要求数字"),
+            ("PasswordRequireSpecialChar", "false", "密码要求特殊字符"),
+
+            // 安全设置 - 登录策略
+            ("MaxLoginFailures", "5", "最大登录失败次数"),
+            ("LockoutDuration", "30", "账户锁定时间(分钟)"),
             ("SessionTimeout", "30", "会话超时时间(分钟)"),
+
+            // 日志设置
+            ("LogLevel", "Info", "日志级别"),
+            ("LogRetentionDays", "30", "日志保留天数"),
+
+            // 备份设置
+            ("AutoBackup", "false", "自动备份"),
+            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
+            ("BackupRetentionDays", "30", "备份保留天数"),
+            ("BackupTime", "02:00", "备份时间"),
+
+            // 功能开关
             ("EnableAudit", "true", "启用审核流程"),
-            ("DefaultPageSize", "20", "默认分页大小")
+            ("EnableOperationLog", "true", "启用操作日志")
         };
 
         var inserted = false;
@@ -690,14 +731,41 @@ public static class DatabaseInitializer
     {
         var configs = new[]
         {
+            // 基本设置
             ("SystemName", "刀模管理系统", "系统名称"),
             ("CompanyName", "", "公司名称"),
-            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
-            ("AutoBackup", "false", "自动备份"),
-            ("BackupRetentionDays", "30", "备份保留天数"),
+            ("SystemVersion", "1.0.0", "系统版本"),
+            ("DefaultPageSize", "20", "默认分页大小"),
+            ("DateFormat", "yyyy-MM-dd", "日期格式"),
+            ("TimeFormat", "HH:mm:ss", "时间格式"),
+            ("DateTimeFormat", "yyyy-MM-dd HH:mm:ss", "日期时间格式"),
+            ("FileUploadPath", @"C:\DieMaking\Uploads", "文件上传路径"),
+
+            // 安全设置 - 密码策略
+            ("PasswordMinLength", "6", "密码最小长度"),
+            ("PasswordRequireUppercase", "false", "密码要求大写字母"),
+            ("PasswordRequireLowercase", "false", "密码要求小写字母"),
+            ("PasswordRequireDigit", "false", "密码要求数字"),
+            ("PasswordRequireSpecialChar", "false", "密码要求特殊字符"),
+
+            // 安全设置 - 登录策略
+            ("MaxLoginFailures", "5", "最大登录失败次数"),
+            ("LockoutDuration", "30", "账户锁定时间(分钟)"),
             ("SessionTimeout", "30", "会话超时时间(分钟)"),
+
+            // 日志设置
+            ("LogLevel", "Info", "日志级别"),
+            ("LogRetentionDays", "30", "日志保留天数"),
+
+            // 备份设置
+            ("AutoBackup", "false", "自动备份"),
+            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
+            ("BackupRetentionDays", "30", "备份保留天数"),
+            ("BackupTime", "02:00", "备份时间"),
+
+            // 功能开关
             ("EnableAudit", "true", "启用审核流程"),
-            ("DefaultPageSize", "20", "默认分页大小")
+            ("EnableOperationLog", "true", "启用操作日志")
         };
 
         var inserted = false;
@@ -1094,6 +1162,20 @@ public static class DatabaseInitializer
             Description NVARCHAR(500)
         );
         CREATE INDEX IX_DM_DatabaseVersion_VersionNumber ON DM_DatabaseVersion(VersionNumber);";
+
+    private static string GetUserPreferenceTableSql() => @"
+        CREATE TABLE DM_UserPreference (
+            PreferenceID INT IDENTITY(1,1) PRIMARY KEY,
+            UserID INT NOT NULL UNIQUE,
+            Theme NVARCHAR(20) DEFAULT 'Light',
+            DefaultPageSize INT DEFAULT 20,
+            DateFormat NVARCHAR(20) DEFAULT 'yyyy-MM-dd',
+            TimeFormat NVARCHAR(20) DEFAULT 'HH:mm:ss',
+            DefaultPage NVARCHAR(50) DEFAULT 'DieList',
+            UpdateTime DATETIME2 DEFAULT GETDATE(),
+            FOREIGN KEY (UserID) REFERENCES DM_User(UserID) ON DELETE CASCADE
+        );
+        CREATE INDEX IX_DM_UserPreference_UserID ON DM_UserPreference(UserID);";
 
     #endregion
 

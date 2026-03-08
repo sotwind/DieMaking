@@ -1,25 +1,25 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
-using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Warehouse;
 
-public partial class DieReturnForm : Form
+public partial class DieReturnForm : BaseDialogForm
 {
     private readonly WarehouseService _warehouseService;
     private List<DieBorrowRecord> _borrowingRecords = new();
 
     public DieReturnForm()
     {
-        InitializeComponent();
         _warehouseService = new WarehouseService();
+        InitializeComponent();
         LoadData();
     }
 
     private void InitializeComponent()
     {
         this.Text = "刀模归还";
-        this.Size = new Size(750, 500);
+        this.Size = UIStyleHelper.SizeEditForm;
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -34,81 +34,79 @@ public partial class DieReturnForm : Form
         var lblTitle = new Label
         {
             Text = "刀模归还入库",
-            Font = new Font("微软雅黑", 14, FontStyle.Bold),
+            Font = UIStyleHelper.GetLargeTitleFont(),
             AutoSize = true,
             Location = new Point(300, y)
         };
         y += 50;
 
         // 借用记录选择
-        var lblRecord = new Label { Text = "选择借用记录：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        cboRecord = new ComboBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblRecord = UIStyleHelper.CreateLabel("选择借用记录：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        cboRecord = new ComboBox
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         cboRecord.SelectedIndexChanged += CboRecord_SelectedIndexChanged;
         y += 40;
 
         // 刀模信息
-        var lblDieInfo = new Label { Text = "刀模信息：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblDieInfoValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblDieInfo = UIStyleHelper.CreateLabel("刀模信息：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblDieInfoValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25),
-            ForeColor = Color.Blue
+            ForeColor = UIStyleHelper.ColorInfo
         };
         y += 40;
 
         // 借用信息
-        var lblBorrowInfo = new Label { Text = "借用信息：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblBorrowInfoValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblBorrowInfo = UIStyleHelper.CreateLabel("借用信息：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblBorrowInfoValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25),
-            ForeColor = Color.Green
+            ForeColor = UIStyleHelper.ColorSuccess
         };
         y += 40;
 
         // 领用人
-        var lblBorrower = new Label { Text = "领用人：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblBorrowerValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblBorrower = UIStyleHelper.CreateLabel("领用人：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblBorrowerValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 25)
         };
         y += 40;
 
         // 用途
-        var lblPurpose = new Label { Text = "用途：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        lblPurposeValue = new Label 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblPurpose = UIStyleHelper.CreateLabel("用途：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        lblPurposeValue = new Label
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 50),
             AutoSize = false
         };
         y += 60;
 
         // 归还时间
-        var lblReturnTime = new Label { Text = "归还时间：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        dtpReturnTime = new DateTimePicker 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblReturnTime = UIStyleHelper.CreateLabel("归还时间：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        dtpReturnTime = new DateTimePicker
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(200, 25),
             Format = DateTimePickerFormat.Custom,
             CustomFormat = "yyyy-MM-dd HH:mm:ss",
-            Value = DateTime.Now
+            Value = DateTime.Now,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         y += 40;
 
         // 归还操作人
-        var lblOperator = new Label { Text = "归还操作人：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        txtOperator = new TextBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
-            Size = new Size(200, 25)
-        };
+        var lblOperator = UIStyleHelper.CreateLabel("归还操作人：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        txtOperator = UIStyleHelper.CreateTextBox(new Point(leftMargin + labelWidth, y), new Size(200, 25), "请输入操作人");
         // 默认填充当前用户
         if (CurrentUser.User != null)
         {
@@ -117,24 +115,29 @@ public partial class DieReturnForm : Form
         y += 40;
 
         // 备注
-        var lblRemark = new Label { Text = "归还备注：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
-        txtRemark = new TextBox 
-        { 
-            Location = new Point(leftMargin + labelWidth, y), 
+        var lblRemark = UIStyleHelper.CreateLabel("归还备注：", new Point(leftMargin, y), new Size(labelWidth, 25));
+        txtRemark = new TextBox
+        {
+            Location = new Point(leftMargin + labelWidth, y),
             Size = new Size(controlWidth, 60),
             Multiline = true,
-            ScrollBars = ScrollBars.Vertical
+            ScrollBars = ScrollBars.Vertical,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         y += 80;
 
         // 按钮
-        var btnSave = new Button { Text = "确认归还", Location = new Point(140, y), Size = new Size(120, 35) };
+        var btnSave = UIStyleHelper.CreateSaveButton("确认归还");
+        btnSave.Size = new Size(120, 35);
+        btnSave.Location = new Point(140, y);
         btnSave.Click += BtnSave_Click;
 
-        var btnPrint = new Button { Text = "打印", Location = new Point(280, y), Size = new Size(100, 35) };
+        var btnPrint = UIStyleHelper.CreatePrintButton();
+        btnPrint.Location = new Point(280, y);
         btnPrint.Click += BtnPrint_Click;
 
-        var btnCancel = new Button { Text = "取消", Location = new Point(400, y), Size = new Size(100, 35) };
+        var btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Location = new Point(400, y);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
 
         this.Controls.AddRange(new Control[] {
@@ -144,7 +147,19 @@ public partial class DieReturnForm : Form
             lblReturnTime, dtpReturnTime, lblOperator, txtOperator, lblRemark, txtRemark,
             btnSave, btnPrint, btnCancel
         });
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
+
+    private ComboBox cboRecord = null!;
+    private Label lblDieInfoValue = null!;
+    private Label lblBorrowInfoValue = null!;
+    private Label lblBorrowerValue = null!;
+    private Label lblPurposeValue = null!;
+    private DateTimePicker dtpReturnTime = null!;
+    private TextBox txtOperator = null!;
+    private TextBox txtRemark = null!;
 
     private void LoadData()
     {
@@ -152,9 +167,9 @@ public partial class DieReturnForm : Form
         {
             // 加载借用中的记录
             _borrowingRecords = _warehouseService.GetBorrowRecordsByStatus(BorrowStatus.Borrowing);
-            
+
             cboRecord.DataSource = null;
-            
+
             if (_borrowingRecords.Count == 0)
             {
                 MessageBox.Show("当前没有借用中的刀模需要归还", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -162,12 +177,12 @@ public partial class DieReturnForm : Form
             }
 
             // 创建显示列表
-            var displayList = _borrowingRecords.Select(r => new 
-            { 
-                r.BorrowID, 
+            var displayList = _borrowingRecords.Select(r => new
+            {
+                r.BorrowID,
                 Display = $"{r.DieCode} - {r.CustomerName} - 领用人：{r.BorrowerName} - 借用时间：{r.BorrowTime:yyyy-MM-dd}"
             }).ToList();
-            
+
             cboRecord.DataSource = displayList;
             cboRecord.DisplayMember = "Display";
             cboRecord.ValueMember = "BorrowID";
@@ -179,7 +194,7 @@ public partial class DieReturnForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
         }
     }
 
@@ -189,7 +204,7 @@ public partial class DieReturnForm : Form
 
         var borrowId = (int)cboRecord.SelectedValue;
         var record = _borrowingRecords.FirstOrDefault(r => r.BorrowID == borrowId);
-        
+
         if (record != null)
         {
             lblDieInfoValue.Text = $"刀模编号：{record.DieCode}  客户：{record.CustomerName}  产品：{record.ProductName}";
@@ -207,12 +222,14 @@ public partial class DieReturnForm : Form
             return;
         }
 
-        if (string.IsNullOrWhiteSpace(txtOperator.Text))
+        if (string.IsNullOrWhiteSpace(txtOperator.Text) || txtOperator.Text == (string?)txtOperator.Tag)
         {
+            UIStyleHelper.SetValidationError(txtOperator, true);
             MessageBox.Show("请输入归还操作人", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtOperator.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtOperator, false);
 
         try
         {
@@ -221,20 +238,20 @@ public partial class DieReturnForm : Form
             var operatorNo = operatorName; // 简化处理，实际应该使用工号
 
             var result = _warehouseService.ReturnDie(borrowId, operatorNo, operatorName, txtRemark.Text.Trim());
-            
+
             if (result)
             {
-                MessageBox.Show("归还成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowSuccess("归还成功！");
                 this.DialogResult = DialogResult.OK;
             }
             else
             {
-                MessageBox.Show("归还失败，请检查记录状态", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError("归还失败，请检查记录状态");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"归还失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"归还失败：{ex.Message}");
         }
     }
 
@@ -253,7 +270,7 @@ public partial class DieReturnForm : Form
 
         var borrowId = (int)cboRecord.SelectedValue;
         var record = _borrowingRecords.FirstOrDefault(r => r.BorrowID == borrowId);
-        
+
         if (record != null)
         {
             dgvPrint.Rows.Add("刀模编号", record.DieCode);
@@ -274,13 +291,4 @@ public partial class DieReturnForm : Form
         var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}";
         printService.PrintPreview(dgvPrint, "刀模管理系统 - 归还记录", subtitle);
     }
-
-    private ComboBox cboRecord = null!;
-    private Label lblDieInfoValue = null!;
-    private Label lblBorrowInfoValue = null!;
-    private Label lblBorrowerValue = null!;
-    private Label lblPurposeValue = null!;
-    private DateTimePicker dtpReturnTime = null!;
-    private TextBox txtOperator = null!;
-    private TextBox txtRemark = null!;
 }

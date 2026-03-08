@@ -1,10 +1,10 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
-using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Warehouse;
 
-public partial class LocationManageForm : Form
+public partial class LocationManageForm : BaseListForm
 {
     private readonly WarehouseService _warehouseService;
     private BindingSource _bindingSource = new();
@@ -12,84 +12,65 @@ public partial class LocationManageForm : Form
 
     public LocationManageForm()
     {
-        InitializeComponent();
         _warehouseService = new WarehouseService();
-        LoadLocations();
+        InitializeComponent();
     }
 
     private void InitializeComponent()
     {
         this.Text = "库位管理";
-        this.Size = new Size(1000, 600);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
-
-        // 创建工具栏
-        var toolStrip = new ToolStrip();
-        
-        var btnAdd = new ToolStripButton("新增") { Image = SystemIcons.Question.ToBitmap() };
-        btnAdd.Click += (s, e) => AddLocation();
-        
-        var btnEdit = new ToolStripButton("编辑") { Image = SystemIcons.Question.ToBitmap() };
-        btnEdit.Click += (s, e) => EditLocation();
-        
-        var btnDelete = new ToolStripButton("删除") { Image = SystemIcons.Question.ToBitmap() };
-        btnDelete.Click += (s, e) => DeleteLocation();
-        
-        var btnRefresh = new ToolStripButton("刷新") { Image = SystemIcons.Question.ToBitmap() };
-        btnRefresh.Click += (s, e) => LoadLocations();
-
-        var btnExport = new ToolStripButton("导出Excel") { Image = SystemIcons.Question.ToBitmap() };
-        btnExport.Click += (s, e) => ExportLocations();
-
-        var btnImport = new ToolStripButton("批量导入") { Image = SystemIcons.Question.ToBitmap() };
-        btnImport.Click += (s, e) => ImportLocations();
-
-        var btnTemplate = new ToolStripButton("下载模板") { Image = SystemIcons.Question.ToBitmap() };
-        btnTemplate.Click += (s, e) => DownloadTemplate();
-        
-        var btnPrint = new ToolStripButton("打印") { Image = SystemIcons.Question.ToBitmap() };
-        btnPrint.Click += (s, e) => PrintLocations();
-
-        toolStrip.Items.AddRange(new ToolStripItem[] { btnAdd, btnEdit, btnDelete, new ToolStripSeparator(), btnRefresh, new ToolStripSeparator(), btnExport, btnImport, btnTemplate, new ToolStripSeparator(), btnPrint });
 
         // 搜索区域
         var panelSearch = new Panel
         {
             Dock = DockStyle.Top,
-            Height = 45,
+            Height = 50,
             Padding = new Padding(10, 5, 10, 5)
         };
 
-        var lblSearch = new Label
-        {
-            Text = "搜索：",
-            Location = new Point(10, 12),
-            AutoSize = true
-        };
+        var lblSearch = UIStyleHelper.CreateLabel("搜索：", new Point(10, 12), new Size(50, 25));
 
-        txtSearch = new TextBox
-        {
-            Location = new Point(60, 9),
-            Size = new Size(200, 25)
-        };
+        txtSearch = UIStyleHelper.CreateTextBox(new Point(60, 9), new Size(200, 25), "输入库位编号或区域");
 
-        var btnSearch = new Button
-        {
-            Text = "查询",
-            Location = new Point(270, 8),
-            Size = new Size(80, 28)
-        };
+        btnSearch = UIStyleHelper.CreateSearchButton();
+        btnSearch.Location = new Point(270, 8);
         btnSearch.Click += (s, e) => SearchLocations();
 
-        var btnClear = new Button
-        {
-            Text = "清空",
-            Location = new Point(360, 8),
-            Size = new Size(80, 28)
-        };
-        btnClear.Click += (s, e) => { txtSearch.Clear(); LoadLocations(); };
+        btnClear = UIStyleHelper.CreateCancelButton("清空");
+        btnClear.Location = new Point(380, 8);
+        btnClear.Click += (s, e) => { txtSearch.Clear(); LoadData(); };
 
-        panelSearch.Controls.AddRange(new Control[] { lblSearch, txtSearch, btnSearch, btnClear });
+        btnRefresh = UIStyleHelper.CreateSearchButton("刷新");
+        btnRefresh.Location = new Point(490, 8);
+        btnRefresh.Click += (s, e) => LoadData();
+
+        btnAdd = UIStyleHelper.CreateAddButton("新增");
+        btnAdd.Location = new Point(600, 8);
+        btnAdd.Click += (s, e) => AddLocation();
+
+        btnEdit = UIStyleHelper.CreateEditButton("编辑");
+        btnEdit.Location = new Point(710, 8);
+        btnEdit.Click += (s, e) => EditLocation();
+
+        btnDelete = UIStyleHelper.CreateDeleteButton("删除");
+        btnDelete.Location = new Point(820, 8);
+        btnDelete.Click += (s, e) => DeleteLocation();
+
+        btnExport = UIStyleHelper.CreateExportButton("导出");
+        btnExport.Location = new Point(930, 8);
+        btnExport.Click += (s, e) => ExportLocations();
+
+        panelSearch.Controls.Add(lblSearch);
+        panelSearch.Controls.Add(txtSearch);
+        panelSearch.Controls.Add(btnSearch);
+        panelSearch.Controls.Add(btnClear);
+        panelSearch.Controls.Add(btnRefresh);
+        panelSearch.Controls.Add(btnAdd);
+        panelSearch.Controls.Add(btnEdit);
+        panelSearch.Controls.Add(btnDelete);
+        panelSearch.Controls.Add(btnExport);
 
         // 数据表格
         dgvLocations = new DataGridView
@@ -102,10 +83,9 @@ public partial class LocationManageForm : Form
             AllowUserToAddRows = false,
             AllowUserToDeleteRows = false,
             BackgroundColor = Color.White,
-            BorderStyle = BorderStyle.Fixed3D,
-            RowHeadersVisible = false,
-            AlternatingRowsDefaultCellStyle = new DataGridViewCellStyle { BackColor = Color.AliceBlue }
+            BorderStyle = BorderStyle.None
         };
+        ApplyDataGridViewStyle(dgvLocations);
 
         // 添加列
         dgvLocations.Columns.Add(new DataGridViewTextBoxColumn
@@ -175,10 +155,16 @@ public partial class LocationManageForm : Form
 
         dgvLocations.DoubleClick += (s, e) => EditLocation();
 
+        // 添加右键菜单
+        var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
+            onView: null,
+            onEdit: () => EditLocation(),
+            onDelete: () => DeleteLocation()
+        );
+        dgvLocations.ContextMenuStrip = contextMenu;
+
         // 状态栏
-        var statusStrip = new StatusStrip();
-        lblStatus = new ToolStripStatusLabel("就绪");
-        statusStrip.Items.Add(lblStatus);
+        var statusStrip = CreateStatusBar();
 
         // 布局
         var panelContent = new Panel { Dock = DockStyle.Fill };
@@ -186,22 +172,35 @@ public partial class LocationManageForm : Form
 
         this.Controls.Add(panelContent);
         this.Controls.Add(panelSearch);
-        this.Controls.Add(toolStrip);
         this.Controls.Add(statusStrip);
     }
 
-    private void LoadLocations()
+    private DataGridView dgvLocations = null!;
+    private TextBox txtSearch = null!;
+    private Button btnSearch = null!;
+    private Button btnClear = null!;
+    private Button btnRefresh = null!;
+    private Button btnAdd = null!;
+    private Button btnEdit = null!;
+    private Button btnDelete = null!;
+    private Button btnExport = null!;
+
+    protected override void LoadData()
     {
         try
         {
             _locations = _warehouseService.GetAllLocations();
             _bindingSource.DataSource = _locations;
             dgvLocations.DataSource = _bindingSource;
-            lblStatus.Text = $"共 {_locations.Count} 条记录";
+
+            if (StatusUserLabel != null)
+            {
+                StatusUserLabel.Text = $"共 {_locations.Count} 条记录";
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
         }
     }
 
@@ -210,20 +209,24 @@ public partial class LocationManageForm : Form
         try
         {
             var keyword = txtSearch.Text.Trim();
-            if (string.IsNullOrEmpty(keyword))
+            if (string.IsNullOrEmpty(keyword) || keyword == (string?)txtSearch.Tag)
             {
-                LoadLocations();
+                LoadData();
                 return;
             }
 
             _locations = _warehouseService.SearchLocations(keyword);
             _bindingSource.DataSource = _locations;
             dgvLocations.DataSource = _bindingSource;
-            lblStatus.Text = $"共 {_locations.Count} 条记录";
+
+            if (StatusUserLabel != null)
+            {
+                StatusUserLabel.Text = $"共 {_locations.Count} 条记录";
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"搜索失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"搜索失败：{ex.Message}");
         }
     }
 
@@ -244,17 +247,17 @@ public partial class LocationManageForm : Form
                 var id = _warehouseService.CreateLocation(location);
                 if (id > 0)
                 {
-                    MessageBox.Show("新增成功", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadLocations();
+                    ShowSuccess("新增成功");
+                    LoadData();
                 }
                 else
                 {
-                    MessageBox.Show("新增失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("新增失败");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"新增失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"新增失败：{ex.Message}");
             }
         }
     }
@@ -278,17 +281,17 @@ public partial class LocationManageForm : Form
 
                 if (_warehouseService.UpdateLocation(updatedLocation))
                 {
-                    MessageBox.Show("更新成功", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadLocations();
+                    ShowSuccess("更新成功");
+                    LoadData();
                 }
                 else
                 {
-                    MessageBox.Show("更新失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("更新失败");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"更新失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"更新失败：{ex.Message}");
             }
         }
     }
@@ -298,31 +301,31 @@ public partial class LocationManageForm : Form
         if (dgvLocations.CurrentRow == null) return;
 
         var location = (StorageLocation)dgvLocations.CurrentRow.DataBoundItem;
-        
+
         if (location.Status == LocationStatus.Occupied)
         {
             MessageBox.Show("该库位已被占用，不能删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
         }
 
-        if (MessageBox.Show($"确定要删除库位 [{location.LocationCode}] 吗？", "确认", 
+        if (MessageBox.Show($"确定要删除库位 [{location.LocationCode}] 吗？", "确认",
             MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
         {
             try
             {
                 if (_warehouseService.DeleteLocation(location.LocationID))
                 {
-                    MessageBox.Show("删除成功", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    LoadLocations();
+                    ShowSuccess("删除成功");
+                    LoadData();
                 }
                 else
                 {
-                    MessageBox.Show("删除失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    ShowError("删除失败");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"删除失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError($"删除失败：{ex.Message}");
             }
         }
     }
@@ -380,226 +383,18 @@ public partial class LocationManageForm : Form
                     importExportService.ExportToExcel(dataTable, "库位列表", saveDialog.FileName);
                 }
 
-                MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowSuccess("导出成功！");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"导出失败：{ex.Message}");
         }
     }
-
-    private void ImportLocations()
-    {
-        using var openDialog = new OpenFileDialog
-        {
-            Filter = "Excel文件|*.xlsx;*.xls|CSV文件|*.csv",
-            Title = "选择要导入的文件"
-        };
-
-        if (openDialog.ShowDialog() != DialogResult.OK)
-        {
-            return;
-        }
-
-        try
-        {
-            var importExportService = new ImportExportService();
-            System.Data.DataTable importData;
-
-            if (openDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-            {
-                importData = importExportService.ImportFromCsv(openDialog.FileName);
-            }
-            else
-            {
-                importData = importExportService.ImportFromExcel(openDialog.FileName);
-            }
-
-            if (importData.Rows.Count == 0)
-            {
-                MessageBox.Show("导入的文件没有数据", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // 显示预览窗体
-            var previewForm = new Forms.Common.ImportPreviewForm(importData, "库位导入预览");
-            if (previewForm.ShowDialog(this) == DialogResult.OK)
-            {
-                var result = ImportLocationsData(importData);
-
-                var message = $"导入完成！\n\n总计：{result.TotalCount} 条\n成功：{result.SuccessCount} 条\n失败：{result.FailCount} 条";
-
-                if (result.FailCount > 0)
-                {
-                    message += "\n\n失败详情：\n" + string.Join("\n", result.Errors.Take(10).Select(e => $"第{e.RowIndex}行 - {e.ErrorMessage}"));
-                    if (result.Errors.Count > 10)
-                    {
-                        message += $"\n... 还有 {result.Errors.Count - 10} 条错误";
-                    }
-                }
-
-                MessageBox.Show(message, "导入结果", MessageBoxButtons.OK, result.FailCount > 0 ? MessageBoxIcon.Warning : MessageBoxIcon.Information);
-
-                if (result.SuccessCount > 0)
-                {
-                    LoadLocations();
-                }
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"导入失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-    }
-
-    private ImportExportService.ImportResult ImportLocationsData(System.Data.DataTable data)
-    {
-        var result = new ImportExportService.ImportResult { TotalCount = data.Rows.Count };
-
-        foreach (System.Data.DataRow row in data.Rows)
-        {
-            try
-            {
-                // 验证必填字段
-                var locationCode = row["库位编号"].ToString();
-                if (string.IsNullOrWhiteSpace(locationCode))
-                {
-                    result.Errors.Add(new ImportExportService.ImportError
-                    {
-                        RowIndex = data.Rows.IndexOf(row) + 1,
-                        ColumnName = "库位编号",
-                        ErrorMessage = "库位编号不能为空"
-                    });
-                    result.FailCount++;
-                    continue;
-                }
-
-                // 检查库位编号是否已存在
-                if (_warehouseService.IsLocationCodeExists(locationCode))
-                {
-                    result.Errors.Add(new ImportExportService.ImportError
-                    {
-                        RowIndex = data.Rows.IndexOf(row) + 1,
-                        ColumnName = "库位编号",
-                        ErrorMessage = $"库位编号 '{locationCode}' 已存在"
-                    });
-                    result.FailCount++;
-                    continue;
-                }
-
-                // 验证区域
-                var area = row["区域"].ToString();
-                if (string.IsNullOrWhiteSpace(area))
-                {
-                    result.Errors.Add(new ImportExportService.ImportError
-                    {
-                        RowIndex = data.Rows.IndexOf(row) + 1,
-                        ColumnName = "区域",
-                        ErrorMessage = "区域不能为空"
-                    });
-                    result.FailCount++;
-                    continue;
-                }
-
-                // 创建库位对象
-                var location = new StorageLocation
-                {
-                    LocationCode = locationCode,
-                    Area = area,
-                    ShelfNo = row["货架号"].ToString() ?? "",
-                    LayerNo = row["层号"].ToString() ?? "",
-                    PositionNo = row["位置号"].ToString() ?? "",
-                    Description = row["描述"].ToString() ?? "",
-                    Status = LocationStatus.Free,
-                    CreateTime = DateTime.Now
-                };
-
-                // 保存库位
-                var id = _warehouseService.CreateLocation(location);
-                if (id > 0)
-                {
-                    result.SuccessCount++;
-                }
-                else
-                {
-                    result.Errors.Add(new ImportExportService.ImportError
-                    {
-                        RowIndex = data.Rows.IndexOf(row) + 1,
-                        ColumnName = "",
-                        ErrorMessage = "保存库位失败"
-                    });
-                    result.FailCount++;
-                }
-            }
-            catch (Exception ex)
-            {
-                result.Errors.Add(new ImportExportService.ImportError
-                {
-                    RowIndex = data.Rows.IndexOf(row) + 1,
-                    ColumnName = "",
-                    ErrorMessage = $"导入异常：{ex.Message}"
-                });
-                result.FailCount++;
-            }
-        }
-
-        return result;
-    }
-
-    private void DownloadTemplate()
-    {
-        using var saveDialog = new SaveFileDialog
-        {
-            Filter = "CSV文件|*.csv",
-            FileName = "库位导入模板.csv"
-        };
-
-        if (saveDialog.ShowDialog() == DialogResult.OK)
-        {
-            try
-            {
-                var importExportService = new ImportExportService();
-                var columns = new List<ImportExportService.TemplateColumn>
-                {
-                    new() { HeaderText = "库位编号", ExampleValue = "A-01-01-01", Description = "必填，唯一标识", IsRequired = true },
-                    new() { HeaderText = "区域", ExampleValue = "A区", Description = "必填，库位所在区域", IsRequired = true },
-                    new() { HeaderText = "货架号", ExampleValue = "01", Description = "货架编号" },
-                    new() { HeaderText = "层号", ExampleValue = "01", Description = "货架层号" },
-                    new() { HeaderText = "位置号", ExampleValue = "01", Description = "具体位置号" },
-                    new() { HeaderText = "描述", ExampleValue = "主仓库A区1号货架", Description = "可选，库位描述" }
-                };
-
-                importExportService.GenerateImportTemplate(saveDialog.FileName, columns);
-                MessageBox.Show("模板下载成功！\n\n请按照模板格式填写数据后导入。", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"下载模板失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-    }
-
-    private void PrintLocations()
-    {
-        if (dgvLocations.Rows.Count == 0)
-        {
-            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
-        var printService = new PrintService();
-        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}  共 {dgvLocations.Rows.Count} 条记录";
-        printService.PrintPreview(dgvLocations, "刀模管理系统 - 库位列表", subtitle);
-    }
-
-    private DataGridView dgvLocations = null!;
-    private TextBox txtSearch = null!;
-    private ToolStripStatusLabel lblStatus = null!;
 }
 
 // 库位编辑窗体
-public class LocationEditForm : Form
+public class LocationEditForm : BaseDialogForm
 {
     public StorageLocation Location { get; private set; }
     private bool _isEdit;
@@ -612,10 +407,18 @@ public class LocationEditForm : Form
         if (_isEdit) LoadData();
     }
 
+    private TextBox txtCode = null!;
+    private TextBox txtArea = null!;
+    private TextBox txtShelf = null!;
+    private TextBox txtLayer = null!;
+    private TextBox txtPosition = null!;
+    private TextBox txtDesc = null!;
+    private ComboBox cboStatus = null!;
+
     private void InitializeComponent()
     {
         this.Text = _isEdit ? "编辑库位" : "新增库位";
-        this.Size = new Size(450, 350);
+        this.Size = UIStyleHelper.SizeDialog;
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -626,42 +429,43 @@ public class LocationEditForm : Form
         int textBoxWidth = 280;
 
         // 库位编号
-        var lblCode = new Label { Text = "库位编号：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtCode = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblCode = UIStyleHelper.CreateLabel("库位编号：", new Point(20, y), new Size(labelWidth, 25));
+        txtCode = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入库位编号");
         y += 35;
 
         // 区域
-        var lblArea = new Label { Text = "区域：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtArea = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblArea = UIStyleHelper.CreateLabel("区域：", new Point(20, y), new Size(labelWidth, 25));
+        txtArea = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入区域");
         y += 35;
 
         // 货架号
-        var lblShelf = new Label { Text = "货架号：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtShelf = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblShelf = UIStyleHelper.CreateLabel("货架号：", new Point(20, y), new Size(labelWidth, 25));
+        txtShelf = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入货架号");
         y += 35;
 
         // 层号
-        var lblLayer = new Label { Text = "层号：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtLayer = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblLayer = UIStyleHelper.CreateLabel("层号：", new Point(20, y), new Size(labelWidth, 25));
+        txtLayer = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入层号");
         y += 35;
 
         // 位置号
-        var lblPosition = new Label { Text = "位置号：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtPosition = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblPosition = UIStyleHelper.CreateLabel("位置号：", new Point(20, y), new Size(labelWidth, 25));
+        txtPosition = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入位置号");
         y += 35;
 
         // 描述
-        var lblDesc = new Label { Text = "描述：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        txtDesc = new TextBox { Location = new Point(110, y), Size = new Size(textBoxWidth, 25) };
+        var lblDesc = UIStyleHelper.CreateLabel("描述：", new Point(20, y), new Size(labelWidth, 25));
+        txtDesc = UIStyleHelper.CreateTextBox(new Point(110, y), new Size(textBoxWidth, 25), "请输入描述");
         y += 35;
 
         // 状态
-        var lblStatus = new Label { Text = "状态：", Location = new Point(20, y), Size = new Size(labelWidth, 25) };
-        cboStatus = new ComboBox 
-        { 
-            Location = new Point(110, y), 
+        var lblStatus = UIStyleHelper.CreateLabel("状态：", new Point(20, y), new Size(labelWidth, 25));
+        cboStatus = new ComboBox
+        {
+            Location = new Point(110, y),
             Size = new Size(textBoxWidth, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         cboStatus.Items.Add(new { Text = "空闲", Value = LocationStatus.Free });
         cboStatus.Items.Add(new { Text = "占用", Value = LocationStatus.Occupied });
@@ -672,10 +476,12 @@ public class LocationEditForm : Form
         y += 50;
 
         // 按钮
-        var btnSave = new Button { Text = "保存", Location = new Point(110, y), Size = new Size(100, 30) };
+        var btnSave = UIStyleHelper.CreateSaveButton();
+        btnSave.Location = new Point(110, y);
         btnSave.Click += Save_Click;
 
-        var btnCancel = new Button { Text = "取消", Location = new Point(240, y), Size = new Size(100, 30) };
+        var btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Location = new Point(240, y);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
 
         this.Controls.AddRange(new Control[] {
@@ -683,6 +489,9 @@ public class LocationEditForm : Form
             lblLayer, txtLayer, lblPosition, txtPosition, lblDesc, txtDesc,
             lblStatus, cboStatus, btnSave, btnCancel
         });
+
+        // 注册回车跳转
+        RegisterEnterToNext();
     }
 
     private void LoadData()
@@ -698,19 +507,23 @@ public class LocationEditForm : Form
 
     private void Save_Click(object? sender, EventArgs e)
     {
-        if (string.IsNullOrWhiteSpace(txtCode.Text))
+        if (string.IsNullOrWhiteSpace(txtCode.Text) || txtCode.Text == (string?)txtCode.Tag)
         {
+            UIStyleHelper.SetValidationError(txtCode, true);
             MessageBox.Show("请输入库位编号", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtCode.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtCode, false);
 
-        if (string.IsNullOrWhiteSpace(txtArea.Text))
+        if (string.IsNullOrWhiteSpace(txtArea.Text) || txtArea.Text == (string?)txtArea.Tag)
         {
+            UIStyleHelper.SetValidationError(txtArea, true);
             MessageBox.Show("请输入区域", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             txtArea.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtArea, false);
 
         Location.LocationCode = txtCode.Text.Trim();
         Location.Area = txtArea.Text.Trim();
@@ -718,16 +531,8 @@ public class LocationEditForm : Form
         Location.LayerNo = txtLayer.Text.Trim();
         Location.PositionNo = txtPosition.Text.Trim();
         Location.Description = txtDesc.Text.Trim();
-        Location.Status = (LocationStatus)((dynamic)cboStatus.SelectedItem).Value;
+        Location.Status = (LocationStatus)((dynamic)cboStatus.SelectedItem!).Value;
 
         this.DialogResult = DialogResult.OK;
     }
-
-    private TextBox txtCode = null!;
-    private TextBox txtArea = null!;
-    private TextBox txtShelf = null!;
-    private TextBox txtLayer = null!;
-    private TextBox txtPosition = null!;
-    private TextBox txtDesc = null!;
-    private ComboBox cboStatus = null!;
 }

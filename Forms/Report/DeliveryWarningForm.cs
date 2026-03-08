@@ -144,9 +144,9 @@ public partial class DeliveryWarningForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出CSV",
+            Text = "导出Excel",
             Location = new Point(100, 50),
-            Size = new Size(80, 28)
+            Size = new Size(90, 28)
         };
         btnExport.Click += BtnExport_Click;
 
@@ -524,14 +524,25 @@ public partial class DeliveryWarningForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"交期预警报表_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                FileName = $"交期预警报表_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                var importExportService = new ImportExportService();
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                }
+                else
+                {
+                    var dataTable = importExportService.ConvertDataGridViewToDataTable(_dgvData);
+                    importExportService.ExportToExcel(dataTable, "交期预警报表", saveDialog.FileName);
+                }
+
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -564,14 +575,25 @@ public partial class DeliveryWarningForm : Form
                 case DialogResult.No: // 导出CSV
                     using (var saveDialog = new SaveFileDialog
                     {
-                        Filter = "CSV文件|*.csv",
+                        Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                         Title = "导出数据",
-                        FileName = $"交期预警报表_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                        FileName = $"交期预警报表_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
                     })
                     {
                         if (saveDialog.ShowDialog() == DialogResult.OK)
                         {
-                            _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                            var importExportService = new ImportExportService();
+
+                            if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                            }
+                            else
+                            {
+                                var dataTable = importExportService.ConvertDataGridViewToDataTable(_dgvData);
+                                importExportService.ExportToExcel(dataTable, "交期预警报表", saveDialog.FileName);
+                            }
+
                             MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }

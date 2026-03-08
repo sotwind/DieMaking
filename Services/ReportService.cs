@@ -12,13 +12,13 @@ public class ReportService
     #region 完工统计
 
     /// <summary>
-    /// 获取完工统计数据（按刀模）
+    /// 获取完工统计数据（按刀模）- 使用优化查询
     /// </summary>
-    public List<CompletionStatsByDie> GetCompletionStatsByDie(DateTime? startDate, DateTime? endDate, string? dieCode = null, string? customerName = null)
+    public List<CompletionStatsByDie> GetCompletionStatsByDie(DateTime? startDate, DateTime? endDate, string? dieCode = null, string? customerName = null, int pageIndex = 1, int pageSize = 100)
     {
         try
         {
-            var sql = @"
+            var baseSql = @"
                 SELECT 
                     d.DieID,
                     d.DieCode,
@@ -29,50 +29,52 @@ public class ReportService
                     dc.TotalAmount,
                     dc.OperatorName,
                     dc.Remark
-                FROM DM_DieCompletion dc
-                INNER JOIN DM_DieInfo d ON dc.DieID = d.DieID
+                FROM DM_DieCompletion dc WITH (NOLOCK)
+                INNER JOIN DM_DieInfo d WITH (NOLOCK) ON dc.DieID = d.DieID
                 WHERE 1=1";
 
             var parameters = new List<SqlParameter>();
 
             if (startDate.HasValue)
             {
-                sql += " AND dc.CompleteTime >= @StartDate";
+                baseSql += " AND dc.CompleteTime >= @StartDate";
                 parameters.Add(new SqlParameter("@StartDate", startDate.Value));
             }
 
             if (endDate.HasValue)
             {
-                sql += " AND dc.CompleteTime <= @EndDate";
+                baseSql += " AND dc.CompleteTime <= @EndDate";
                 parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
             }
 
             if (!string.IsNullOrEmpty(dieCode))
             {
-                sql += " AND d.DieCode LIKE @DieCode";
+                baseSql += " AND d.DieCode LIKE @DieCode";
                 parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
             }
 
             if (!string.IsNullOrEmpty(customerName))
             {
-                sql += " AND d.CustomerName LIKE @CustomerName";
+                baseSql += " AND d.CustomerName LIKE @CustomerName";
                 parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
             }
 
-            sql += " ORDER BY dc.CompleteTime DESC";
+            // 使用分页查询
+            var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "dc.CompleteTime DESC", pageIndex, pageSize,
+                reader => new CompletionStatsByDie
+                {
+                    DieID = Convert.ToInt32(reader["DieID"]),
+                    DieCode = reader["DieCode"].ToString() ?? "",
+                    CustomerName = reader["CustomerName"].ToString() ?? "",
+                    ProductName = reader["ProductName"].ToString() ?? "",
+                    RequiredProcesses = reader["RequiredProcesses"].ToString() ?? "",
+                    CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
+                    TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
+                    OperatorName = reader["OperatorName"].ToString() ?? "",
+                    Remark = reader["Remark"].ToString() ?? ""
+                }, parameters.ToArray());
 
-            return DbHelper.ExecuteQuery(sql, reader => new CompletionStatsByDie
-            {
-                DieID = Convert.ToInt32(reader["DieID"]),
-                DieCode = reader["DieCode"].ToString() ?? "",
-                CustomerName = reader["CustomerName"].ToString() ?? "",
-                ProductName = reader["ProductName"].ToString() ?? "",
-                RequiredProcesses = reader["RequiredProcesses"].ToString() ?? "",
-                CompleteTime = Convert.ToDateTime(reader["CompleteTime"]),
-                TotalAmount = reader["TotalAmount"] != DBNull.Value ? Convert.ToDecimal(reader["TotalAmount"]) : 0,
-                OperatorName = reader["OperatorName"].ToString() ?? "",
-                Remark = reader["Remark"].ToString() ?? ""
-            }, parameters.ToArray());
+            return pagedResult.Items;
         }
         catch (SqlException ex)
         {
@@ -341,12 +343,13 @@ public class ReportService
     #region 库存统计
 
     /// <summary>
-    /// 获取库存汇总统计
+    /// 获取库存汇总统计 - 使用优化查询
     /// </summary>
     public InventorySummaryStats GetInventorySummaryStats()
     {
         try
         {
+            // 使用 WITH (NOLOCK) 提示减少锁竞争
             var sql = @"
                 SELECT 
                     COUNT(*) as TotalCount,
@@ -354,7 +357,7 @@ public class ReportService
                     SUM(CASE WHEN StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount,
                     SUM(CASE WHEN StorageStatus = 2 THEN 1 ELSE 0 END) as ScrappedCount,
                     SUM(CASE WHEN StorageStatus = 3 THEN 1 ELSE 0 END) as RepairingCount
-                FROM DM_DieInventory";
+                FROM DM_DieInventory WITH (NOLOCK)";
 
             var result = DbHelper.ExecuteQuery(sql, reader => new InventorySummaryStats
             {
@@ -380,12 +383,13 @@ public class ReportService
     }
 
     /// <summary>
-    /// 获取库位分布统计
+    /// 获取库位分布统计 - 使用优化查询
     /// </summary>
     public List<LocationDistributionStats> GetLocationDistributionStats()
     {
         try
         {
+            // 使用 WITH (NOLOCK) 提示和优化JOIN
             var sql = @"
                 SELECT 
                     sl.Area,
@@ -393,8 +397,8 @@ public class ReportService
                     COUNT(di.InventoryID) as DieCount,
                     SUM(CASE WHEN di.StorageStatus = 0 THEN 1 ELSE 0 END) as InStockCount,
                     SUM(CASE WHEN di.StorageStatus = 1 THEN 1 ELSE 0 END) as BorrowedCount
-                FROM DM_StorageLocation sl
-                LEFT JOIN DM_DieInventory di ON sl.LocationID = di.LocationID
+                FROM DM_StorageLocation sl WITH (NOLOCK)
+                LEFT JOIN DM_DieInventory di WITH (NOLOCK) ON sl.LocationID = di.LocationID
                 GROUP BY sl.Area, sl.ShelfNo
                 ORDER BY sl.Area, sl.ShelfNo";
 

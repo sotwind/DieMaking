@@ -1,10 +1,10 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
-using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Production;
 
-public partial class ProcessReportForm : Form
+public partial class ProcessReportForm : BaseForm
 {
     private readonly ProductionService _productionService;
     private ComboBox _cmbDie = null!;
@@ -24,14 +24,12 @@ public partial class ProcessReportForm : Form
         _productionService = new ProductionService();
         InitializeComponent();
         this.Text = "工序报产";
-        LoadDieList();
     }
 
     private void InitializeComponent()
     {
-        this.Size = new Size(1000, 700);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
-        this.WindowState = FormWindowState.Maximized;
 
         // 左侧选择区域
         var panelLeft = new Panel
@@ -45,23 +43,19 @@ public partial class ProcessReportForm : Form
         var lblTitle = new Label
         {
             Text = "工序报产",
-            Font = new Font("微软雅黑", 14, FontStyle.Bold),
+            Font = UIStyleHelper.GetTitleFont(),
             Location = new Point(10, 10),
             AutoSize = true
         };
 
-        var lblDie = new Label
-        {
-            Text = "选择刀模：",
-            Location = new Point(10, 50),
-            AutoSize = true
-        };
+        var lblDie = UIStyleHelper.CreateLabel("选择刀模：", new Point(10, 50), new Size(70, 23));
 
         _cmbDie = new ComboBox
         {
             Location = new Point(10, 75),
             Width = 320,
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         _cmbDie.SelectedIndexChanged += CmbDie_SelectedIndexChanged;
 
@@ -69,16 +63,11 @@ public partial class ProcessReportForm : Form
         {
             Location = new Point(10, 105),
             Size = new Size(320, 40),
-            Font = new Font("微软雅黑", 9),
-            ForeColor = Color.DarkBlue
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134),
+            ForeColor = UIStyleHelper.ColorInfo
         };
 
-        var lblProcessList = new Label
-        {
-            Text = "工序列表：",
-            Location = new Point(10, 155),
-            AutoSize = true
-        };
+        var lblProcessList = UIStyleHelper.CreateLabel("工序列表：", new Point(10, 155), new Size(70, 23));
 
         // 工序列表
         _dgvProcesses = new DataGridView
@@ -92,9 +81,9 @@ public partial class ProcessReportForm : Form
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             MultiSelect = false,
             BackgroundColor = Color.White,
-            BorderStyle = BorderStyle.Fixed3D,
-            RowHeadersVisible = false
+            BorderStyle = BorderStyle.Fixed3D
         };
+        ApplyDataGridViewStyle(_dgvProcesses);
 
         _dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn
         {
@@ -141,7 +130,7 @@ public partial class ProcessReportForm : Form
         var lblOperationTitle = new Label
         {
             Text = "报产操作",
-            Font = new Font("微软雅黑", 14, FontStyle.Bold),
+            Font = UIStyleHelper.GetTitleFont(),
             Location = new Point(20, 20),
             AutoSize = true
         };
@@ -151,35 +140,17 @@ public partial class ProcessReportForm : Form
             Text = "请选择工序",
             Location = new Point(20, 60),
             Size = new Size(400, 25),
-            Font = new Font("微软雅黑", 10, FontStyle.Bold),
-            ForeColor = Color.DarkGreen
+            Font = new Font(UIStyleHelper.FontName, 10f, FontStyle.Bold, GraphicsUnit.Point, 134),
+            ForeColor = UIStyleHelper.ColorSuccess
         };
 
-        var lblOperatorNo = new Label
-        {
-            Text = "工号：",
-            Location = new Point(20, 100),
-            AutoSize = true
-        };
+        var lblOperatorNo = UIStyleHelper.CreateLabel("工号：", new Point(20, 100), new Size(50, 23));
 
-        _txtOperatorNo = new TextBox
-        {
-            Location = new Point(80, 96),
-            Width = 150
-        };
+        _txtOperatorNo = UIStyleHelper.CreateTextBox(new Point(80, 96), new Size(150, 23), "请输入工号");
 
-        var lblOperatorName = new Label
-        {
-            Text = "姓名：",
-            Location = new Point(250, 100),
-            AutoSize = true
-        };
+        var lblOperatorName = UIStyleHelper.CreateLabel("姓名：", new Point(250, 100), new Size(50, 23));
 
-        _txtOperatorName = new TextBox
-        {
-            Location = new Point(310, 96),
-            Width = 150
-        };
+        _txtOperatorName = UIStyleHelper.CreateTextBox(new Point(310, 96), new Size(150, 23), "请输入姓名");
 
         // 自动填充当前用户信息
         if (CurrentUser.User != null)
@@ -188,77 +159,40 @@ public partial class ProcessReportForm : Form
             _txtOperatorName.Text = CurrentUser.User.RealName;
         }
 
-        var lblAmount = new Label
-        {
-            Text = "金额：",
-            Location = new Point(20, 140),
-            AutoSize = true
-        };
+        var lblAmount = UIStyleHelper.CreateLabel("金额：", new Point(20, 140), new Size(50, 23));
 
-        _txtAmount = new TextBox
-        {
-            Location = new Point(80, 136),
-            Width = 150
-        };
+        _txtAmount = UIStyleHelper.CreateTextBox(new Point(80, 136), new Size(150, 23), "0.00");
 
-        var lblRemark = new Label
-        {
-            Text = "备注：",
-            Location = new Point(20, 180),
-            AutoSize = true
-        };
+        var lblRemark = UIStyleHelper.CreateLabel("备注：", new Point(20, 180), new Size(50, 23));
 
         _txtRemark = new TextBox
         {
             Location = new Point(80, 176),
             Width = 380,
             Height = 60,
-            Multiline = true
+            Multiline = true,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
-        _btnStart = new Button
-        {
-            Text = "开始生产",
-            Location = new Point(80, 260),
-            Size = new Size(120, 40),
-            Enabled = false,
-            BackColor = Color.DodgerBlue,
-            ForeColor = Color.White,
-            Font = new Font("微软雅黑", 10, FontStyle.Bold)
-        };
+        _btnStart = UIStyleHelper.CreateAddButton("开始生产");
+        _btnStart.Size = new Size(120, 40);
+        _btnStart.Location = new Point(80, 260);
+        _btnStart.Enabled = false;
         _btnStart.Click += BtnStart_Click;
 
-        _btnComplete = new Button
-        {
-            Text = "完成生产",
-            Location = new Point(220, 260),
-            Size = new Size(120, 40),
-            Enabled = false,
-            BackColor = Color.Green,
-            ForeColor = Color.White,
-            Font = new Font("微软雅黑", 10, FontStyle.Bold)
-        };
+        _btnComplete = UIStyleHelper.CreateSaveButton("完成生产");
+        _btnComplete.Size = new Size(120, 40);
+        _btnComplete.Location = new Point(220, 260);
+        _btnComplete.Enabled = false;
         _btnComplete.Click += BtnComplete_Click;
-
-        // 打印按钮
-        var btnPrint = new Button
-        {
-            Text = "打印工序表",
-            Location = new Point(20, 320),
-            Size = new Size(120, 35),
-            BackColor = Color.SteelBlue,
-            ForeColor = Color.White,
-            Font = new Font("微软雅黑", 10, FontStyle.Bold)
-        };
-        btnPrint.Click += BtnPrint_Click;
 
         // 状态说明
         var lblStatusTip = new Label
         {
             Text = "状态说明：\n• 待生产（橙色）- 可以开始生产\n• 生产中（蓝色）- 可以完成生产\n• 已完成（绿色）- 已完工",
-            Location = new Point(20, 365),
+            Location = new Point(20, 320),
             Size = new Size(400, 80),
-            Font = new Font("微软雅黑", 9),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134),
             ForeColor = Color.Gray
         };
 
@@ -267,11 +201,24 @@ public partial class ProcessReportForm : Form
             lblOperationTitle, _lblSelectedProcess,
             lblOperatorNo, _txtOperatorNo, lblOperatorName, _txtOperatorName,
             lblAmount, _txtAmount, lblRemark, _txtRemark,
-            _btnStart, _btnComplete, btnPrint, lblStatusTip
+            _btnStart, _btnComplete, lblStatusTip
         });
+
+        // 状态栏
+        var statusStrip = CreateStatusBar();
 
         this.Controls.Add(panelRight);
         this.Controls.Add(panelLeft);
+        this.Controls.Add(statusStrip);
+
+        // 注册回车跳转
+        RegisterEnterToNext();
+    }
+
+    protected override void OnLoad(EventArgs e)
+    {
+        base.OnLoad(e);
+        LoadDieList();
     }
 
     private void LoadDieList()
@@ -291,7 +238,7 @@ public partial class ProcessReportForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载刀模列表失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载刀模列表失败：{ex.Message}");
         }
     }
 
@@ -350,7 +297,7 @@ public partial class ProcessReportForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载工序列表失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载工序列表失败：{ex.Message}");
         }
     }
 
@@ -401,19 +348,23 @@ public partial class ProcessReportForm : Form
             return;
 
         // 验证输入
-        if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()))
+        if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()) || _txtOperatorNo.Text == (string?)_txtOperatorNo.Tag)
         {
+            UIStyleHelper.SetValidationError(_txtOperatorNo, true);
             MessageBox.Show("请输入工号", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             _txtOperatorNo.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(_txtOperatorNo, false);
 
-        if (string.IsNullOrEmpty(_txtOperatorName.Text.Trim()))
+        if (string.IsNullOrEmpty(_txtOperatorName.Text.Trim()) || _txtOperatorName.Text == (string?)_txtOperatorName.Tag)
         {
+            UIStyleHelper.SetValidationError(_txtOperatorName, true);
             MessageBox.Show("请输入姓名", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             _txtOperatorName.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(_txtOperatorName, false);
 
         // 检查前道工序是否已完成
         if (!_productionService.IsPrevProcessCompleted(_selectedProcessId.Value))
@@ -432,7 +383,7 @@ public partial class ProcessReportForm : Form
 
             if (success)
             {
-                MessageBox.Show("工序开始成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowSuccess("工序开始成功！");
 
                 // 刷新列表
                 if (_cmbDie.SelectedItem is DieInfoForReport die)
@@ -442,12 +393,12 @@ public partial class ProcessReportForm : Form
             }
             else
             {
-                MessageBox.Show("工序开始失败，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError("工序开始失败，请重试");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"操作失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"操作失败：{ex.Message}");
         }
     }
 
@@ -457,32 +408,38 @@ public partial class ProcessReportForm : Form
             return;
 
         // 验证输入
-        if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()))
+        if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()) || _txtOperatorNo.Text == (string?)_txtOperatorNo.Tag)
         {
+            UIStyleHelper.SetValidationError(_txtOperatorNo, true);
             MessageBox.Show("请输入工号", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             _txtOperatorNo.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(_txtOperatorNo, false);
 
-        if (string.IsNullOrEmpty(_txtOperatorName.Text.Trim()))
+        if (string.IsNullOrEmpty(_txtOperatorName.Text.Trim()) || _txtOperatorName.Text == (string?)_txtOperatorName.Tag)
         {
+            UIStyleHelper.SetValidationError(_txtOperatorName, true);
             MessageBox.Show("请输入姓名", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             _txtOperatorName.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(_txtOperatorName, false);
 
         // 解析金额
         decimal? amount = null;
-        if (!string.IsNullOrEmpty(_txtAmount.Text.Trim()))
+        if (!string.IsNullOrEmpty(_txtAmount.Text.Trim()) && _txtAmount.Text != (string?)_txtAmount.Tag)
         {
             if (!decimal.TryParse(_txtAmount.Text.Trim(), out var parsedAmount))
             {
+                UIStyleHelper.SetValidationError(_txtAmount, true);
                 MessageBox.Show("金额格式不正确", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 _txtAmount.Focus();
                 return;
             }
             amount = parsedAmount;
         }
+        UIStyleHelper.SetValidationError(_txtAmount, false);
 
         try
         {
@@ -496,7 +453,7 @@ public partial class ProcessReportForm : Form
 
             if (success)
             {
-                MessageBox.Show("工序完成成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowSuccess("工序完成成功！");
 
                 // 清空输入
                 _txtAmount.Clear();
@@ -510,33 +467,12 @@ public partial class ProcessReportForm : Form
             }
             else
             {
-                MessageBox.Show("工序完成失败，请重试", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                ShowError("工序完成失败，请重试");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"操作失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"操作失败：{ex.Message}");
         }
-    }
-
-    private void BtnPrint_Click(object? sender, EventArgs e)
-    {
-        if (_dgvProcesses.Rows.Count == 0)
-        {
-            MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            return;
-        }
-
-        var printService = new PrintService();
-        var subtitle = $"打印时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}  操作员：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知"}";
-        
-        // 获取当前选中的刀模信息
-        string dieInfo = "";
-        if (_cmbDie.SelectedItem is DieInfoForReport die)
-        {
-            dieInfo = $"  刀模：{die.DieCode} - {die.CustomerName}";
-        }
-        
-        printService.PrintPreview(_dgvProcesses, "刀模管理系统 - 工序报产记录" + dieInfo, subtitle);
     }
 }

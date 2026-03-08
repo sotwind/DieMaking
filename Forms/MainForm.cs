@@ -1,5 +1,6 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
+using DieMaking.Services;
 
 namespace DieMaking.Forms;
 
@@ -10,13 +11,69 @@ public partial class MainForm : Form
 {
     private ToolStripStatusLabel _statusLabel = null!;
     private ToolStripStatusLabel _dbStatusLabel = null!;
+    private string _systemName = "刀模管理系统";
 
     public MainForm()
     {
+        // 初始化配置
+        ConfigHelper.Initialize();
+        _systemName = ConfigHelper.SystemName;
+
         InitializeComponent();
         SetupGlobalExceptionHandling();
         SetupKeyboardShortcuts();
         StartDbHealthCheck();
+        ApplyUserPreference();
+
+        // 订阅配置变更事件
+        ConfigHelper.ConfigChanged += OnConfigChanged;
+    }
+
+    /// <summary>
+    /// 配置变更事件处理
+    /// </summary>
+    private void OnConfigChanged(object? sender, ConfigChangedEventArgs e)
+    {
+        this.Invoke(() =>
+        {
+            if (e.ConfigKey == ConfigKeys.SystemName)
+            {
+                _systemName = e.NewValue;
+                UpdateWindowTitle();
+            }
+        });
+    }
+
+    /// <summary>
+    /// 更新窗口标题
+    /// </summary>
+    private void UpdateWindowTitle()
+    {
+        this.Text = $"{_systemName} - 当前用户：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username}";
+    }
+
+    /// <summary>
+    /// 应用用户个性化设置
+    /// </summary>
+    private void ApplyUserPreference()
+    {
+        try
+        {
+            // 加载用户偏好设置
+            UserConfigContext.LoadUserPreference();
+
+            // 应用主题（如果有深色主题支持）
+            var theme = UserConfigContext.GetTheme();
+            if (theme == "Dark")
+            {
+                // 可以在这里应用深色主题
+                // 目前Windows Forms原生支持有限，可以后续扩展
+            }
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleExceptionSilent(ex, "应用用户偏好设置");
+        }
     }
 
     /// <summary>
@@ -265,7 +322,7 @@ F1 - 显示帮助";
 
     private void InitializeComponent()
     {
-        this.Text = $"刀模管理系统 - 当前用户：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username}";
+        UpdateWindowTitle();
         this.Size = new Size(1200, 800);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.IsMdiContainer = true;
@@ -329,11 +386,9 @@ F1 - 显示帮助";
         {
             systemMenu.DropDownItems.Add("用户管理", null, (s, e) => ShowForm<System.UserManageForm>());
         }
-        if (CurrentUser.HasPermission(PermissionKeys.SystemAdmin))
-        {
-            systemMenu.DropDownItems.Add("数据备份", null, (s, e) => ShowForm<System.BackupManageForm>());
-            systemMenu.DropDownItems.Add("操作日志", null, (s, e) => ShowForm<System.OperationLogForm>());
-        }
+        systemMenu.DropDownItems.Add("系统设置", null, (s, e) => ShowForm<System.SettingsForm>());
+        systemMenu.DropDownItems.Add("个人设置", null, (s, e) => ShowForm<System.UserSettingsForm>());
+        systemMenu.DropDownItems.Add("操作日志", null, (s, e) => ShowForm<System.OperationLogForm>());
         systemMenu.DropDownItems.Add("-");
         systemMenu.DropDownItems.Add("帮助(F1)", null, (s, e) => ShowHelp());
         systemMenu.DropDownItems.Add("-");
@@ -345,14 +400,14 @@ F1 - 显示帮助";
 
         // 状态栏
         var statusStrip = new StatusStrip();
-        _statusLabel = new ToolStripStatusLabel($"当前用户：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username} | 登录时间：{DateTime.Now:yyyy-MM-dd HH:mm:ss}");
+        _statusLabel = new ToolStripStatusLabel($"当前用户：{CurrentUser.User?.RealName ?? CurrentUser.User?.Username} | 登录时间：{DateTime.Now:HH:mm:ss}");
         _dbStatusLabel = new ToolStripStatusLabel("数据库: 检查中...");
         _dbStatusLabel.ForeColor = Color.Orange;
-        
+
         statusStrip.Items.Add(_statusLabel);
         statusStrip.Items.Add(new ToolStripStatusLabel("  |  "));
         statusStrip.Items.Add(_dbStatusLabel);
-        
+
         this.Controls.Add(statusStrip);
     }
 

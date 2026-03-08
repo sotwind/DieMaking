@@ -44,59 +44,88 @@ public class ProductionService
     }
 
     /// <summary>
-    /// 根据状态获取刀模列表
+    /// 根据状态获取刀模列表（使用优化查询）
     /// </summary>
-    private List<DieBoardItem> GetDieListByStatus(DieStatus status, DateTime? startDate, DateTime? endDate, string? customerName, string? dieCode)
+    private List<DieBoardItem> GetDieListByStatus(DieStatus status, DateTime? startDate, DateTime? endDate, string? customerName, string? dieCode, int pageIndex = 1, int pageSize = 100)
     {
         try
         {
-            var sql = @"SELECT d.DieID, d.DieCode, d.CustomerName, d.ProductName, d.DeliveryDate, 
+            // 使用优化的查询，减少子查询
+            var baseSql = @"SELECT d.DieID, d.DieCode, d.CustomerName, d.ProductName, d.DeliveryDate,
                                 d.Status, d.CreateTime,
-                                (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID) as TotalProcesses,
-                                (SELECT COUNT(*) FROM DM_DieProcess WHERE DieID = d.DieID AND Status = 2) as CompletedProcesses
-                         FROM DM_DieInfo d
+                                p.TotalProcesses,
+                                p.CompletedProcesses
+                         FROM DM_DieInfo d WITH (NOLOCK)
+                         LEFT JOIN (
+                             SELECT DieID,
+                                    COUNT(*) as TotalProcesses,
+                                    SUM(CASE WHEN Status = 2 THEN 1 ELSE 0 END) as CompletedProcesses
+                             FROM DM_DieProcess WITH (NOLOCK)
+                             GROUP BY DieID
+                         ) p ON d.DieID = p.DieID
                          WHERE d.Status = @Status";
 
             var parameters = new List<SqlParameter> { new SqlParameter("@Status", (int)status) };
 
             if (startDate.HasValue)
             {
-                sql += " AND d.CreateTime >= @StartDate";
+                baseSql += " AND d.CreateTime >= @StartDate";
                 parameters.Add(new SqlParameter("@StartDate", startDate.Value));
             }
 
             if (endDate.HasValue)
             {
-                sql += " AND d.CreateTime <= @EndDate";
+                baseSql += " AND d.CreateTime <= @EndDate";
                 parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1).AddSeconds(-1)));
             }
 
             if (!string.IsNullOrEmpty(customerName))
             {
-                sql += " AND d.CustomerName LIKE @CustomerName";
+                baseSql += " AND d.CustomerName LIKE @CustomerName";
                 parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
             }
 
             if (!string.IsNullOrEmpty(dieCode))
             {
-                sql += " AND d.DieCode LIKE @DieCode";
+                baseSql += " AND d.DieCode LIKE @DieCode";
                 parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
             }
 
-            sql += " ORDER BY d.CreateTime DESC";
-
-            return DbHelper.ExecuteQuery(sql, reader => new DieBoardItem
+            // 使用分页查询
+            if (pageSize > 0)
             {
-                DieID = Convert.ToInt32(reader["DieID"]),
-                DieCode = reader["DieCode"].ToString() ?? "",
-                CustomerName = reader["CustomerName"].ToString() ?? "",
-                ProductName = reader["ProductName"].ToString() ?? "",
-                DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null,
-                Status = (DieStatus)Convert.ToInt32(reader["Status"]),
-                CreateTime = Convert.ToDateTime(reader["CreateTime"]),
-                TotalProcesses = Convert.ToInt32(reader["TotalProcesses"]),
-                CompletedProcesses = Convert.ToInt32(reader["CompletedProcesses"])
-            }, parameters.ToArray());
+                var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "d.CreateTime DESC", pageIndex, pageSize,
+                    reader => new DieBoardItem
+                    {
+                        DieID = Convert.ToInt32(reader["DieID"]),
+                        DieCode = reader["DieCode"].ToString() ?? "",
+                        CustomerName = reader["CustomerName"].ToString() ?? "",
+                        ProductName = reader["ProductName"].ToString() ?? "",
+                        DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null,
+                        Status = (DieStatus)Convert.ToInt32(reader["Status"]),
+                        CreateTime = Convert.ToDateTime(reader["CreateTime"]),
+                        TotalProcesses = reader["TotalProcesses"] != DBNull.Value ? Convert.ToInt32(reader["TotalProcesses"]) : 0,
+                        CompletedProcesses = reader["CompletedProcesses"] != DBNull.Value ? Convert.ToInt32(reader["CompletedProcesses"]) : 0
+                    }, parameters.ToArray());
+
+                return pagedResult.Items;
+            }
+            else
+            {
+                var sql = baseSql + " ORDER BY d.CreateTime DESC";
+                return DbHelper.ExecuteQuery(sql, reader => new DieBoardItem
+                {
+                    DieID = Convert.ToInt32(reader["DieID"]),
+                    DieCode = reader["DieCode"].ToString() ?? "",
+                    CustomerName = reader["CustomerName"].ToString() ?? "",
+                    ProductName = reader["ProductName"].ToString() ?? "",
+                    DeliveryDate = reader["DeliveryDate"] != DBNull.Value ? Convert.ToDateTime(reader["DeliveryDate"]) : null,
+                    Status = (DieStatus)Convert.ToInt32(reader["Status"]),
+                    CreateTime = Convert.ToDateTime(reader["CreateTime"]),
+                    TotalProcesses = reader["TotalProcesses"] != DBNull.Value ? Convert.ToInt32(reader["TotalProcesses"]) : 0,
+                    CompletedProcesses = reader["CompletedProcesses"] != DBNull.Value ? Convert.ToInt32(reader["CompletedProcesses"]) : 0
+                }, parameters.ToArray());
+            }
         }
         catch (SqlException ex)
         {

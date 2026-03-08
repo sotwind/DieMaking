@@ -1,13 +1,13 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
-using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Report;
 
 /// <summary>
 /// 完工统计窗体
 /// </summary>
-public partial class CompletionStatsForm : Form
+public partial class CompletionStatsForm : BaseListForm
 {
     private readonly ReportService _reportService;
     private readonly PrintService _printService;
@@ -29,9 +29,8 @@ public partial class CompletionStatsForm : Form
 
     private void InitializeComponent()
     {
-        this.Size = new Size(1200, 700);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
-        this.WindowState = FormWindowState.Maximized;
 
         // 创建工具栏
         var toolPanel = new Panel
@@ -43,116 +42,74 @@ public partial class CompletionStatsForm : Form
         };
 
         // 日期范围标签
-        var lblStartDate = new Label
-        {
-            Text = "开始日期：",
-            Location = new Point(10, 15),
-            Size = new Size(70, 25)
-        };
+        var lblStartDate = UIStyleHelper.CreateLabel("开始日期：", new Point(10, 15), new Size(70, 25));
 
         _dtpStartDate = new DateTimePicker
         {
             Location = new Point(85, 12),
             Size = new Size(120, 25),
             Format = DateTimePickerFormat.Short,
-            Value = DateTime.Now.AddMonths(-1)
+            Value = DateTime.Now.AddMonths(-1),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
-        var lblEndDate = new Label
-        {
-            Text = "结束日期：",
-            Location = new Point(215, 15),
-            Size = new Size(70, 25)
-        };
+        var lblEndDate = UIStyleHelper.CreateLabel("结束日期：", new Point(215, 15), new Size(70, 25));
 
         _dtpEndDate = new DateTimePicker
         {
             Location = new Point(290, 12),
             Size = new Size(120, 25),
             Format = DateTimePickerFormat.Short,
-            Value = DateTime.Now
+            Value = DateTime.Now,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 刀模编号筛选
-        var lblDieCode = new Label
-        {
-            Text = "刀模编号：",
-            Location = new Point(420, 15),
-            Size = new Size(70, 25)
-        };
+        var lblDieCode = UIStyleHelper.CreateLabel("刀模编号：", new Point(420, 15), new Size(70, 25));
 
-        _txtDieCode = new TextBox
-        {
-            Location = new Point(495, 12),
-            Size = new Size(120, 25)
-        };
+        _txtDieCode = UIStyleHelper.CreateTextBox(new Point(495, 12), new Size(120, 25), "输入刀模编号");
 
         // 客户名称筛选
-        var lblCustomerName = new Label
-        {
-            Text = "客户名称：",
-            Location = new Point(625, 15),
-            Size = new Size(70, 25)
-        };
+        var lblCustomerName = UIStyleHelper.CreateLabel("客户名称：", new Point(625, 15), new Size(70, 25));
 
-        _txtCustomerName = new TextBox
-        {
-            Location = new Point(700, 12),
-            Size = new Size(120, 25)
-        };
+        _txtCustomerName = UIStyleHelper.CreateTextBox(new Point(700, 12), new Size(120, 25), "输入客户名称");
 
         // 分组方式
-        var lblGroupBy = new Label
-        {
-            Text = "统计维度：",
-            Location = new Point(830, 15),
-            Size = new Size(70, 25)
-        };
+        var lblGroupBy = UIStyleHelper.CreateLabel("统计维度：", new Point(830, 15), new Size(70, 25));
 
         _cmbGroupBy = new ComboBox
         {
             Location = new Point(905, 12),
             Size = new Size(100, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         _cmbGroupBy.Items.AddRange(new object[] { "按刀模", "按客户", "按日期" });
         _cmbGroupBy.SelectedIndex = 0;
 
         // 查询按钮
-        var btnQuery = new Button
-        {
-            Text = "查询",
-            Location = new Point(10, 45),
-            Size = new Size(80, 28)
-        };
+        var btnQuery = UIStyleHelper.CreateSearchButton();
+        btnQuery.Location = new Point(10, 45);
         btnQuery.Click += BtnQuery_Click;
 
         // 导出按钮
-        var btnExport = new Button
-        {
-            Text = "导出Excel",
-            Location = new Point(100, 45),
-            Size = new Size(90, 28)
-        };
+        var btnExport = UIStyleHelper.CreateExportButton("导出CSV");
+        btnExport.Location = new Point(120, 45);
         btnExport.Click += BtnExport_Click;
 
         // 打印按钮
-        var btnPrint = new Button
-        {
-            Text = "打印",
-            Location = new Point(190, 45),
-            Size = new Size(80, 28)
-        };
+        var btnPrint = UIStyleHelper.CreatePrintButton();
+        btnPrint.Location = new Point(230, 45);
         btnPrint.Click += BtnPrint_Click;
 
         // 汇总信息标签
         _lblSummary = new Label
         {
             Text = "",
-            Location = new Point(280, 50),
+            Location = new Point(340, 50),
             Size = new Size(600, 25),
-            Font = new Font("微软雅黑", 9, FontStyle.Bold),
-            ForeColor = Color.Blue
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Bold, GraphicsUnit.Point, 134),
+            ForeColor = UIStyleHelper.ColorInfo
         };
 
         toolPanel.Controls.Add(lblStartDate);
@@ -180,11 +137,16 @@ public partial class CompletionStatsForm : Form
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             BackgroundColor = Color.White,
-            BorderStyle = BorderStyle.Fixed3D
+            BorderStyle = BorderStyle.None
         };
+        ApplyDataGridViewStyle(_dgvData);
+
+        // 状态栏
+        var statusStrip = CreateStatusBar();
 
         this.Controls.Add(_dgvData);
         this.Controls.Add(toolPanel);
+        this.Controls.Add(statusStrip);
 
         // 初始加载数据
         LoadData();
@@ -195,14 +157,21 @@ public partial class CompletionStatsForm : Form
         LoadData();
     }
 
-    private void LoadData()
+    protected override void LoadData()
     {
+        Form? loadingForm = null;
         try
         {
+            loadingForm = UIStyleHelper.ShowLoading(this, "正在加载统计数据...");
+
             var startDate = _dtpStartDate.Value.Date;
             var endDate = _dtpEndDate.Value.Date;
             var dieCode = _txtDieCode.Text.Trim();
             var customerName = _txtCustomerName.Text.Trim();
+
+            // 检查是否为placeholder
+            if (dieCode == (string?)_txtDieCode.Tag) dieCode = "";
+            if (customerName == (string?)_txtCustomerName.Tag) customerName = "";
 
             switch (_cmbGroupBy.SelectedIndex)
             {
@@ -219,13 +188,17 @@ public partial class CompletionStatsForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
+        }
+        finally
+        {
+            loadingForm?.Close();
         }
     }
 
     private void LoadDataByDie(DateTime startDate, DateTime endDate, string dieCode, string customerName)
     {
-        var data = _reportService.GetCompletionStatsByDie(startDate, endDate, 
+        var data = _reportService.GetCompletionStatsByDie(startDate, endDate,
             string.IsNullOrEmpty(dieCode) ? null : dieCode,
             string.IsNullOrEmpty(customerName) ? null : customerName);
 
@@ -261,6 +234,11 @@ public partial class CompletionStatsForm : Form
         }
 
         _lblSummary.Text = $"共 {data.Count} 条记录，总金额：{totalAmount:N2} 元";
+
+        if (StatusUserLabel != null)
+        {
+            StatusUserLabel.Text = _lblSummary.Text;
+        }
     }
 
     private void LoadDataByCustomer(DateTime startDate, DateTime endDate)
@@ -297,6 +275,11 @@ public partial class CompletionStatsForm : Form
         }
 
         _lblSummary.Text = $"共 {data.Count} 个客户，完工总数：{totalCount}，总金额：{totalAmount:N2} 元";
+
+        if (StatusUserLabel != null)
+        {
+            StatusUserLabel.Text = _lblSummary.Text;
+        }
     }
 
     private void LoadDataByDate(DateTime startDate, DateTime endDate)
@@ -328,6 +311,11 @@ public partial class CompletionStatsForm : Form
         }
 
         _lblSummary.Text = $"共 {data.Count} 天，完工总数：{totalCount}，总金额：{totalAmount:N2} 元";
+
+        if (StatusUserLabel != null)
+        {
+            StatusUserLabel.Text = _lblSummary.Text;
+        }
     }
 
     private void BtnExport_Click(object? sender, EventArgs e)
@@ -342,31 +330,20 @@ public partial class CompletionStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                Filter = "CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
+                FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                var importExportService = new ImportExportService();
-
-                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
-                {
-                    _printService.ExportToCsv(_dgvData, saveDialog.FileName);
-                }
-                else
-                {
-                    var dataTable = importExportService.ConvertDataGridViewToDataTable(_dgvData);
-                    importExportService.ExportToExcel(dataTable, "完工统计", saveDialog.FileName);
-                }
-
-                MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                ShowSuccess("导出成功！");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"导出失败：{ex.Message}");
         }
     }
 
@@ -401,7 +378,7 @@ public partial class CompletionStatsForm : Form
                         if (saveDialog.ShowDialog() == DialogResult.OK)
                         {
                             _printService.ExportToCsv(_dgvData, saveDialog.FileName);
-                            MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            ShowSuccess("导出成功！");
                         }
                     }
                     break;
@@ -409,7 +386,7 @@ public partial class CompletionStatsForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"打印失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"打印失败：{ex.Message}");
         }
     }
 }

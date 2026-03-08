@@ -1,3 +1,4 @@
+using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
 
@@ -14,16 +15,19 @@ public partial class LoginForm : Form
     {
         InitializeComponent();
         _userService = new UserService();
-        
+
         // 设置配置文件路径
         _configFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
             "DieMaking",
             "login.config"
         );
-        
+
         // 加载保存的登录信息
         LoadSavedLoginInfo();
+
+        // 应用统一字体
+        UIStyleHelper.ApplyFont(this);
     }
 
     private void LoadSavedLoginInfo()
@@ -40,7 +44,7 @@ public partial class LoginForm : Form
                     bool rememberPassword = bool.Parse(lines[2]);
 
                     txtUsername.Text = savedUsername;
-                    
+
                     if (rememberPassword)
                     {
                         txtPassword.Text = savedPassword;
@@ -87,29 +91,46 @@ public partial class LoginForm : Form
         string username = txtUsername.Text.Trim();
         string password = txtPassword.Text.Trim();
 
-        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        // 检查placeholder
+        if (string.IsNullOrEmpty(username) || username == (string?)txtUsername.Tag)
         {
-            MessageBox.Show("请输入用户名和密码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            UIStyleHelper.SetValidationError(txtUsername, true);
+            MessageBox.Show("请输入用户名", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            txtUsername.Focus();
             return;
         }
+        UIStyleHelper.SetValidationError(txtUsername, false);
 
+        if (string.IsNullOrEmpty(password))
+        {
+            UIStyleHelper.SetValidationError(txtPassword, true);
+            MessageBox.Show("请输入密码", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            txtPassword.Focus();
+            return;
+        }
+        UIStyleHelper.SetValidationError(txtPassword, false);
+
+        Form? loadingForm = null;
         try
         {
+            loadingForm = UIStyleHelper.ShowLoading(this, "正在登录...");
+
             var user = _userService.Login(username, password);
-            
+
             if (user != null)
             {
                 CurrentUser.User = user;
-                
+
                 // 保存登录信息
                 SaveLoginInfo();
-                
+
                 IsLoggedIn = true;
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             }
             else
             {
+                UIStyleHelper.SetValidationError(txtPassword, true);
                 MessageBox.Show("用户名或密码错误", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 txtPassword.Clear();
                 txtPassword.Focus();
@@ -118,6 +139,10 @@ public partial class LoginForm : Form
         catch (Exception ex)
         {
             MessageBox.Show("登录失败：" + ex.Message, "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+        finally
+        {
+            loadingForm?.Close();
         }
     }
 
@@ -138,7 +163,7 @@ public partial class LoginForm : Form
     private void InitializeComponent()
     {
         this.Text = "刀模管理系统 - 登录";
-        this.Size = new Size(400, 280);
+        this.Size = new Size(400, 300);
         this.StartPosition = FormStartPosition.CenterScreen;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -148,40 +173,27 @@ public partial class LoginForm : Form
         var lblTitle = new Label
         {
             Text = "刀模管理系统",
-            Font = new Font("微软雅黑", 18, FontStyle.Bold),
+            Font = UIStyleHelper.GetLargeTitleFont(),
             AutoSize = true,
             Location = new Point(120, 20)
         };
 
         // 用户名标签
-        var lblUsername = new Label
-        {
-            Text = "用户名：",
-            Location = new Point(50, 70),
-            Size = new Size(70, 25)
-        };
+        var lblUsername = UIStyleHelper.CreateLabel("用户名：", new Point(50, 70), new Size(70, 25));
 
         // 用户名输入框
-        txtUsername = new TextBox
-        {
-            Location = new Point(130, 70),
-            Size = new Size(200, 25)
-        };
+        txtUsername = UIStyleHelper.CreateTextBox(new Point(130, 70), new Size(200, 25), "请输入用户名");
 
         // 密码标签
-        var lblPassword = new Label
-        {
-            Text = "密码：",
-            Location = new Point(50, 110),
-            Size = new Size(70, 25)
-        };
+        var lblPassword = UIStyleHelper.CreateLabel("密码：", new Point(50, 110), new Size(70, 25));
 
         // 密码输入框
         txtPassword = new TextBox
         {
             Location = new Point(130, 110),
             Size = new Size(200, 25),
-            PasswordChar = '*'
+            PasswordChar = '*',
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         txtPassword.KeyPress += txtPassword_KeyPress;
 
@@ -190,25 +202,18 @@ public partial class LoginForm : Form
         {
             Text = "记住密码",
             Location = new Point(130, 145),
-            AutoSize = true
+            AutoSize = true,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 登录按钮
-        btnLogin = new Button
-        {
-            Text = "登录",
-            Location = new Point(130, 180),
-            Size = new Size(90, 30)
-        };
+        btnLogin = UIStyleHelper.CreateSaveButton("登录");
+        btnLogin.Location = new Point(130, 180);
         btnLogin.Click += btnLogin_Click;
 
         // 取消按钮
-        btnCancel = new Button
-        {
-            Text = "取消",
-            Location = new Point(240, 180),
-            Size = new Size(90, 30)
-        };
+        btnCancel = UIStyleHelper.CreateCancelButton();
+        btnCancel.Location = new Point(240, 180);
         btnCancel.Click += btnCancel_Click;
 
         // 添加控件

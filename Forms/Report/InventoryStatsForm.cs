@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Report;
 
@@ -122,9 +123,9 @@ public partial class InventoryStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出CSV",
+            Text = "导出Excel",
             Location = new Point(530, 15),
-            Size = new Size(80, 28)
+            Size = new Size(90, 28)
         };
         btnExport.Click += BtnExport_Click;
 
@@ -444,14 +445,25 @@ public partial class InventoryStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                var importExportService = new ImportExportService();
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                }
+                else
+                {
+                    var dataTable = importExportService.ConvertDataGridViewToDataTable(currentGrid);
+                    importExportService.ExportToExcel(dataTable, sheetName, saveDialog.FileName);
+                }
+
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -467,7 +479,7 @@ public partial class InventoryStatsForm : Form
         {
             DataGridView currentGrid;
             string sheetName;
-            
+
             switch (_tabControl.SelectedIndex)
             {
                 case 0:
