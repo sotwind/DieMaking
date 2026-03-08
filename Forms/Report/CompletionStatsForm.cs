@@ -9,6 +9,7 @@ namespace DieMaking.Forms.Report;
 public partial class CompletionStatsForm : Form
 {
     private readonly ReportService _reportService;
+    private readonly PrintService _printService;
     private DataGridView _dgvData = null!;
     private DateTimePicker _dtpStartDate = null!;
     private DateTimePicker _dtpEndDate = null!;
@@ -20,6 +21,7 @@ public partial class CompletionStatsForm : Form
     public CompletionStatsForm()
     {
         _reportService = new ReportService();
+        _printService = new PrintService();
         InitializeComponent();
         this.Text = "完工统计";
     }
@@ -127,17 +129,26 @@ public partial class CompletionStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出Excel",
+            Text = "导出CSV",
             Location = new Point(100, 45),
             Size = new Size(80, 28)
         };
         btnExport.Click += BtnExport_Click;
 
+        // 打印按钮
+        var btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(190, 45),
+            Size = new Size(80, 28)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         // 汇总信息标签
         _lblSummary = new Label
         {
             Text = "",
-            Location = new Point(190, 50),
+            Location = new Point(280, 50),
             Size = new Size(600, 25),
             Font = new Font("微软雅黑", 9, FontStyle.Bold),
             ForeColor = Color.Blue
@@ -155,6 +166,7 @@ public partial class CompletionStatsForm : Form
         toolPanel.Controls.Add(_cmbGroupBy);
         toolPanel.Controls.Add(btnQuery);
         toolPanel.Controls.Add(btnExport);
+        toolPanel.Controls.Add(btnPrint);
         toolPanel.Controls.Add(_lblSummary);
 
         // 创建数据表格
@@ -329,14 +341,14 @@ public partial class CompletionStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                Filter = "CSV文件|*.csv",
                 Title = "导出数据",
                 FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                ExportToCsv(saveDialog.FileName);
+                _printService.ExportToCsv(_dgvData, saveDialog.FileName);
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -346,33 +358,46 @@ public partial class CompletionStatsForm : Form
         }
     }
 
-    private void ExportToCsv(string filePath)
+    private void BtnPrint_Click(object? sender, EventArgs e)
     {
-        using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-        
-        // 写入表头
-        var headers = new List<string>();
-        foreach (DataGridViewColumn col in _dgvData.Columns)
+        try
         {
-            headers.Add(col.HeaderText);
-        }
-        writer.WriteLine(string.Join(",", headers));
-
-        // 写入数据
-        foreach (DataGridViewRow row in _dgvData.Rows)
-        {
-            var values = new List<string>();
-            foreach (DataGridViewCell cell in row.Cells)
+            if (_dgvData.Rows.Count == 0)
             {
-                var value = cell.Value?.ToString() ?? "";
-                // 处理包含逗号或换行符的情况
-                if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-                {
-                    value = "\"" + value.Replace("\"", "\"\"") + "\"";
-                }
-                values.Add(value);
+                MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            writer.WriteLine(string.Join(",", values));
+
+            var result = PrintDialogExtensions.ShowPrintOptions(_dgvData, this.Text, _lblSummary.Text);
+
+            switch (result)
+            {
+                case DialogResult.OK: // 打印预览
+                    _printService.PrintPreview(_dgvData, this.Text, _lblSummary.Text);
+                    break;
+                case DialogResult.Yes: // 直接打印
+                    _printService.Print(_dgvData, this.Text, _lblSummary.Text);
+                    break;
+                case DialogResult.No: // 导出CSV
+                    using (var saveDialog = new SaveFileDialog
+                    {
+                        Filter = "CSV文件|*.csv",
+                        Title = "导出数据",
+                        FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                    })
+                    {
+                        if (saveDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            _printService.ExportToCsv(_dgvData, saveDialog.FileName);
+                            MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打印失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

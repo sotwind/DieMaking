@@ -9,16 +9,19 @@ namespace DieMaking.Forms.Report;
 public partial class ProcessStatsForm : Form
 {
     private readonly ReportService _reportService;
+    private readonly PrintService _printService;
     private DataGridView _dgvSummary = null!;
     private DataGridView _dgvDetail = null!;
     private DateTimePicker _dtpStartDate = null!;
     private DateTimePicker _dtpEndDate = null!;
     private TextBox _txtProcessName = null!;
     private TabControl _tabControl = null!;
+    private Label _lblSummaryInfo = null!;
 
     public ProcessStatsForm()
     {
         _reportService = new ReportService();
+        _printService = new PrintService();
         InitializeComponent();
         this.Text = "工序统计";
     }
@@ -95,14 +98,23 @@ public partial class ProcessStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出Excel",
+            Text = "导出CSV",
             Location = new Point(750, 10),
             Size = new Size(80, 28)
         };
         btnExport.Click += BtnExport_Click;
 
+        // 打印按钮
+        var btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(840, 10),
+            Size = new Size(80, 28)
+        };
+        btnPrint.Click += BtnPrint_Click;
+
         // 统计信息标签
-        var lblInfo = new Label
+        _lblSummaryInfo = new Label
         {
             Text = "统计说明：统计各工序的生产效率，包括计划数量、完成数量、完成率、平均耗时等",
             Location = new Point(10, 50),
@@ -119,7 +131,8 @@ public partial class ProcessStatsForm : Form
         toolPanel.Controls.Add(_txtProcessName);
         toolPanel.Controls.Add(btnQuery);
         toolPanel.Controls.Add(btnExport);
-        toolPanel.Controls.Add(lblInfo);
+        toolPanel.Controls.Add(btnPrint);
+        toolPanel.Controls.Add(_lblSummaryInfo);
 
         // 创建选项卡控件
         _tabControl = new TabControl
@@ -304,6 +317,7 @@ public partial class ProcessStatsForm : Form
         try
         {
             var currentGrid = _tabControl.SelectedIndex == 0 ? _dgvSummary : _dgvDetail;
+            var sheetName = _tabControl.SelectedIndex == 0 ? "工序汇总统计" : "工序明细";
             
             if (currentGrid.Rows.Count == 0)
             {
@@ -313,14 +327,14 @@ public partial class ProcessStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                Filter = "CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"工序统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                ExportToCsv(currentGrid, saveDialog.FileName);
+                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -330,32 +344,50 @@ public partial class ProcessStatsForm : Form
         }
     }
 
-    private void ExportToCsv(DataGridView dgv, string filePath)
+    private void BtnPrint_Click(object? sender, EventArgs e)
     {
-        using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
-        
-        // 写入表头
-        var headers = new List<string>();
-        foreach (DataGridViewColumn col in dgv.Columns)
+        try
         {
-            headers.Add(col.HeaderText);
-        }
-        writer.WriteLine(string.Join(",", headers));
-
-        // 写入数据
-        foreach (DataGridViewRow row in dgv.Rows)
-        {
-            var values = new List<string>();
-            foreach (DataGridViewCell cell in row.Cells)
+            var currentGrid = _tabControl.SelectedIndex == 0 ? _dgvSummary : _dgvDetail;
+            var sheetName = _tabControl.SelectedIndex == 0 ? "工序汇总统计" : "工序明细";
+            
+            if (currentGrid.Rows.Count == 0)
             {
-                var value = cell.Value?.ToString() ?? "";
-                if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
-                {
-                    value = "\"" + value.Replace("\"", "\"\"") + "\"";
-                }
-                values.Add(value);
+                MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            writer.WriteLine(string.Join(",", values));
+
+            var title = $"{this.Text} - {sheetName}";
+            var result = PrintDialogExtensions.ShowPrintOptions(currentGrid, title, _lblSummaryInfo.Text);
+
+            switch (result)
+            {
+                case DialogResult.OK: // 打印预览
+                    _printService.PrintPreview(currentGrid, title, _lblSummaryInfo.Text);
+                    break;
+                case DialogResult.Yes: // 直接打印
+                    _printService.Print(currentGrid, title, _lblSummaryInfo.Text);
+                    break;
+                case DialogResult.No: // 导出CSV
+                    using (var saveDialog = new SaveFileDialog
+                    {
+                        Filter = "CSV文件|*.csv",
+                        Title = "导出数据",
+                        FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                    })
+                    {
+                        if (saveDialog.ShowDialog() == DialogResult.OK)
+                        {
+                            _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        }
+                    }
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"打印失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
     }
 }

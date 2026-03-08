@@ -1,6 +1,5 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
-using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -14,11 +13,24 @@ public class DieService
     /// </summary>
     public List<DieInfo> GetAllDies()
     {
-        var sql = @"SELECT d.*, u.RealName as CreateUserName 
-                     FROM DM_DieInfo d
-                     LEFT JOIN DM_User u ON d.CreateUser = u.Username
-                     ORDER BY d.CreateTime DESC";
-        return DbHelper.ExecuteQuery(sql, MapToDieInfo);
+        try
+        {
+            var sql = @"SELECT d.*, u.RealName as CreateUserName 
+                         FROM DM_DieInfo d
+                         LEFT JOIN DM_User u ON d.CreateUser = u.Username
+                         ORDER BY d.CreateTime DESC";
+            return DbHelper.ExecuteQuery(sql, MapToDieInfo);
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有刀模列表");
+            return new List<DieInfo>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "获取所有刀模列表");
+            return new List<DieInfo>();
+        }
     }
 
     /// <summary>
@@ -26,12 +38,25 @@ public class DieService
     /// </summary>
     public DieInfo? GetDieById(int dieId)
     {
-        var sql = @"SELECT d.*, u.RealName as CreateUserName 
-                     FROM DM_DieInfo d
-                     LEFT JOIN DM_User u ON d.CreateUser = u.Username
-                     WHERE d.DieID = @DieID";
-        var dies = DbHelper.ExecuteQuery(sql, MapToDieInfo, new SqlParameter("@DieID", dieId));
-        return dies.FirstOrDefault();
+        try
+        {
+            var sql = @"SELECT d.*, u.RealName as CreateUserName 
+                         FROM DM_DieInfo d
+                         LEFT JOIN DM_User u ON d.CreateUser = u.Username
+                         WHERE d.DieID = @DieID";
+            var dies = DbHelper.ExecuteQuery(sql, MapToDieInfo, new SqlParameter("@DieID", dieId));
+            return dies.FirstOrDefault();
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取刀模信息(ID:{dieId})");
+            return null;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取刀模信息(ID:{dieId})");
+            return null;
+        }
     }
 
     /// <summary>
@@ -41,53 +66,66 @@ public class DieService
                                      DieStatus? status = null, AuditStatus? auditStatus = null,
                                      DateTime? startDate = null, DateTime? endDate = null)
     {
-        var conditions = new List<string>();
-        var parameters = new List<SqlParameter>();
-
-        if (!string.IsNullOrWhiteSpace(dieCode))
+        try
         {
-            conditions.Add("d.DieCode LIKE @DieCode");
-            parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
-        }
+            var conditions = new List<string>();
+            var parameters = new List<SqlParameter>();
 
-        if (!string.IsNullOrWhiteSpace(customerName))
+            if (!string.IsNullOrWhiteSpace(dieCode))
+            {
+                conditions.Add("d.DieCode LIKE @DieCode");
+                parameters.Add(new SqlParameter("@DieCode", $"%{dieCode}%"));
+            }
+
+            if (!string.IsNullOrWhiteSpace(customerName))
+            {
+                conditions.Add("d.CustomerName LIKE @CustomerName");
+                parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            }
+
+            if (status.HasValue)
+            {
+                conditions.Add("d.Status = @Status");
+                parameters.Add(new SqlParameter("@Status", (int)status.Value));
+            }
+
+            if (auditStatus.HasValue)
+            {
+                conditions.Add("d.AuditStatus = @AuditStatus");
+                parameters.Add(new SqlParameter("@AuditStatus", (int)auditStatus.Value));
+            }
+
+            if (startDate.HasValue)
+            {
+                conditions.Add("d.CreateTime >= @StartDate");
+                parameters.Add(new SqlParameter("@StartDate", startDate.Value));
+            }
+
+            if (endDate.HasValue)
+            {
+                conditions.Add("d.CreateTime <= @EndDate");
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1)));
+            }
+
+            var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
+            var sql = $@"SELECT d.*, u.RealName as CreateUserName 
+                          FROM DM_DieInfo d
+                          LEFT JOIN DM_User u ON d.CreateUser = u.Username
+                          {whereClause}
+                          ORDER BY d.CreateTime DESC";
+
+            return DbHelper.ExecuteQuery(sql, MapToDieInfo, parameters.ToArray());
+        }
+        catch (SqlException ex)
         {
-            conditions.Add("d.CustomerName LIKE @CustomerName");
-            parameters.Add(new SqlParameter("@CustomerName", $"%{customerName}%"));
+            ExceptionHelper.HandleException(ex, "搜索刀模");
+            return new List<DieInfo>();
         }
-
-        if (status.HasValue)
+        catch (Exception ex)
         {
-            conditions.Add("d.Status = @Status");
-            parameters.Add(new SqlParameter("@Status", (int)status.Value));
+            ExceptionHelper.HandleException(ex, "搜索刀模");
+            return new List<DieInfo>();
         }
-
-        if (auditStatus.HasValue)
-        {
-            conditions.Add("d.AuditStatus = @AuditStatus");
-            parameters.Add(new SqlParameter("@AuditStatus", (int)auditStatus.Value));
-        }
-
-        if (startDate.HasValue)
-        {
-            conditions.Add("d.CreateTime >= @StartDate");
-            parameters.Add(new SqlParameter("@StartDate", startDate.Value));
-        }
-
-        if (endDate.HasValue)
-        {
-            conditions.Add("d.CreateTime <= @EndDate");
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1)));
-        }
-
-        var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
-        var sql = $@"SELECT d.*, u.RealName as CreateUserName 
-                      FROM DM_DieInfo d
-                      LEFT JOIN DM_User u ON d.CreateUser = u.Username
-                      {whereClause}
-                      ORDER BY d.CreateTime DESC";
-
-        return DbHelper.ExecuteQuery(sql, MapToDieInfo, parameters.ToArray());
     }
 
     /// <summary>
@@ -96,11 +134,13 @@ public class DieService
     public int CreateDie(DieInfo die, List<DieProcess> processes)
     {
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             // 插入刀模基本信息
             var sql = @"INSERT INTO DM_DieInfo 
                          (DieCode, CustomerName, ProductName, Structure, ModelType, LayoutType, 
@@ -129,16 +169,25 @@ public class DieService
             }
 
             transaction.Commit();
-
-            // 记录操作日志
-            LogService.LogOperation("新增", $"新增刀模：{die.DieCode}", die.DieCode);
-
             return dieId;
         }
-        catch
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(new BusinessException("刀模编号已存在，请使用其他编号。"), "创建刀模");
+            return 0;
+        }
+        catch (SqlException ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, "创建刀模");
+            return 0;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, "创建刀模");
+            return 0;
         }
     }
 
@@ -148,11 +197,13 @@ public class DieService
     public bool UpdateDie(DieInfo die, List<DieProcess> processes)
     {
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             // 更新刀模基本信息
             var sql = @"UPDATE DM_DieInfo SET
                          DieCode = @DieCode,
@@ -201,16 +252,25 @@ public class DieService
             }
 
             transaction.Commit();
-
-            // 记录操作日志
-            LogService.LogOperation("修改", $"编辑刀模：{die.DieCode}", die.DieCode);
-
             return true;
         }
-        catch
+        catch (SqlException ex) when (ex.Number == 2627 || ex.Number == 2601)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(new BusinessException("刀模编号已存在，请使用其他编号。"), "更新刀模");
+            return false;
+        }
+        catch (SqlException ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"更新刀模(ID:{die.DieID})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"更新刀模(ID:{die.DieID})");
+            return false;
         }
     }
 
@@ -219,16 +279,14 @@ public class DieService
     /// </summary>
     public bool DeleteDie(int dieId)
     {
-        // 先获取刀模信息用于日志记录
-        var dieInfo = GetDieById(dieId);
-        var dieCode = dieInfo?.DieCode ?? dieId.ToString();
-
         using var connection = DbHelper.CreateConnection();
-        connection.Open();
-        using var transaction = connection.BeginTransaction();
+        SqlTransaction? transaction = null;
 
         try
         {
+            connection.Open();
+            transaction = connection.BeginTransaction();
+
             // 删除工序
             var deleteProcessSql = "DELETE FROM DM_DieProcess WHERE DieID = @DieID";
             using var deleteProcessCmd = new SqlCommand(deleteProcessSql, connection, transaction);
@@ -242,16 +300,25 @@ public class DieService
             var result = deleteDieCmd.ExecuteNonQuery() > 0;
 
             transaction.Commit();
-
-            // 记录操作日志
-            LogService.LogOperation("删除", $"删除刀模：{dieCode}", dieCode);
-
             return result;
         }
-        catch
+        catch (SqlException ex) when (ex.Number == 547)
         {
-            transaction.Rollback();
-            throw;
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(new BusinessException("该刀模有关联数据（如库存、借用记录等），无法删除。"), "删除刀模");
+            return false;
+        }
+        catch (SqlException ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"删除刀模(ID:{dieId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            transaction?.Rollback();
+            ExceptionHelper.HandleException(ex, $"删除刀模(ID:{dieId})");
+            return false;
         }
     }
 
@@ -260,22 +327,23 @@ public class DieService
     /// </summary>
     public bool AuditDie(int dieId, bool isApproved)
     {
-        // 先获取刀模信息用于日志记录
-        var dieInfo = GetDieById(dieId);
-        var dieCode = dieInfo?.DieCode ?? dieId.ToString();
-
-        var sql = "UPDATE DM_DieInfo SET AuditStatus = @AuditStatus WHERE DieID = @DieID";
-        var result = DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@AuditStatus", isApproved ? (int)AuditStatus.Audited : (int)AuditStatus.Unaudited),
-            new SqlParameter("@DieID", dieId)) > 0;
-
-        if (result)
+        try
         {
-            var actionText = isApproved ? "审核通过" : "取消审核";
-            LogService.LogOperation("审核", $"{actionText}刀模：{dieCode}", dieCode);
+            var sql = "UPDATE DM_DieInfo SET AuditStatus = @AuditStatus WHERE DieID = @DieID";
+            return DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@AuditStatus", isApproved ? (int)AuditStatus.Audited : (int)AuditStatus.Unaudited),
+                new SqlParameter("@DieID", dieId)) > 0;
         }
-
-        return result;
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"审核刀模(ID:{dieId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"审核刀模(ID:{dieId})");
+            return false;
+        }
     }
 
     /// <summary>
@@ -283,16 +351,29 @@ public class DieService
     /// </summary>
     public bool IsDieCodeExists(string dieCode, int? excludeDieId = null)
     {
-        var sql = excludeDieId.HasValue
-            ? "SELECT COUNT(*) FROM DM_DieInfo WHERE DieCode = @DieCode AND DieID != @DieID"
-            : "SELECT COUNT(*) FROM DM_DieInfo WHERE DieCode = @DieCode";
+        try
+        {
+            var sql = excludeDieId.HasValue
+                ? "SELECT COUNT(*) FROM DM_DieInfo WHERE DieCode = @DieCode AND DieID != @DieID"
+                : "SELECT COUNT(*) FROM DM_DieInfo WHERE DieCode = @DieCode";
 
-        var parameters = new List<SqlParameter> { new SqlParameter("@DieCode", dieCode) };
-        if (excludeDieId.HasValue)
-            parameters.Add(new SqlParameter("@DieID", excludeDieId.Value));
+            var parameters = new List<SqlParameter> { new SqlParameter("@DieCode", dieCode) };
+            if (excludeDieId.HasValue)
+                parameters.Add(new SqlParameter("@DieID", excludeDieId.Value));
 
-        var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
-        return Convert.ToInt32(result) > 0;
+            var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
+            return Convert.ToInt32(result) > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, "检查刀模编号是否存在");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, "检查刀模编号是否存在");
+            return false;
+        }
     }
 
     #endregion
@@ -304,12 +385,25 @@ public class DieService
     /// </summary>
     public List<DieProcess> GetDieProcesses(int dieId)
     {
-        var sql = @"SELECT p.*, u.RealName as OperatorNameReal
-                     FROM DM_DieProcess p
-                     LEFT JOIN DM_User u ON p.OperatorNo = u.Username
-                     WHERE p.DieID = @DieID
-                     ORDER BY p.ProcessID";
-        return DbHelper.ExecuteQuery(sql, MapToDieProcess, new SqlParameter("@DieID", dieId));
+        try
+        {
+            var sql = @"SELECT p.*, u.RealName as OperatorNameReal
+                         FROM DM_DieProcess p
+                         LEFT JOIN DM_User u ON p.OperatorNo = u.Username
+                         WHERE p.DieID = @DieID
+                         ORDER BY p.ProcessID";
+            return DbHelper.ExecuteQuery(sql, MapToDieProcess, new SqlParameter("@DieID", dieId));
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取刀模工序列表(DieID:{dieId})");
+            return new List<DieProcess>();
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"获取刀模工序列表(DieID:{dieId})");
+            return new List<DieProcess>();
+        }
     }
 
     /// <summary>
@@ -317,19 +411,32 @@ public class DieService
     /// </summary>
     public bool UpdateProcessStatus(int processId, ProcessStatus status, string? operatorNo = null, string? operatorName = null)
     {
-        var sql = @"UPDATE DM_DieProcess SET
-                     Status = @Status,
-                     OperatorNo = @OperatorNo,
-                     OperatorName = @OperatorName,
-                     StartTime = CASE WHEN @Status = 1 THEN ISNULL(StartTime, GETDATE()) ELSE StartTime END,
-                     CompleteTime = CASE WHEN @Status = 2 THEN GETDATE() ELSE NULL END
-                     WHERE ProcessID = @ProcessID";
+        try
+        {
+            var sql = @"UPDATE DM_DieProcess SET
+                         Status = @Status,
+                         OperatorNo = @OperatorNo,
+                         OperatorName = @OperatorName,
+                         StartTime = CASE WHEN @Status = 1 THEN ISNULL(StartTime, GETDATE()) ELSE StartTime END,
+                         CompleteTime = CASE WHEN @Status = 2 THEN GETDATE() ELSE NULL END
+                         WHERE ProcessID = @ProcessID";
 
-        return DbHelper.ExecuteNonQuery(sql,
-            new SqlParameter("@Status", (int)status),
-            new SqlParameter("@OperatorNo", operatorNo ?? (object)DBNull.Value),
-            new SqlParameter("@OperatorName", operatorName ?? (object)DBNull.Value),
-            new SqlParameter("@ProcessID", processId)) > 0;
+            return DbHelper.ExecuteNonQuery(sql,
+                new SqlParameter("@Status", (int)status),
+                new SqlParameter("@OperatorNo", operatorNo ?? (object)DBNull.Value),
+                new SqlParameter("@OperatorName", operatorName ?? (object)DBNull.Value),
+                new SqlParameter("@ProcessID", processId)) > 0;
+        }
+        catch (SqlException ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新工序状态(ProcessID:{processId})");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            ExceptionHelper.HandleException(ex, $"更新工序状态(ProcessID:{processId})");
+            return false;
+        }
     }
 
     #endregion
@@ -338,30 +445,37 @@ public class DieService
 
     private void InsertDieProcess(SqlConnection connection, SqlTransaction transaction, DieProcess process)
     {
-        var sql = @"INSERT INTO DM_DieProcess
-                     (DieID, ProcessName, Status, OperatorNo, OperatorName, 
-                      BoardLength, BoardWidth, KnifeLength, KnifeTraceLength,
-                      Formula, Amount, PrevProcessID, IsPrevCompleted, CreateTime)
-                     VALUES
-                     (@DieID, @ProcessName, @Status, @OperatorNo, @OperatorName,
-                      @BoardLength, @BoardWidth, @KnifeLength, @KnifeTraceLength,
-                      @Formula, @Amount, @PrevProcessID, @IsPrevCompleted, GETDATE())";
+        try
+        {
+            var sql = @"INSERT INTO DM_DieProcess
+                         (DieID, ProcessName, Status, OperatorNo, OperatorName, 
+                          BoardLength, BoardWidth, KnifeLength, KnifeTraceLength,
+                          Formula, Amount, PrevProcessID, IsPrevCompleted, CreateTime)
+                         VALUES
+                         (@DieID, @ProcessName, @Status, @OperatorNo, @OperatorName,
+                          @BoardLength, @BoardWidth, @KnifeLength, @KnifeTraceLength,
+                          @Formula, @Amount, @PrevProcessID, @IsPrevCompleted, GETDATE())";
 
-        using var command = new SqlCommand(sql, connection, transaction);
-        command.Parameters.AddWithValue("@DieID", process.DieID);
-        command.Parameters.AddWithValue("@ProcessName", process.ProcessName);
-        command.Parameters.AddWithValue("@Status", (int)process.Status);
-        command.Parameters.AddWithValue("@OperatorNo", string.IsNullOrEmpty(process.OperatorNo) ? (object)DBNull.Value : process.OperatorNo);
-        command.Parameters.AddWithValue("@OperatorName", string.IsNullOrEmpty(process.OperatorName) ? (object)DBNull.Value : process.OperatorName);
-        command.Parameters.AddWithValue("@BoardLength", process.BoardLength ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@BoardWidth", process.BoardWidth ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@KnifeLength", process.KnifeLength ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@KnifeTraceLength", process.KnifeTraceLength ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@Formula", string.IsNullOrEmpty(process.Formula) ? (object)DBNull.Value : process.Formula);
-        command.Parameters.AddWithValue("@Amount", process.Amount ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@PrevProcessID", process.PrevProcessID ?? (object)DBNull.Value);
-        command.Parameters.AddWithValue("@IsPrevCompleted", process.IsPrevCompleted);
-        command.ExecuteNonQuery();
+            using var command = new SqlCommand(sql, connection, transaction);
+            command.Parameters.AddWithValue("@DieID", process.DieID);
+            command.Parameters.AddWithValue("@ProcessName", process.ProcessName);
+            command.Parameters.AddWithValue("@Status", (int)process.Status);
+            command.Parameters.AddWithValue("@OperatorNo", string.IsNullOrEmpty(process.OperatorNo) ? (object)DBNull.Value : process.OperatorNo);
+            command.Parameters.AddWithValue("@OperatorName", string.IsNullOrEmpty(process.OperatorName) ? (object)DBNull.Value : process.OperatorName);
+            command.Parameters.AddWithValue("@BoardLength", process.BoardLength ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@BoardWidth", process.BoardWidth ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@KnifeLength", process.KnifeLength ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@KnifeTraceLength", process.KnifeTraceLength ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@Formula", string.IsNullOrEmpty(process.Formula) ? (object)DBNull.Value : process.Formula);
+            command.Parameters.AddWithValue("@Amount", process.Amount ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@PrevProcessID", process.PrevProcessID ?? (object)DBNull.Value);
+            command.Parameters.AddWithValue("@IsPrevCompleted", process.IsPrevCompleted);
+            command.ExecuteNonQuery();
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"插入工序失败: {ex.Message}", ex);
+        }
     }
 
     private void AddDieParameters(SqlCommand command, DieInfo die)
@@ -444,29 +558,6 @@ public class DieService
             IsPrevCompleted = reader["IsPrevCompleted"] != DBNull.Value && Convert.ToBoolean(reader["IsPrevCompleted"]),
             CreateTime = reader["CreateTime"] != DBNull.Value ? Convert.ToDateTime(reader["CreateTime"]) : DateTime.Now
         };
-    }
-
-    #endregion
-
-    #region 刀模入库相关
-
-    /// <summary>
-    /// 获取已完工但未入库的刀模列表
-    /// </summary>
-    public List<DieInfo> GetCompletedDiesNotInStock()
-    {
-        // 状态 1 = 生产中/已完工，AuditStatus 1 = 已审核
-        // 排除已在库存表中的刀模
-        var sql = @"SELECT d.*, u.RealName as CreateUserName 
-                     FROM DM_DieInfo d
-                     LEFT JOIN DM_User u ON d.CreateUser = u.Username
-                     WHERE d.Status = 1 
-                     AND d.AuditStatus = 1
-                     AND NOT EXISTS (
-                         SELECT 1 FROM DM_DieInventory i WHERE i.DieID = d.DieID
-                     )
-                     ORDER BY d.CreateTime DESC";
-        return DbHelper.ExecuteQuery(sql, MapToDieInfo);
     }
 
     #endregion

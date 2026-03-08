@@ -288,6 +288,24 @@ public class WarehouseService
                 throw new InvalidOperationException("该刀模已存在库存记录，不能重复入库");
             }
 
+            // 获取刀模编号和库位信息用于日志
+            var dieCode = "";
+            var locationCode = "";
+            
+            var dieInfoSql = "SELECT DieCode FROM DM_DieInfo WHERE DieID = @DieID";
+            using var dieInfoCmd = new SqlCommand(dieInfoSql, connection, transaction);
+            dieInfoCmd.Parameters.AddWithValue("@DieID", dieId);
+            var dieResult = dieInfoCmd.ExecuteScalar();
+            if (dieResult != null && dieResult != DBNull.Value)
+                dieCode = dieResult.ToString() ?? "";
+            
+            var locInfoSql = "SELECT LocationCode FROM DM_StorageLocation WHERE LocationID = @LocationID";
+            using var locInfoCmd = new SqlCommand(locInfoSql, connection, transaction);
+            locInfoCmd.Parameters.AddWithValue("@LocationID", locationId);
+            var locResult = locInfoCmd.ExecuteScalar();
+            if (locResult != null && locResult != DBNull.Value)
+                locationCode = locResult.ToString() ?? "";
+
             // 插入库存记录
             var sql = @"INSERT INTO DM_DieInventory (DieID, LocationID, StorageStatus, InStockTime, TotalBorrowCount, Remark, UpdateTime) 
                          VALUES (@DieID, @LocationID, @StorageStatus, @InStockTime, 0, @Remark, GETDATE());
@@ -316,6 +334,10 @@ public class WarehouseService
             dieCommand.ExecuteNonQuery();
 
             transaction.Commit();
+            
+            // 记录操作日志
+            LogService.LogOperation("入库", $"刀模入库：{dieCode}，库位：{locationCode}，操作人：{operatorName}", dieCode);
+            
             return true;
         }
         catch

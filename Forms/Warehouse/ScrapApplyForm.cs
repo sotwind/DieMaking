@@ -30,8 +30,14 @@ public partial class ScrapApplyForm : Form
         
         var btnRefresh = new ToolStripButton("刷新") { Image = SystemIcons.Question.ToBitmap() };
         btnRefresh.Click += (s, e) => LoadData();
+        
+        var btnAudit = new ToolStripButton("审核") { Image = SystemIcons.Question.ToBitmap() };
+        btnAudit.Click += (s, e) => ShowAuditDialog();
+        
+        var btnDelete = new ToolStripButton("删除") { Image = SystemIcons.Question.ToBitmap() };
+        btnDelete.Click += (s, e) => DeleteRecord();
 
-        toolStrip.Items.AddRange(new ToolStripItem[] { btnApply, new ToolStripSeparator(), btnRefresh });
+        toolStrip.Items.AddRange(new ToolStripItem[] { btnApply, new ToolStripSeparator(), btnAudit, btnDelete, new ToolStripSeparator(), btnRefresh });
 
         // 搜索区域
         var panelSearch = new Panel
@@ -224,6 +230,73 @@ public partial class ScrapApplyForm : Form
         if (form.ShowDialog(this) == DialogResult.OK)
         {
             LoadData();
+        }
+    }
+
+    private void ShowAuditDialog()
+    {
+        if (dgvRecords.SelectedRows.Count == 0)
+        {
+            MessageBox.Show("请选择要审核的报废申请", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var scrapId = (int)dgvRecords.SelectedRows[0].Cells["ScrapID"].Value;
+        var record = _scrapRecords.FirstOrDefault(r => r.ScrapID == scrapId);
+        
+        if (record == null) return;
+
+        if (record.AuditStatus != ScrapAuditStatus.Pending)
+        {
+            MessageBox.Show("该申请已审核，不能重复审核", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        using var form = new ScrapAuditEditForm(record);
+        if (form.ShowDialog(this) == DialogResult.OK)
+        {
+            LoadData();
+        }
+    }
+
+    private void DeleteRecord()
+    {
+        if (dgvRecords.SelectedRows.Count == 0)
+        {
+            MessageBox.Show("请选择要删除的记录", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var scrapId = (int)dgvRecords.SelectedRows[0].Cells["ScrapID"].Value;
+        var record = _scrapRecords.FirstOrDefault(r => r.ScrapID == scrapId);
+        
+        if (record == null) return;
+
+        if (record.AuditStatus != ScrapAuditStatus.Pending)
+        {
+            MessageBox.Show("已审核的记录不能删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (MessageBox.Show("确定要删除该报废申请吗？", "确认", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+        {
+            try
+            {
+                var result = _warehouseService.DeleteScrapRecord(scrapId);
+                if (result)
+                {
+                    MessageBox.Show("删除成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    LoadData();
+                }
+                else
+                {
+                    MessageBox.Show("删除失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"删除失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
     }
 
@@ -490,4 +563,210 @@ public class ScrapApplyEditForm : Form
     private TextBox txtReason = null!;
     private TextBox txtApplicant = null!;
     private DateTimePicker dtpApplyTime = null!;
+}
+
+// 报废审核编辑窗体
+public class ScrapAuditEditForm : Form
+{
+    private readonly WarehouseService _warehouseService;
+    private readonly DieScrapRecord _record;
+
+    public ScrapAuditEditForm(DieScrapRecord record)
+    {
+        _record = record;
+        _warehouseService = new WarehouseService();
+        InitializeComponent();
+        LoadData();
+    }
+
+    private void InitializeComponent()
+    {
+        this.Text = "报废审核";
+        this.Size = new Size(600, 500);
+        this.StartPosition = FormStartPosition.CenterParent;
+        this.FormBorderStyle = FormBorderStyle.FixedDialog;
+        this.MaximizeBox = false;
+        this.MinimizeBox = false;
+
+        int y = 20;
+        int labelWidth = 100;
+        int controlWidth = 400;
+        int leftMargin = 30;
+
+        // 标题
+        var lblTitle = new Label
+        {
+            Text = "刀模报废审核",
+            Font = new Font("微软雅黑", 14, FontStyle.Bold),
+            AutoSize = true,
+            Location = new Point(220, y)
+        };
+        y += 50;
+
+        // 刀模编号
+        var lblDieCode = new Label { Text = "刀模编号：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblDieCodeValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 25),
+            Font = new Font("微软雅黑", 9, FontStyle.Bold),
+            ForeColor = Color.Blue
+        };
+        y += 40;
+
+        // 客户名称
+        var lblCustomer = new Label { Text = "客户名称：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblCustomerValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 25)
+        };
+        y += 40;
+
+        // 产品名称
+        var lblProduct = new Label { Text = "产品名称：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblProductValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 25)
+        };
+        y += 40;
+
+        // 报废类型
+        var lblType = new Label { Text = "报废类型：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblTypeValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 25)
+        };
+        y += 40;
+
+        // 报废原因
+        var lblReason = new Label { Text = "报废原因：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblReasonValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 60),
+            AutoSize = false,
+            BorderStyle = BorderStyle.FixedSingle,
+            BackColor = Color.WhiteSmoke
+        };
+        y += 70;
+
+        // 申请人
+        var lblApplicant = new Label { Text = "申请人：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblApplicantValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(150, 25)
+        };
+        y += 40;
+
+        // 申请时间
+        var lblApplyTime = new Label { Text = "申请时间：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        lblApplyTimeValue = new Label 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(200, 25)
+        };
+        y += 50;
+
+        // 审核结果
+        var lblAuditResult = new Label { Text = "审核结果：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        rbApproved = new RadioButton 
+        { 
+            Text = "通过", 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(80, 25),
+            Checked = true
+        };
+        rbRejected = new RadioButton 
+        { 
+            Text = "驳回", 
+            Location = new Point(leftMargin + labelWidth + 90, y), 
+            Size = new Size(80, 25)
+        };
+        y += 40;
+
+        // 审核备注
+        var lblAuditRemark = new Label { Text = "审核备注：", Location = new Point(leftMargin, y), Size = new Size(labelWidth, 25) };
+        txtAuditRemark = new TextBox 
+        { 
+            Location = new Point(leftMargin + labelWidth, y), 
+            Size = new Size(controlWidth, 60),
+            Multiline = true,
+            ScrollBars = ScrollBars.Vertical
+        };
+        y += 80;
+
+        // 按钮
+        var btnSave = new Button { Text = "确认审核", Location = new Point(180, y), Size = new Size(120, 35) };
+        btnSave.Click += BtnSave_Click;
+
+        var btnCancel = new Button { Text = "取消", Location = new Point(320, y), Size = new Size(100, 35) };
+        btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
+
+        this.Controls.AddRange(new Control[] {
+            lblTitle,
+            lblDieCode, lblDieCodeValue, lblCustomer, lblCustomerValue, lblProduct, lblProductValue,
+            lblType, lblTypeValue, lblReason, lblReasonValue, lblApplicant, lblApplicantValue,
+            lblApplyTime, lblApplyTimeValue, lblAuditResult, rbApproved, rbRejected,
+            lblAuditRemark, txtAuditRemark, btnSave, btnCancel
+        });
+    }
+
+    private void LoadData()
+    {
+        lblDieCodeValue.Text = _record.DieCode ?? "";
+        lblCustomerValue.Text = _record.CustomerName ?? "";
+        lblProductValue.Text = _record.ProductName ?? "";
+        lblTypeValue.Text = _record.ScrapType;
+        lblReasonValue.Text = _record.ScrapReason;
+        lblApplicantValue.Text = _record.ApplicantName;
+        lblApplyTimeValue.Text = _record.ApplyTime.ToString("yyyy-MM-dd HH:mm:ss");
+    }
+
+    private void BtnSave_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            var auditorName = CurrentUser.User?.RealName ?? CurrentUser.User?.Username ?? "未知";
+            var auditorNo = CurrentUser.User?.Username ?? "";
+            var approved = rbApproved.Checked;
+
+            var result = _warehouseService.AuditScrapRecord(
+                _record.ScrapID, 
+                approved, 
+                auditorNo, 
+                auditorName, 
+                txtAuditRemark.Text.Trim()
+            );
+            
+            if (result)
+            {
+                var msg = approved ? "审核通过" : "审核驳回";
+                MessageBox.Show($"报废申请{msg}成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.DialogResult = DialogResult.OK;
+            }
+            else
+            {
+                MessageBox.Show("审核失败", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"审核失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private Label lblDieCodeValue = null!;
+    private Label lblCustomerValue = null!;
+    private Label lblProductValue = null!;
+    private Label lblTypeValue = null!;
+    private Label lblReasonValue = null!;
+    private Label lblApplicantValue = null!;
+    private Label lblApplyTimeValue = null!;
+    private RadioButton rbApproved = null!;
+    private RadioButton rbRejected = null!;
+    private TextBox txtAuditRemark = null!;
 }

@@ -47,6 +47,8 @@ public partial class MainForm : Form
         {
             if (CurrentUser.HasPermission(PermissionKeys.LocationManage))
                 warehouseMenu.DropDownItems.Add("库位管理", null, (s, e) => ShowForm<Warehouse.LocationManageForm>());
+            if (CurrentUser.HasPermission(PermissionKeys.DieInStock))
+                warehouseMenu.DropDownItems.Add("刀模入库", null, (s, e) => ShowForm<Warehouse.DieStorageForm>());
             if (CurrentUser.HasPermission(PermissionKeys.DieBorrow))
                 warehouseMenu.DropDownItems.Add("刀模领用", null, (s, e) => ShowForm<Warehouse.DieBorrowForm>());
             if (CurrentUser.HasPermission(PermissionKeys.DieReturn))

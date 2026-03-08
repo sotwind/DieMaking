@@ -9,6 +9,7 @@ namespace DieMaking.Forms.Report;
 public partial class InventoryStatsForm : Form
 {
     private readonly ReportService _reportService;
+    private readonly PrintService _printService;
     private DataGridView _dgvSummary = null!;
     private DataGridView _dgvLocation = null!;
     private DataGridView _dgvDetail = null!;
@@ -20,6 +21,7 @@ public partial class InventoryStatsForm : Form
     public InventoryStatsForm()
     {
         _reportService = new ReportService();
+        _printService = new PrintService();
         InitializeComponent();
         this.Text = "库存统计";
     }
@@ -120,11 +122,20 @@ public partial class InventoryStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出Excel",
+            Text = "导出CSV",
             Location = new Point(530, 15),
             Size = new Size(80, 28)
         };
         btnExport.Click += BtnExport_Click;
+
+        // 打印按钮
+        var btnPrint = new Button
+        {
+            Text = "打印",
+            Location = new Point(620, 15),
+            Size = new Size(80, 28)
+        };
+        btnPrint.Click += BtnPrint_Click;
 
         filterPanel.Controls.Add(lblArea);
         filterPanel.Controls.Add(_cmbArea);
@@ -133,6 +144,7 @@ public partial class InventoryStatsForm : Form
         filterPanel.Controls.Add(btnQuery);
         filterPanel.Controls.Add(btnRefresh);
         filterPanel.Controls.Add(btnExport);
+        filterPanel.Controls.Add(btnPrint);
 
         topPanel.Controls.Add(filterPanel);
         topPanel.Controls.Add(summaryPanel);
