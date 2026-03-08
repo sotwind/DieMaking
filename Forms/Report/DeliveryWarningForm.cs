@@ -1,5 +1,5 @@
-using DieMaking.Services;
 using DieMaking.Helpers;
+using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Forms.Report;
@@ -7,7 +7,7 @@ namespace DieMaking.Forms.Report;
 /// <summary>
 /// 交期预警报表窗体
 /// </summary>
-public partial class DeliveryWarningForm : Form
+public partial class DeliveryWarningForm : BaseListForm
 {
     private readonly ReportService _reportService;
     private readonly PrintService _printService;
@@ -30,9 +30,8 @@ public partial class DeliveryWarningForm : Form
 
     private void InitializeComponent()
     {
-        this.Size = new Size(1200, 700);
+        this.Size = UIStyleHelper.SizeListForm;
         this.StartPosition = FormStartPosition.CenterParent;
-        this.WindowState = FormWindowState.Maximized;
 
         // 创建工具栏
         var toolPanel = new Panel
@@ -44,83 +43,63 @@ public partial class DeliveryWarningForm : Form
         };
 
         // 预警级别筛选
-        var lblWarningLevel = new Label
-        {
-            Text = "预警级别：",
-            Location = new Point(10, 15),
-            Size = new Size(70, 25)
-        };
+        var lblWarningLevel = UIStyleHelper.CreateLabel("预警级别：", new Point(10, 15), new Size(70, 25));
 
         _cmbWarningLevel = new ComboBox
         {
             Location = new Point(85, 12),
             Size = new Size(100, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         _cmbWarningLevel.Items.AddRange(new object[] { "全部", "正常", "即将到期", "已逾期" });
         _cmbWarningLevel.SelectedIndex = 0;
 
         // 客户筛选
-        var lblCustomer = new Label
-        {
-            Text = "客户：",
-            Location = new Point(195, 15),
-            Size = new Size(50, 25)
-        };
+        var lblCustomer = UIStyleHelper.CreateLabel("客户：", new Point(195, 15), new Size(50, 25));
 
         _cmbCustomer = new ComboBox
         {
             Location = new Point(250, 12),
             Size = new Size(120, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 优先级筛选
-        var lblPriority = new Label
-        {
-            Text = "优先级：",
-            Location = new Point(380, 15),
-            Size = new Size(60, 25)
-        };
+        var lblPriority = UIStyleHelper.CreateLabel("优先级：", new Point(380, 15), new Size(60, 25));
 
         _cmbPriority = new ComboBox
         {
             Location = new Point(445, 12),
             Size = new Size(80, 25),
-            DropDownStyle = ComboBoxStyle.DropDownList
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
         _cmbPriority.Items.AddRange(new object[] { "全部", "高", "中", "低" });
         _cmbPriority.SelectedIndex = 0;
 
         // 交期范围
-        var lblDeadlineFrom = new Label
-        {
-            Text = "交期从：",
-            Location = new Point(535, 15),
-            Size = new Size(60, 25)
-        };
+        var lblDeadlineFrom = UIStyleHelper.CreateLabel("交期从：", new Point(535, 15), new Size(60, 25));
 
         _dtpDeadlineFrom = new DateTimePicker
         {
             Location = new Point(600, 12),
             Size = new Size(110, 25),
             Format = DateTimePickerFormat.Short,
-            Value = DateTime.Now.AddDays(-7)
+            Value = DateTime.Now.AddDays(-7),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
-        var lblDeadlineTo = new Label
-        {
-            Text = "到：",
-            Location = new Point(715, 15),
-            Size = new Size(30, 25)
-        };
+        var lblDeadlineTo = UIStyleHelper.CreateLabel("到：", new Point(715, 15), new Size(30, 25));
 
         _dtpDeadlineTo = new DateTimePicker
         {
             Location = new Point(750, 12),
             Size = new Size(110, 25),
             Format = DateTimePickerFormat.Short,
-            Value = DateTime.Now.AddDays(30)
+            Value = DateTime.Now.AddDays(30),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 显示已完成订单
@@ -129,40 +108,29 @@ public partial class DeliveryWarningForm : Form
             Text = "显示已完成订单",
             Location = new Point(870, 14),
             Size = new Size(120, 25),
-            Checked = false
+            Checked = false,
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         // 查询按钮
-        var btnQuery = new Button
-        {
-            Text = "查询",
-            Location = new Point(10, 50),
-            Size = new Size(80, 28)
-        };
+        var btnQuery = UIStyleHelper.CreateSearchButton();
+        btnQuery.Location = new Point(10, 50);
         btnQuery.Click += BtnQuery_Click;
 
         // 导出按钮
-        var btnExport = new Button
-        {
-            Text = "导出Excel",
-            Location = new Point(100, 50),
-            Size = new Size(90, 28)
-        };
+        var btnExport = UIStyleHelper.CreateExportButton("导出Excel");
+        btnExport.Location = new Point(120, 50);
         btnExport.Click += BtnExport_Click;
 
         // 打印按钮
-        var btnPrint = new Button
-        {
-            Text = "打印",
-            Location = new Point(190, 50),
-            Size = new Size(80, 28)
-        };
+        var btnPrint = UIStyleHelper.CreatePrintButton();
+        btnPrint.Location = new Point(230, 50);
         btnPrint.Click += BtnPrint_Click;
 
         // 图例说明
         var legendPanel = new Panel
         {
-            Location = new Point(280, 45),
+            Location = new Point(340, 45),
             Size = new Size(400, 35),
             BorderStyle = BorderStyle.None
         };
@@ -171,7 +139,8 @@ public partial class DeliveryWarningForm : Form
         {
             Text = "图例：",
             Location = new Point(0, 8),
-            Size = new Size(40, 20)
+            Size = new Size(40, 20),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         var pnlGreen = new Panel
@@ -185,7 +154,8 @@ public partial class DeliveryWarningForm : Form
         {
             Text = "正常",
             Location = new Point(68, 8),
-            Size = new Size(35, 20)
+            Size = new Size(35, 20),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         var pnlYellow = new Panel
@@ -199,7 +169,8 @@ public partial class DeliveryWarningForm : Form
         {
             Text = "即将到期",
             Location = new Point(133, 8),
-            Size = new Size(60, 20)
+            Size = new Size(60, 20),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         var pnlRed = new Panel
@@ -213,7 +184,8 @@ public partial class DeliveryWarningForm : Form
         {
             Text = "已逾期",
             Location = new Point(223, 8),
-            Size = new Size(50, 20)
+            Size = new Size(50, 20),
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
         legendPanel.Controls.Add(lblLegend);
@@ -230,8 +202,8 @@ public partial class DeliveryWarningForm : Form
             Text = "",
             Location = new Point(10, 85),
             Size = new Size(800, 25),
-            Font = new Font("微软雅黑", 9, FontStyle.Bold),
-            ForeColor = Color.Blue
+            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Bold, GraphicsUnit.Point, 134),
+            ForeColor = UIStyleHelper.ColorInfo
         };
 
         toolPanel.Controls.Add(lblWarningLevel);
@@ -261,11 +233,16 @@ public partial class DeliveryWarningForm : Form
             SelectionMode = DataGridViewSelectionMode.FullRowSelect,
             AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
             BackgroundColor = Color.White,
-            BorderStyle = BorderStyle.Fixed3D
+            BorderStyle = BorderStyle.None
         };
+        ApplyDataGridViewStyle(_dgvData);
+
+        // 状态栏
+        var statusStrip = CreateStatusBar();
 
         this.Controls.Add(_dgvData);
         this.Controls.Add(toolPanel);
+        this.Controls.Add(statusStrip);
 
         // 加载客户列表
         LoadCustomerList();
@@ -302,10 +279,13 @@ public partial class DeliveryWarningForm : Form
         LoadData();
     }
 
-    private void LoadData()
+    protected override void LoadData()
     {
+        Form? loadingForm = null;
         try
         {
+            loadingForm = UIStyleHelper.ShowLoading(this, "正在加载数据...");
+
             var deadlineFrom = _dtpDeadlineFrom.Value.Date;
             var deadlineTo = _dtpDeadlineTo.Value.Date;
             var warningLevel = _cmbWarningLevel.SelectedIndex;
@@ -374,7 +354,7 @@ public partial class DeliveryWarningForm : Form
                 sql += " AND d.Deadline < CAST(GETDATE() AS DATE) AND dc.CompleteTime IS NULL";
             }
 
-            sql += " ORDER BY 
+            sql += @" ORDER BY 
                 CASE 
                     WHEN dc.CompleteTime IS NOT NULL THEN 3
                     WHEN d.Deadline < CAST(GETDATE() AS DATE) THEN 0
@@ -505,10 +485,19 @@ public partial class DeliveryWarningForm : Form
             }
 
             _lblSummary.Text = $"总计：{data.Count} 条 | 正常：{normalCount} | 即将到期：{warningCount} | 已逾期：{overdueCount} | 已完成：{completedCount} | 未完成金额：{totalAmount:N2} 元";
+
+            if (StatusUserLabel != null)
+            {
+                StatusUserLabel.Text = _lblSummary.Text;
+            }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"加载数据失败：{ex.Message}");
+        }
+        finally
+        {
+            loadingForm?.Close();
         }
     }
 
@@ -543,12 +532,12 @@ public partial class DeliveryWarningForm : Form
                     importExportService.ExportToExcel(dataTable, "交期预警报表", saveDialog.FileName);
                 }
 
-                MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                ShowSuccess("导出成功！");
             }
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"导出失败：{ex.Message}");
         }
     }
 
@@ -594,7 +583,7 @@ public partial class DeliveryWarningForm : Form
                                 importExportService.ExportToExcel(dataTable, "交期预警报表", saveDialog.FileName);
                             }
 
-                            MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            ShowSuccess("导出成功！");
                         }
                     }
                     break;
@@ -602,7 +591,7 @@ public partial class DeliveryWarningForm : Form
         }
         catch (Exception ex)
         {
-            MessageBox.Show($"打印失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            ShowError($"打印失败：{ex.Message}");
         }
     }
 }

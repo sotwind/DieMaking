@@ -515,17 +515,28 @@ public partial class InventoryStatsForm : Form
                 case DialogResult.Yes: // 直接打印
                     _printService.Print(currentGrid, title, _lblSummaryInfo.Text);
                     break;
-                case DialogResult.No: // 导出CSV
+                case DialogResult.No: // 导出
                     using (var saveDialog = new SaveFileDialog
                     {
-                        Filter = "CSV文件|*.csv",
+                        Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                         Title = "导出数据",
-                        FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                        FileName = $"库存统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
                     })
                     {
                         if (saveDialog.ShowDialog() == DialogResult.OK)
                         {
-                            _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            var importExportService = new ImportExportService();
+
+                            if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            }
+                            else
+                            {
+                                var dataTable = importExportService.ConvertDataGridViewToDataTable(currentGrid);
+                                importExportService.ExportToExcel(dataTable, sheetName, saveDialog.FileName);
+                            }
+
                             MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }

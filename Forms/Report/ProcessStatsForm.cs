@@ -1,5 +1,6 @@
 using DieMaking.Models;
 using DieMaking.Services;
+using DieMaking.Helpers;
 
 namespace DieMaking.Forms.Report;
 
@@ -98,9 +99,9 @@ public partial class ProcessStatsForm : Form
         // 导出按钮
         var btnExport = new Button
         {
-            Text = "导出CSV",
+            Text = "导出Excel",
             Location = new Point(750, 10),
-            Size = new Size(80, 28)
+            Size = new Size(90, 28)
         };
         btnExport.Click += BtnExport_Click;
 
@@ -327,14 +328,25 @@ public partial class ProcessStatsForm : Form
 
             using var saveDialog = new SaveFileDialog
             {
-                Filter = "CSV文件|*.csv",
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                 Title = "导出数据",
-                FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
             };
 
             if (saveDialog.ShowDialog() == DialogResult.OK)
             {
-                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                var importExportService = new ImportExportService();
+
+                if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                {
+                    _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                }
+                else
+                {
+                    var dataTable = importExportService.ConvertDataGridViewToDataTable(currentGrid);
+                    importExportService.ExportToExcel(dataTable, sheetName, saveDialog.FileName);
+                }
+
                 MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
@@ -350,7 +362,7 @@ public partial class ProcessStatsForm : Form
         {
             var currentGrid = _tabControl.SelectedIndex == 0 ? _dgvSummary : _dgvDetail;
             var sheetName = _tabControl.SelectedIndex == 0 ? "工序汇总统计" : "工序明细";
-            
+
             if (currentGrid.Rows.Count == 0)
             {
                 MessageBox.Show("没有数据可打印", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -368,17 +380,28 @@ public partial class ProcessStatsForm : Form
                 case DialogResult.Yes: // 直接打印
                     _printService.Print(currentGrid, title, _lblSummaryInfo.Text);
                     break;
-                case DialogResult.No: // 导出CSV
+                case DialogResult.No: // 导出
                     using (var saveDialog = new SaveFileDialog
                     {
-                        Filter = "CSV文件|*.csv",
+                        Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
                         Title = "导出数据",
-                        FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.csv"
+                        FileName = $"工序统计_{sheetName}_{DateTime.Now:yyyyMMddHHmmss}.xlsx"
                     })
                     {
                         if (saveDialog.ShowDialog() == DialogResult.OK)
                         {
-                            _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            var importExportService = new ImportExportService();
+
+                            if (saveDialog.FileName.EndsWith(".csv", StringComparison.OrdinalIgnoreCase))
+                            {
+                                _printService.ExportToCsv(currentGrid, saveDialog.FileName);
+                            }
+                            else
+                            {
+                                var dataTable = importExportService.ConvertDataGridViewToDataTable(currentGrid);
+                                importExportService.ExportToExcel(dataTable, sheetName, saveDialog.FileName);
+                            }
+
                             MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         }
                     }
