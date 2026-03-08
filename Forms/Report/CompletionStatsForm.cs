@@ -1,26 +1,378 @@
+using DieMaking.Models;
+using DieMaking.Services;
+
 namespace DieMaking.Forms.Report;
 
+/// <summary>
+/// 完工统计窗体
+/// </summary>
 public partial class CompletionStatsForm : Form
 {
+    private readonly ReportService _reportService;
+    private DataGridView _dgvData = null!;
+    private DateTimePicker _dtpStartDate = null!;
+    private DateTimePicker _dtpEndDate = null!;
+    private TextBox _txtDieCode = null!;
+    private TextBox _txtCustomerName = null!;
+    private ComboBox _cmbGroupBy = null!;
+    private Label _lblSummary = null!;
+
     public CompletionStatsForm()
     {
+        _reportService = new ReportService();
         InitializeComponent();
         this.Text = "完工统计";
     }
 
     private void InitializeComponent()
     {
-        this.Size = new Size(1000, 600);
+        this.Size = new Size(1200, 700);
         this.StartPosition = FormStartPosition.CenterParent;
+        this.WindowState = FormWindowState.Maximized;
 
-        var lblInfo = new Label
+        // 创建工具栏
+        var toolPanel = new Panel
         {
-            Text = "完工统计功能开发中...",
-            Font = new Font("微软雅黑", 14),
-            AutoSize = true,
-            Location = new Point(350, 250)
+            Dock = DockStyle.Top,
+            Height = 80,
+            Padding = new Padding(10),
+            BorderStyle = BorderStyle.FixedSingle
         };
 
-        this.Controls.Add(lblInfo);
+        // 日期范围标签
+        var lblStartDate = new Label
+        {
+            Text = "开始日期：",
+            Location = new Point(10, 15),
+            Size = new Size(70, 25)
+        };
+
+        _dtpStartDate = new DateTimePicker
+        {
+            Location = new Point(85, 12),
+            Size = new Size(120, 25),
+            Format = DateTimePickerFormat.Short,
+            Value = DateTime.Now.AddMonths(-1)
+        };
+
+        var lblEndDate = new Label
+        {
+            Text = "结束日期：",
+            Location = new Point(215, 15),
+            Size = new Size(70, 25)
+        };
+
+        _dtpEndDate = new DateTimePicker
+        {
+            Location = new Point(290, 12),
+            Size = new Size(120, 25),
+            Format = DateTimePickerFormat.Short,
+            Value = DateTime.Now
+        };
+
+        // 刀模编号筛选
+        var lblDieCode = new Label
+        {
+            Text = "刀模编号：",
+            Location = new Point(420, 15),
+            Size = new Size(70, 25)
+        };
+
+        _txtDieCode = new TextBox
+        {
+            Location = new Point(495, 12),
+            Size = new Size(120, 25)
+        };
+
+        // 客户名称筛选
+        var lblCustomerName = new Label
+        {
+            Text = "客户名称：",
+            Location = new Point(625, 15),
+            Size = new Size(70, 25)
+        };
+
+        _txtCustomerName = new TextBox
+        {
+            Location = new Point(700, 12),
+            Size = new Size(120, 25)
+        };
+
+        // 分组方式
+        var lblGroupBy = new Label
+        {
+            Text = "统计维度：",
+            Location = new Point(830, 15),
+            Size = new Size(70, 25)
+        };
+
+        _cmbGroupBy = new ComboBox
+        {
+            Location = new Point(905, 12),
+            Size = new Size(100, 25),
+            DropDownStyle = ComboBoxStyle.DropDownList
+        };
+        _cmbGroupBy.Items.AddRange(new object[] { "按刀模", "按客户", "按日期" });
+        _cmbGroupBy.SelectedIndex = 0;
+
+        // 查询按钮
+        var btnQuery = new Button
+        {
+            Text = "查询",
+            Location = new Point(10, 45),
+            Size = new Size(80, 28)
+        };
+        btnQuery.Click += BtnQuery_Click;
+
+        // 导出按钮
+        var btnExport = new Button
+        {
+            Text = "导出Excel",
+            Location = new Point(100, 45),
+            Size = new Size(80, 28)
+        };
+        btnExport.Click += BtnExport_Click;
+
+        // 汇总信息标签
+        _lblSummary = new Label
+        {
+            Text = "",
+            Location = new Point(190, 50),
+            Size = new Size(600, 25),
+            Font = new Font("微软雅黑", 9, FontStyle.Bold),
+            ForeColor = Color.Blue
+        };
+
+        toolPanel.Controls.Add(lblStartDate);
+        toolPanel.Controls.Add(_dtpStartDate);
+        toolPanel.Controls.Add(lblEndDate);
+        toolPanel.Controls.Add(_dtpEndDate);
+        toolPanel.Controls.Add(lblDieCode);
+        toolPanel.Controls.Add(_txtDieCode);
+        toolPanel.Controls.Add(lblCustomerName);
+        toolPanel.Controls.Add(_txtCustomerName);
+        toolPanel.Controls.Add(lblGroupBy);
+        toolPanel.Controls.Add(_cmbGroupBy);
+        toolPanel.Controls.Add(btnQuery);
+        toolPanel.Controls.Add(btnExport);
+        toolPanel.Controls.Add(_lblSummary);
+
+        // 创建数据表格
+        _dgvData = new DataGridView
+        {
+            Dock = DockStyle.Fill,
+            AllowUserToAddRows = false,
+            AllowUserToDeleteRows = false,
+            ReadOnly = true,
+            SelectionMode = DataGridViewSelectionMode.FullRowSelect,
+            AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill,
+            BackgroundColor = Color.White,
+            BorderStyle = BorderStyle.Fixed3D
+        };
+
+        this.Controls.Add(_dgvData);
+        this.Controls.Add(toolPanel);
+
+        // 初始加载数据
+        LoadData();
+    }
+
+    private void BtnQuery_Click(object? sender, EventArgs e)
+    {
+        LoadData();
+    }
+
+    private void LoadData()
+    {
+        try
+        {
+            var startDate = _dtpStartDate.Value.Date;
+            var endDate = _dtpEndDate.Value.Date;
+            var dieCode = _txtDieCode.Text.Trim();
+            var customerName = _txtCustomerName.Text.Trim();
+
+            switch (_cmbGroupBy.SelectedIndex)
+            {
+                case 0: // 按刀模
+                    LoadDataByDie(startDate, endDate, dieCode, customerName);
+                    break;
+                case 1: // 按客户
+                    LoadDataByCustomer(startDate, endDate);
+                    break;
+                case 2: // 按日期
+                    LoadDataByDate(startDate, endDate);
+                    break;
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"加载数据失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void LoadDataByDie(DateTime startDate, DateTime endDate, string dieCode, string customerName)
+    {
+        var data = _reportService.GetCompletionStatsByDie(startDate, endDate, 
+            string.IsNullOrEmpty(dieCode) ? null : dieCode,
+            string.IsNullOrEmpty(customerName) ? null : customerName);
+
+        _dgvData.Columns.Clear();
+        _dgvData.Columns.Add("DieCode", "刀模编号");
+        _dgvData.Columns.Add("CustomerName", "客户名称");
+        _dgvData.Columns.Add("ProductName", "产品名称");
+        _dgvData.Columns.Add("RequiredProcesses", "所需工序");
+        _dgvData.Columns.Add("CompleteTime", "完工时间");
+        _dgvData.Columns.Add("TotalAmount", "总金额");
+        _dgvData.Columns.Add("OperatorName", "操作人");
+        _dgvData.Columns.Add("Remark", "备注");
+
+        _dgvData.Columns["CompleteTime"].DefaultCellStyle.Format = "yyyy-MM-dd HH:mm";
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Format = "N2";
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
+        _dgvData.Rows.Clear();
+        decimal totalAmount = 0;
+        foreach (var item in data)
+        {
+            _dgvData.Rows.Add(
+                item.DieCode,
+                item.CustomerName,
+                item.ProductName,
+                item.RequiredProcesses,
+                item.CompleteTime,
+                item.TotalAmount,
+                item.OperatorName,
+                item.Remark
+            );
+            totalAmount += item.TotalAmount;
+        }
+
+        _lblSummary.Text = $"共 {data.Count} 条记录，总金额：{totalAmount:N2} 元";
+    }
+
+    private void LoadDataByCustomer(DateTime startDate, DateTime endDate)
+    {
+        var data = _reportService.GetCompletionStatsByCustomer(startDate, endDate);
+
+        _dgvData.Columns.Clear();
+        _dgvData.Columns.Add("CustomerName", "客户名称");
+        _dgvData.Columns.Add("CompletionCount", "完工数量");
+        _dgvData.Columns.Add("TotalAmount", "总金额");
+        _dgvData.Columns.Add("FirstCompleteTime", "首次完工时间");
+        _dgvData.Columns.Add("LastCompleteTime", "末次完工时间");
+
+        _dgvData.Columns["CompletionCount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Format = "N2";
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+        _dgvData.Columns["FirstCompleteTime"].DefaultCellStyle.Format = "yyyy-MM-dd HH:mm";
+        _dgvData.Columns["LastCompleteTime"].DefaultCellStyle.Format = "yyyy-MM-dd HH:mm";
+
+        _dgvData.Rows.Clear();
+        int totalCount = 0;
+        decimal totalAmount = 0;
+        foreach (var item in data)
+        {
+            _dgvData.Rows.Add(
+                item.CustomerName,
+                item.CompletionCount,
+                item.TotalAmount,
+                item.FirstCompleteTime,
+                item.LastCompleteTime
+            );
+            totalCount += item.CompletionCount;
+            totalAmount += item.TotalAmount;
+        }
+
+        _lblSummary.Text = $"共 {data.Count} 个客户，完工总数：{totalCount}，总金额：{totalAmount:N2} 元";
+    }
+
+    private void LoadDataByDate(DateTime startDate, DateTime endDate)
+    {
+        var data = _reportService.GetCompletionStatsByDate(startDate, endDate);
+
+        _dgvData.Columns.Clear();
+        _dgvData.Columns.Add("CompleteDate", "完工日期");
+        _dgvData.Columns.Add("CompletionCount", "完工数量");
+        _dgvData.Columns.Add("TotalAmount", "总金额");
+
+        _dgvData.Columns["CompleteDate"].DefaultCellStyle.Format = "yyyy-MM-dd";
+        _dgvData.Columns["CompletionCount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleCenter;
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Format = "N2";
+        _dgvData.Columns["TotalAmount"].DefaultCellStyle.Alignment = DataGridViewContentAlignment.MiddleRight;
+
+        _dgvData.Rows.Clear();
+        int totalCount = 0;
+        decimal totalAmount = 0;
+        foreach (var item in data)
+        {
+            _dgvData.Rows.Add(
+                item.CompleteDate,
+                item.CompletionCount,
+                item.TotalAmount
+            );
+            totalCount += item.CompletionCount;
+            totalAmount += item.TotalAmount;
+        }
+
+        _lblSummary.Text = $"共 {data.Count} 天，完工总数：{totalCount}，总金额：{totalAmount:N2} 元";
+    }
+
+    private void BtnExport_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            if (_dgvData.Rows.Count == 0)
+            {
+                MessageBox.Show("没有数据可导出", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            using var saveDialog = new SaveFileDialog
+            {
+                Filter = "Excel文件|*.xlsx|CSV文件|*.csv",
+                Title = "导出数据",
+                FileName = $"完工统计_{DateTime.Now:yyyyMMddHHmmss}.csv"
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                ExportToCsv(saveDialog.FileName);
+                MessageBox.Show("导出成功！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show($"导出失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
+        }
+    }
+
+    private void ExportToCsv(string filePath)
+    {
+        using var writer = new StreamWriter(filePath, false, System.Text.Encoding.UTF8);
+        
+        // 写入表头
+        var headers = new List<string>();
+        foreach (DataGridViewColumn col in _dgvData.Columns)
+        {
+            headers.Add(col.HeaderText);
+        }
+        writer.WriteLine(string.Join(",", headers));
+
+        // 写入数据
+        foreach (DataGridViewRow row in _dgvData.Rows)
+        {
+            var values = new List<string>();
+            foreach (DataGridViewCell cell in row.Cells)
+            {
+                var value = cell.Value?.ToString() ?? "";
+                // 处理包含逗号或换行符的情况
+                if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
+                {
+                    value = "\"" + value.Replace("\"", "\"\"") + "\"";
+                }
+                values.Add(value);
+            }
+            writer.WriteLine(string.Join(",", values));
+        }
     }
 }

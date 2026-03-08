@@ -37,6 +37,7 @@ public partial class MainForm : Form
         {
             productionMenu.DropDownItems.Add("生产看板", null, (s, e) => ShowForm<Production.ProductionBoardForm>());
             productionMenu.DropDownItems.Add("完工查询", null, (s, e) => ShowForm<Production.CompletionQueryForm>());
+            productionMenu.DropDownItems.Add("工序报产", null, (s, e) => ShowForm<Production.ProcessReportForm>());
         }
         menuStrip.Items.Add(productionMenu);
 
