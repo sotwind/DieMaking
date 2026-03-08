@@ -1,0 +1,9 @@
+# 环境变量文件 - 包含敏感信息
+.env
+
+# 其他常见忽略项
+node_modules/
+*.log
+.DS_Store
+__pycache__/
+*.pyc
