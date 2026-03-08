@@ -1,5 +1,6 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
+using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -66,7 +67,15 @@ public class WarehouseService
             new SqlParameter("@Description", location.Description),
             new SqlParameter("@Status", (int)location.Status));
 
-        return result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        var locationId = result == DBNull.Value ? 0 : Convert.ToInt32(result);
+
+        // 记录操作日志
+        if (locationId > 0)
+        {
+            LogService.LogOperation("新增", $"新增库位：{location.LocationCode}");
+        }
+
+        return locationId;
     }
 
     public bool UpdateLocation(StorageLocation location)
@@ -81,7 +90,7 @@ public class WarehouseService
                      Status = @Status
                      WHERE LocationID = @LocationID";
 
-        return DbHelper.ExecuteNonQuery(sql,
+        var result = DbHelper.ExecuteNonQuery(sql,
             new SqlParameter("@LocationID", location.LocationID),
             new SqlParameter("@LocationCode", location.LocationCode),
             new SqlParameter("@Area", location.Area),
@@ -90,12 +99,32 @@ public class WarehouseService
             new SqlParameter("@PositionNo", location.PositionNo),
             new SqlParameter("@Description", location.Description),
             new SqlParameter("@Status", (int)location.Status)) > 0;
+
+        // 记录操作日志
+        if (result)
+        {
+            LogService.LogOperation("修改", $"编辑库位：{location.LocationCode}");
+        }
+
+        return result;
     }
 
     public bool DeleteLocation(int locationId)
     {
+        // 先获取库位信息用于日志记录
+        var location = GetLocationById(locationId);
+        var locationCode = location?.LocationCode ?? locationId.ToString();
+
         var sql = "DELETE FROM DM_StorageLocation WHERE LocationID = @LocationID";
-        return DbHelper.ExecuteNonQuery(sql, new SqlParameter("@LocationID", locationId)) > 0;
+        var result = DbHelper.ExecuteNonQuery(sql, new SqlParameter("@LocationID", locationId)) > 0;
+
+        // 记录操作日志
+        if (result)
+        {
+            LogService.LogOperation("删除", $"删除库位：{locationCode}");
+        }
+
+        return result;
     }
 
     public bool IsLocationCodeExists(string locationCode, int? excludeLocationId = null)
@@ -235,6 +264,65 @@ public class WarehouseService
             CustomerName = reader["CustomerName"].ToString(),
             ProductName = reader["ProductName"].ToString()
         };
+    }
+
+    /// <summary>
+    /// 刀模入库 - 将完工的刀模入库到指定库位
+    /// </summary>
+    public bool InStockDie(int dieId, int locationId, DateTime inStockTime, string operatorName, string? remark = null)
+    {
+        using var connection = DbHelper.CreateConnection();
+        connection.Open();
+        using var transaction = connection.BeginTransaction();
+
+        try
+        {
+            // 检查是否已存在库存记录
+            var checkSql = "SELECT COUNT(*) FROM DM_DieInventory WHERE DieID = @DieID";
+            using var checkCommand = new SqlCommand(checkSql, connection, transaction);
+            checkCommand.Parameters.AddWithValue("@DieID", dieId);
+            var count = Convert.ToInt32(checkCommand.ExecuteScalar());
+
+            if (count > 0)
+            {
+                throw new InvalidOperationException("该刀模已存在库存记录，不能重复入库");
+            }
+
+            // 插入库存记录
+            var sql = @"INSERT INTO DM_DieInventory (DieID, LocationID, StorageStatus, InStockTime, TotalBorrowCount, Remark, UpdateTime) 
+                         VALUES (@DieID, @LocationID, @StorageStatus, @InStockTime, 0, @Remark, GETDATE());
+                         SELECT CAST(SCOPE_IDENTITY() AS INT);";
+
+            using var command = new SqlCommand(sql, connection, transaction);
+            command.Parameters.AddWithValue("@DieID", dieId);
+            command.Parameters.AddWithValue("@LocationID", locationId);
+            command.Parameters.AddWithValue("@StorageStatus", (int)StorageStatus.InStock);
+            command.Parameters.AddWithValue("@InStockTime", inStockTime);
+            command.Parameters.AddWithValue("@Remark", remark ?? (object)DBNull.Value);
+            command.ExecuteScalar();
+
+            // 更新库位状态为占用
+            var locationSql = "UPDATE DM_StorageLocation SET Status = @Status WHERE LocationID = @LocationID";
+            using var locationCommand = new SqlCommand(locationSql, connection, transaction);
+            locationCommand.Parameters.AddWithValue("@Status", (int)LocationStatus.Occupied);
+            locationCommand.Parameters.AddWithValue("@LocationID", locationId);
+            locationCommand.ExecuteNonQuery();
+
+            // 更新刀模状态为已入库
+            var dieSql = "UPDATE DM_DieInfo SET Status = @Status WHERE DieID = @DieID";
+            using var dieCommand = new SqlCommand(dieSql, connection, transaction);
+            dieCommand.Parameters.AddWithValue("@Status", 2); // 2 = 已入库
+            dieCommand.Parameters.AddWithValue("@DieID", dieId);
+            dieCommand.ExecuteNonQuery();
+
+            transaction.Commit();
+            return true;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     #endregion
@@ -393,6 +481,11 @@ public class WarehouseService
             locationCommand.ExecuteNonQuery();
 
             transaction.Commit();
+
+            // 记录操作日志
+            var dieCode = GetDieCodeById(record.DieID);
+            LogService.LogOperation("领用", $"刀模领用：{dieCode}，领用人：{record.BorrowerName}", dieCode);
+
             return borrowId;
         }
         catch
@@ -449,12 +542,33 @@ public class WarehouseService
             updateCommand.ExecuteNonQuery();
 
             transaction.Commit();
+
+            // 记录操作日志
+            LogService.LogOperation("归还", $"刀模归还：{record.DieCode}，操作人：{returnOperatorName}", record.DieCode);
+
             return true;
         }
         catch
         {
             transaction.Rollback();
             throw;
+        }
+    }
+
+    /// <summary>
+    /// 根据刀模ID获取刀模编号
+    /// </summary>
+    private string GetDieCodeById(int dieId)
+    {
+        try
+        {
+            var sql = "SELECT DieCode FROM DM_DieInfo WHERE DieID = @DieID";
+            var result = DbHelper.ExecuteScalar(sql, new SqlParameter("@DieID", dieId));
+            return result?.ToString() ?? dieId.ToString();
+        }
+        catch
+        {
+            return dieId.ToString();
         }
     }
 
@@ -547,7 +661,16 @@ public class WarehouseService
             new SqlParameter("@ApplyTime", record.ApplyTime),
             new SqlParameter("@AuditStatus", (int)ScrapAuditStatus.Pending));
 
-        return result == DBNull.Value ? 0 : Convert.ToInt32(result);
+        var scrapId = result == DBNull.Value ? 0 : Convert.ToInt32(result);
+
+        // 记录操作日志
+        if (scrapId > 0)
+        {
+            var dieCode = GetDieCodeById(record.DieID);
+            LogService.LogOperation("报废申请", $"提交报废申请：{dieCode}，原因：{record.ScrapReason}", dieCode);
+        }
+
+        return scrapId;
     }
 
     public bool AuditScrapRecord(int scrapId, bool approved, string auditorNo, string auditorName, string? auditRemark = null)
@@ -605,6 +728,11 @@ public class WarehouseService
             }
 
             transaction.Commit();
+
+            // 记录操作日志
+            var actionText = approved ? "审核通过" : "审核驳回";
+            LogService.LogOperation("报废审核", $"{actionText}报废申请：{record.DieCode}，原因：{record.ScrapReason}", record.DieCode);
+
             return true;
         }
         catch

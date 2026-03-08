@@ -1,5 +1,6 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
+using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -268,6 +269,9 @@ public class ProductionService
     /// </summary>
     public bool StartProcess(int processId, string operatorNo, string operatorName)
     {
+        // 获取工序和刀模信息用于日志
+        var processInfo = GetProcessInfoForLog(processId);
+
         var sql = @"UPDATE DM_DieProcess 
                      SET Status = 1, StartTime = GETDATE(), OperatorNo = @OperatorNo, OperatorName = @OperatorName
                      WHERE ProcessID = @ProcessID AND Status = 0";
@@ -281,6 +285,12 @@ public class ProductionService
         if (result > 0)
         {
             UpdateDieStatusToInProgress(processId);
+
+            // 记录操作日志
+            if (processInfo != null)
+            {
+                LogService.LogOperation("报产", $"开始工序：{processInfo.ProcessName}，刀模：{processInfo.DieCode}", processInfo.DieCode);
+            }
         }
 
         return result > 0;
@@ -291,6 +301,9 @@ public class ProductionService
     /// </summary>
     public bool CompleteProcess(int processId, decimal? amount, string operatorNo, string operatorName, string? remark)
     {
+        // 获取工序和刀模信息用于日志
+        var processInfo = GetProcessInfoForLog(processId);
+
         var sql = @"UPDATE DM_DieProcess 
                      SET Status = 2, CompleteTime = GETDATE(), 
                          OperatorNo = @OperatorNo, OperatorName = @OperatorName,
@@ -307,6 +320,12 @@ public class ProductionService
         if (result > 0)
         {
             CheckAndCompleteDie(processId);
+
+            // 记录操作日志
+            if (processInfo != null)
+            {
+                LogService.LogOperation("报产完成", $"完成工序：{processInfo.ProcessName}，刀模：{processInfo.DieCode}", processInfo.DieCode);
+            }
         }
 
         return result > 0;
@@ -387,6 +406,34 @@ public class ProductionService
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// 获取工序信息用于日志记录
+    /// </summary>
+    private (string ProcessName, string DieCode)? GetProcessInfoForLog(int processId)
+    {
+        try
+        {
+            var sql = @"SELECT p.ProcessName, d.DieCode 
+                         FROM DM_DieProcess p 
+                         INNER JOIN DM_DieInfo d ON p.DieID = d.DieID 
+                         WHERE p.ProcessID = @ProcessID";
+            using var connection = DbHelper.CreateConnection();
+            connection.Open();
+            using var command = new SqlCommand(sql, connection);
+            command.Parameters.AddWithValue("@ProcessID", processId);
+            using var reader = command.ExecuteReader();
+            if (reader.Read())
+            {
+                return (reader["ProcessName"].ToString() ?? "", reader["DieCode"].ToString() ?? "");
+            }
+        }
+        catch
+        {
+            // 获取失败不影响主流程
+        }
+        return null;
     }
 
     #endregion

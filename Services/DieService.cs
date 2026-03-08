@@ -1,5 +1,6 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
+using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
@@ -128,6 +129,10 @@ public class DieService
             }
 
             transaction.Commit();
+
+            // 记录操作日志
+            LogService.LogOperation("新增", $"新增刀模：{die.DieCode}", die.DieCode);
+
             return dieId;
         }
         catch
@@ -196,6 +201,10 @@ public class DieService
             }
 
             transaction.Commit();
+
+            // 记录操作日志
+            LogService.LogOperation("修改", $"编辑刀模：{die.DieCode}", die.DieCode);
+
             return true;
         }
         catch
@@ -210,6 +219,10 @@ public class DieService
     /// </summary>
     public bool DeleteDie(int dieId)
     {
+        // 先获取刀模信息用于日志记录
+        var dieInfo = GetDieById(dieId);
+        var dieCode = dieInfo?.DieCode ?? dieId.ToString();
+
         using var connection = DbHelper.CreateConnection();
         connection.Open();
         using var transaction = connection.BeginTransaction();
@@ -229,6 +242,10 @@ public class DieService
             var result = deleteDieCmd.ExecuteNonQuery() > 0;
 
             transaction.Commit();
+
+            // 记录操作日志
+            LogService.LogOperation("删除", $"删除刀模：{dieCode}", dieCode);
+
             return result;
         }
         catch
@@ -243,10 +260,22 @@ public class DieService
     /// </summary>
     public bool AuditDie(int dieId, bool isApproved)
     {
+        // 先获取刀模信息用于日志记录
+        var dieInfo = GetDieById(dieId);
+        var dieCode = dieInfo?.DieCode ?? dieId.ToString();
+
         var sql = "UPDATE DM_DieInfo SET AuditStatus = @AuditStatus WHERE DieID = @DieID";
-        return DbHelper.ExecuteNonQuery(sql,
+        var result = DbHelper.ExecuteNonQuery(sql,
             new SqlParameter("@AuditStatus", isApproved ? (int)AuditStatus.Audited : (int)AuditStatus.Unaudited),
             new SqlParameter("@DieID", dieId)) > 0;
+
+        if (result)
+        {
+            var actionText = isApproved ? "审核通过" : "取消审核";
+            LogService.LogOperation("审核", $"{actionText}刀模：{dieCode}", dieCode);
+        }
+
+        return result;
     }
 
     /// <summary>
@@ -415,6 +444,29 @@ public class DieService
             IsPrevCompleted = reader["IsPrevCompleted"] != DBNull.Value && Convert.ToBoolean(reader["IsPrevCompleted"]),
             CreateTime = reader["CreateTime"] != DBNull.Value ? Convert.ToDateTime(reader["CreateTime"]) : DateTime.Now
         };
+    }
+
+    #endregion
+
+    #region 刀模入库相关
+
+    /// <summary>
+    /// 获取已完工但未入库的刀模列表
+    /// </summary>
+    public List<DieInfo> GetCompletedDiesNotInStock()
+    {
+        // 状态 1 = 生产中/已完工，AuditStatus 1 = 已审核
+        // 排除已在库存表中的刀模
+        var sql = @"SELECT d.*, u.RealName as CreateUserName 
+                     FROM DM_DieInfo d
+                     LEFT JOIN DM_User u ON d.CreateUser = u.Username
+                     WHERE d.Status = 1 
+                     AND d.AuditStatus = 1
+                     AND NOT EXISTS (
+                         SELECT 1 FROM DM_DieInventory i WHERE i.DieID = d.DieID
+                     )
+                     ORDER BY d.CreateTime DESC";
+        return DbHelper.ExecuteQuery(sql, MapToDieInfo);
     }
 
     #endregion
