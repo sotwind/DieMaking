@@ -1,17 +1,41 @@
 namespace DieMaking.Models;
 
+/// <summary>
+/// 用户实体类
+/// </summary>
 public class User
 {
+    /// <summary>用户ID</summary>
     public int UserID { get; set; }
+    
+    /// <summary>用户名</summary>
     public string Username { get; set; } = string.Empty;
+    
+    /// <summary>密码</summary>
     public string Password { get; set; } = string.Empty;
+    
+    /// <summary>真实姓名</summary>
     public string RealName { get; set; } = string.Empty;
+    
+    /// <summary>权限列表（逗号分隔）</summary>
     public string Permissions { get; set; } = string.Empty;
+    
+    /// <summary>工位</summary>
     public string Workstation { get; set; } = string.Empty;
+    
+    /// <summary>是否启用</summary>
     public bool IsActive { get; set; } = true;
+    
+    /// <summary>创建时间</summary>
     public DateTime CreateTime { get; set; }
+    
+    /// <summary>最后登录时间</summary>
     public DateTime? LastLoginTime { get; set; }
 
+    /// <summary>
+    /// 获取权限列表
+    /// </summary>
+    /// <returns>权限字符串列表</returns>
     public List<string> GetPermissionList()
     {
         if (string.IsNullOrEmpty(Permissions))
@@ -22,6 +46,11 @@ public class User
                          .ToList();
     }
 
+    /// <summary>
+    /// 检查是否具有指定权限
+    /// </summary>
+    /// <param name="permission">权限名称</param>
+    /// <returns>是否具有该权限</returns>
     public bool HasPermission(string permission)
     {
         return GetPermissionList().Contains(permission);

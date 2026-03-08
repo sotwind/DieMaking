@@ -5,11 +5,22 @@ namespace DieMaking.Models;
 /// </summary>
 public class SystemConfig
 {
+    /// <summary>配置ID</summary>
     public int ConfigID { get; set; }
+    
+    /// <summary>配置键名</summary>
     public string ConfigKey { get; set; } = string.Empty;
+    
+    /// <summary>配置值</summary>
     public string ConfigValue { get; set; } = string.Empty;
+    
+    /// <summary>配置描述</summary>
     public string Description { get; set; } = string.Empty;
+    
+    /// <summary>创建时间</summary>
     public DateTime CreateTime { get; set; }
+    
+    /// <summary>更新时间</summary>
     public DateTime? UpdateTime { get; set; }
 }
 

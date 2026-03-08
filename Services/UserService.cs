@@ -4,7 +4,7 @@ using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Services;
 
-public class UserService
+public class UserService : BaseService
 {
     /// <summary>
     /// 用户登录
@@ -70,21 +70,7 @@ public class UserService
     /// </summary>
     public List<User> GetAllUsers()
     {
-        try
-        {
-            var sql = "SELECT * FROM DM_User ORDER BY UserID";
-            return DbHelper.ExecuteQuery(sql, MapToUser);
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, "获取所有用户");
-            return new List<User>();
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, "获取所有用户");
-            return new List<User>();
-        }
+        return GetAll("DM_User", "UserID", MapToUser);
     }
 
     /// <summary>
@@ -92,22 +78,7 @@ public class UserService
     /// </summary>
     public User? GetUserById(int userId)
     {
-        try
-        {
-            var sql = "SELECT * FROM DM_User WHERE UserID = @UserID";
-            var users = DbHelper.ExecuteQuery(sql, MapToUser, new SqlParameter("@UserID", userId));
-            return users.FirstOrDefault();
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, $"获取用户(ID:{userId})");
-            return null;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, $"获取用户(ID:{userId})");
-            return null;
-        }
+        return GetById("DM_User", "UserID", userId, MapToUser);
     }
 
     /// <summary>
@@ -121,7 +92,7 @@ public class UserService
                          VALUES (@Username, @Password, @RealName, @Permissions, @Workstation, @IsActive, GETDATE());
                          SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
-            var result = DbHelper.ExecuteScalar(sql,
+            var result = ExecuteScalarSafe(sql, "创建用户",
                 new SqlParameter("@Username", user.Username),
                 new SqlParameter("@Password", user.Password),
                 new SqlParameter("@RealName", user.RealName),
@@ -136,16 +107,6 @@ public class UserService
             ExceptionHelper.HandleException(new BusinessException("用户名已存在，请使用其他用户名。"), "创建用户");
             return 0;
         }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, "创建用户");
-            return 0;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, "创建用户");
-            return 0;
-        }
     }
 
     /// <summary>
@@ -153,32 +114,19 @@ public class UserService
     /// </summary>
     public bool UpdateUser(User user)
     {
-        try
-        {
-            var sql = @"UPDATE DM_User SET 
-                         RealName = @RealName,
-                         Permissions = @Permissions, 
-                         Workstation = @Workstation,
-                         IsActive = @IsActive
-                         WHERE UserID = @UserID";
+        var sql = @"UPDATE DM_User SET 
+                     RealName = @RealName,
+                     Permissions = @Permissions, 
+                     Workstation = @Workstation,
+                     IsActive = @IsActive
+                     WHERE UserID = @UserID";
 
-            return DbHelper.ExecuteNonQuery(sql,
-                new SqlParameter("@UserID", user.UserID),
-                new SqlParameter("@RealName", user.RealName),
-                new SqlParameter("@Permissions", user.Permissions),
-                new SqlParameter("@Workstation", user.Workstation),
-                new SqlParameter("@IsActive", user.IsActive)) > 0;
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, $"更新用户(ID:{user.UserID})");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, $"更新用户(ID:{user.UserID})");
-            return false;
-        }
+        return ExecuteNonQuerySafe(sql, $"更新用户(ID:{user.UserID})",
+            new SqlParameter("@UserID", user.UserID),
+            new SqlParameter("@RealName", user.RealName),
+            new SqlParameter("@Permissions", user.Permissions),
+            new SqlParameter("@Workstation", user.Workstation),
+            new SqlParameter("@IsActive", user.IsActive)) > 0;
     }
 
     /// <summary>
@@ -186,23 +134,10 @@ public class UserService
     /// </summary>
     public bool UpdatePassword(int userId, string newPassword)
     {
-        try
-        {
-            var sql = "UPDATE DM_User SET Password = @Password WHERE UserID = @UserID";
-            return DbHelper.ExecuteNonQuery(sql,
-                new SqlParameter("@UserID", userId),
-                new SqlParameter("@Password", newPassword)) > 0;
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, $"更新密码(UserID:{userId})");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, $"更新密码(UserID:{userId})");
-            return false;
-        }
+        var sql = "UPDATE DM_User SET Password = @Password WHERE UserID = @UserID";
+        return ExecuteNonQuerySafe(sql, $"更新密码(UserID:{userId})",
+            new SqlParameter("@UserID", userId),
+            new SqlParameter("@Password", newPassword)) > 0;
     }
 
     /// <summary>
@@ -210,26 +145,7 @@ public class UserService
     /// </summary>
     public bool DeleteUser(int userId)
     {
-        try
-        {
-            var sql = "DELETE FROM DM_User WHERE UserID = @UserID";
-            return DbHelper.ExecuteNonQuery(sql, new SqlParameter("@UserID", userId)) > 0;
-        }
-        catch (SqlException ex) when (ex.Number == 547)
-        {
-            ExceptionHelper.HandleException(new BusinessException("该用户有关联数据，无法删除。"), "删除用户");
-            return false;
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, $"删除用户(ID:{userId})");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, $"删除用户(ID:{userId})");
-            return false;
-        }
+        return Delete("DM_User", "UserID", userId, "用户");
     }
 
     /// <summary>
@@ -237,29 +153,7 @@ public class UserService
     /// </summary>
     public bool IsUsernameExists(string username, int? excludeUserId = null)
     {
-        try
-        {
-            var sql = excludeUserId.HasValue
-                ? "SELECT COUNT(*) FROM DM_User WHERE Username = @Username AND UserID != @UserID"
-                : "SELECT COUNT(*) FROM DM_User WHERE Username = @Username";
-
-            var parameters = new List<SqlParameter> { new SqlParameter("@Username", username) };
-            if (excludeUserId.HasValue)
-                parameters.Add(new SqlParameter("@UserID", excludeUserId.Value));
-
-            var result = DbHelper.ExecuteScalar(sql, parameters.ToArray());
-            return Convert.ToInt32(result) > 0;
-        }
-        catch (SqlException ex)
-        {
-            ExceptionHelper.HandleException(ex, "检查用户名是否存在");
-            return false;
-        }
-        catch (Exception ex)
-        {
-            ExceptionHelper.HandleException(ex, "检查用户名是否存在");
-            return false;
-        }
+        return Exists("DM_User", "Username", username, excludeUserId, "UserID");
     }
 
     /// <summary>
@@ -269,15 +163,15 @@ public class UserService
     {
         return new User
         {
-            UserID = Convert.ToInt32(reader["UserID"]),
-            Username = reader["Username"].ToString() ?? "",
-            Password = reader["Password"].ToString() ?? "",
-            RealName = reader["RealName"].ToString() ?? "",
-            Permissions = reader["Permissions"].ToString() ?? "",
-            Workstation = reader["Workstation"].ToString() ?? "",
-            IsActive = reader["IsActive"] != DBNull.Value && Convert.ToBoolean(reader["IsActive"]),
-            CreateTime = reader["CreateTime"] != DBNull.Value ? Convert.ToDateTime(reader["CreateTime"]) : DateTime.Now,
-            LastLoginTime = reader["LastLoginTime"] != DBNull.Value ? Convert.ToDateTime(reader["LastLoginTime"]) : null
+            UserID = ConvertHelper.ToInt(reader["UserID"]),
+            Username = ConvertHelper.ToString(reader["Username"]),
+            Password = ConvertHelper.ToString(reader["Password"]),
+            RealName = ConvertHelper.ToString(reader["RealName"]),
+            Permissions = ConvertHelper.ToString(reader["Permissions"]),
+            Workstation = ConvertHelper.ToString(reader["Workstation"]),
+            IsActive = ConvertHelper.ToBool(reader["IsActive"]),
+            CreateTime = ConvertHelper.ToDateTime(reader["CreateTime"], DateTime.Now),
+            LastLoginTime = ConvertHelper.ToNullableDateTime(reader["LastLoginTime"])
         };
     }
 }
