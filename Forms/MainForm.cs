@@ -266,7 +266,7 @@ F1 - 显示帮助";
         _ = CheckDatabaseHealthAsync();
 
         // 每30秒检查一次
-        var timer = new System.Windows.Forms.Timer();
+        var timer = new global::System.Windows.Forms.Timer();
         timer.Interval = 30000;
         timer.Tick += async (s, e) => await CheckDatabaseHealthAsync();
         timer.Start();

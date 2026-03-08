@@ -29,13 +29,13 @@
     <Compile Remove="Helpers\IndexCreator.cs" />
     <Compile Remove="Forms\Die\DieListForm_Fixed.cs" />
     <Compile Remove="Forms\Die\DieListFormOptimized.cs" />
-    <Compile Remove="Forms\System\**" />
+
     <Compile Remove="Helpers\DatabaseInitializer_Split.md" />
     <Compile Remove="Services\DieServiceOptimized.cs" />
     <Compile Remove="Services\DieService_Paged.cs" />
     <Compile Remove="Services\ReportServiceOptimized.cs" />
     <Compile Remove="Helpers\PaginationHelper.cs" />
-    <Compile Remove="Helpers\ConvertHelper.cs" />
+
     <Compile Remove="Helpers\VirtualDataGridView.cs" />
   </ItemGroup>
 

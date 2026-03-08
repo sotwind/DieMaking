@@ -405,7 +405,7 @@ public class DieInStockEditForm : BaseDialogForm
             lblDieCodeValue.Text = _die.DieCode;
             lblCustomerValue.Text = _die.CustomerName;
             lblProductValue.Text = _die.ProductName;
-            lblSizeValue.Text = _die.Size;
+            lblSizeValue.Text = _die.ManufactureSize;
 
             // 加载空闲库位
             _availableLocations = _warehouseService.GetLocationsByStatus(LocationStatus.Free);

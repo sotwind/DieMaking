@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("DieMaking")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+a644be7130058b8fb594286c6c5bf3f0302647f3")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+5b96ed60f7bebdff19112bfddb8b67d8b5103551")]
 [assembly: System.Reflection.AssemblyProductAttribute("DieMaking")]
 [assembly: System.Reflection.AssemblyTitleAttribute("DieMaking")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]

@@ -58,7 +58,7 @@ public partial class BorrowRecordForm : Form
         x += 110;
 
         // 状态
-        var lblStatus = new Label { Text = "状态：", Location = new Point(x, y + 3), AutoSize = true };
+        var lblFilterStatus = new Label { Text = "状态：", Location = new Point(x, y + 3), AutoSize = true };
         x += 50;
         cboStatus = new ComboBox 
         { 
@@ -109,7 +109,7 @@ public partial class BorrowRecordForm : Form
         btnClear.Click += (s, e) => ClearFilters();
 
         panelSearch.Controls.AddRange(new Control[] {
-            lblDieCode, txtDieCode, lblBorrower, txtBorrower, lblStatus, cboStatus,
+            lblDieCode, txtDieCode, lblBorrower, txtBorrower, lblFilterStatus, cboStatus,
             lblStartDate, dtpStartDate, lblEndDate, dtpEndDate, btnSearch, btnClear
         });
 
@@ -332,7 +332,7 @@ public partial class BorrowRecordForm : Form
             {
                 var importExportService = new ImportExportService();
 
-                var dataTable = new System.Data.DataTable();
+                var dataTable = new global::System.Data.DataTable();
                 dataTable.Columns.Add("刀模编号", typeof(string));
                 dataTable.Columns.Add("客户名称", typeof(string));
                 dataTable.Columns.Add("产品名称", typeof(string));

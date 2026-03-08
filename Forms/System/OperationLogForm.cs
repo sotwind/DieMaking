@@ -1,5 +1,6 @@
 using DieMaking.Helpers;
 using DieMaking.Models;
+using DieMaking.Services;
 using Microsoft.Data.SqlClient;
 
 namespace DieMaking.Forms.System;
@@ -368,7 +369,7 @@ public partial class OperationLogForm : Form
             if (saveDialog.ShowDialog(this) == DialogResult.OK)
             {
                 var logs = (List<OperationLogViewModel>)_bindingSource.DataSource;
-                var csv = new System.Text.StringBuilder();
+                var csv = new global::System.Text.StringBuilder();
                 csv.AppendLine("日志ID,操作时间,操作用户,操作类型,操作内容,刀模编号,IP地址");
 
                 foreach (var log in logs)
@@ -376,7 +377,7 @@ public partial class OperationLogForm : Form
                     csv.AppendLine($"{log.LogID},{log.CreateTime:yyyy-MM-dd HH:mm:ss},{EscapeCsv(log.Username)},{EscapeCsv(log.OperationType)},{EscapeCsv(log.OperationDesc)},{EscapeCsv(log.DieCode)},{log.IPAddress}");
                 }
 
-                File.WriteAllText(saveDialog.FileName, csv.ToString(), System.Text.Encoding.UTF8);
+                File.WriteAllText(saveDialog.FileName, csv.ToString(), global::System.Text.Encoding.UTF8);
                 MessageBox.Show("导出成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }

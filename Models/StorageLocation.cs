@@ -291,6 +291,19 @@ public enum ScrapAuditStatus
     Rejected = 2
 }
 
+/// <summary>
+/// 库存状态枚举
+/// </summary>
+public enum InventoryStatus
+{
+    /// <summary>在库</summary>
+    InStock = 0,
+    /// <summary>借出</summary>
+    Borrowed = 1,
+    /// <summary>报废</summary>
+    Scrap = 2
+}
+
 // 扩展方法
 
 /// <summary>

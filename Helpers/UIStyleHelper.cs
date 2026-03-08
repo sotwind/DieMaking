@@ -1,4 +1,5 @@
 using System.Drawing.Drawing2D;
+using DieMaking.Models;
 
 namespace DieMaking.Helpers;
 
@@ -321,8 +322,9 @@ public static class UIStyleHelper
         statusStrip.Items.Add(timeLabel);
 
         // 启动定时器更新时间
-        var timer = new Timer { Interval = 1000 };
-        timer.Tick += (s, e) => timeLabel.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        var timer = new System.Windows.Forms.Timer { Interval = 1000 };
+        var capturedTimeLabel = timeLabel;
+        timer.Tick += (s, e) => capturedTimeLabel.Text = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
         timer.Start();
 
         return statusStrip;
@@ -360,7 +362,7 @@ public static class UIStyleHelper
         toast.Show(parent);
 
         // 淡入淡出动画
-        var fadeIn = new Timer { Interval = 20 };
+        var fadeIn = new System.Windows.Forms.Timer { Interval = 20 };
         double opacity = 0;
         fadeIn.Tick += (s, e) =>
         {
@@ -370,11 +372,11 @@ public static class UIStyleHelper
             {
                 fadeIn.Stop();
                 // 2秒后淡出
-                var closeTimer = new Timer { Interval = 2000 };
+                var closeTimer = new System.Windows.Forms.Timer { Interval = 2000 };
                 closeTimer.Tick += (s2, e2) =>
                 {
                     closeTimer.Stop();
-                    var fadeOut = new Timer { Interval = 20 };
+                    var fadeOut = new System.Windows.Forms.Timer { Interval = 20 };
                     fadeOut.Tick += (s3, e3) =>
                     {
                         opacity -= 0.1;

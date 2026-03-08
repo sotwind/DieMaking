@@ -298,7 +298,7 @@ public partial class CompletionQueryForm : Form
             {
                 var importExportService = new ImportExportService();
 
-                var dataTable = new System.Data.DataTable();
+                var dataTable = new global::System.Data.DataTable();
                 dataTable.Columns.Add("刀模编号", typeof(string));
                 dataTable.Columns.Add("客户名称", typeof(string));
                 dataTable.Columns.Add("产品名称", typeof(string));

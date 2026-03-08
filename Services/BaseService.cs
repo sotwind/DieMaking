@@ -305,7 +305,7 @@ public abstract class BaseService
     /// <summary>
     /// 执行分页查询
     /// </summary>
-    protected PagedResult<T> ExecutePagedQuery<T>(string baseSql, string orderBy, int pageIndex, int pageSize,
+    protected Helpers.PagedResult<T> ExecutePagedQuery<T>(string baseSql, string orderBy, int pageIndex, int pageSize,
         Func<SqlDataReader, T> mapper, params SqlParameter[] parameters)
     {
         try
@@ -315,41 +315,14 @@ public abstract class BaseService
         catch (SqlException ex)
         {
             ExceptionHelper.HandleException(ex, "分页查询");
-            return new PagedResult<T>();
+            return new Helpers.PagedResult<T>();
         }
         catch (Exception ex)
         {
             ExceptionHelper.HandleException(ex, "分页查询");
-            return new PagedResult<T>();
+            return new Helpers.PagedResult<T>();
         }
     }
 
     #endregion
-}
-
-/// <summary>
-/// 分页查询结果
-/// </summary>
-public class PagedResult<T>
-{
-    /// <summary>数据列表</summary>
-    public List<T> Items { get; set; } = new();
-
-    /// <summary>总记录数</summary>
-    public int TotalCount { get; set; }
-
-    /// <summary>当前页码</summary>
-    public int PageIndex { get; set; }
-
-    /// <summary>每页大小</summary>
-    public int PageSize { get; set; }
-
-    /// <summary>总页数</summary>
-    public int TotalPages { get; set; }
-
-    /// <summary>是否有上一页</summary>
-    public bool HasPreviousPage => PageIndex > 1;
-
-    /// <summary>是否有下一页</summary>
-    public bool HasNextPage => PageIndex < TotalPages;
 }

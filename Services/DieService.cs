@@ -395,4 +395,32 @@ public class DieService : BaseService
     }
 
     #endregion
+
+    #region 入库相关
+
+    /// <summary>
+    /// 获取已完工但未入库的刀模列表
+    /// </summary>
+    public List<DieInfo> GetCompletedDiesNotInStock()
+    {
+        var sql = @"SELECT d.*, u.RealName as CreateUserName 
+                     FROM DM_DieInfo d
+                     LEFT JOIN DM_User u ON d.CreateUser = u.Username
+                     WHERE d.Status = @Status
+                     AND NOT EXISTS (
+                         SELECT 1 FROM DM_DieInventory i 
+                         WHERE i.DieID = d.DieID AND i.Status != @DeletedStatus
+                     )
+                     ORDER BY d.CompleteTime DESC";
+        
+        var parameters = new[]
+        {
+            new SqlParameter("@Status", (int)DieStatus.Completed),
+            new SqlParameter("@DeletedStatus", (int)InventoryStatus.Scrap)
+        };
+        
+        return ExecuteQuerySafe(sql, MapToDieInfo, "获取已完工未入库刀模", parameters);
+    }
+
+    #endregion
 }

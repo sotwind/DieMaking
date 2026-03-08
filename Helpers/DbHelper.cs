@@ -116,10 +116,6 @@ public static class DbHelper
             ConnectTimeout = DbConnectionPoolConfig.ConnectTimeout,
             Pooling = DbConnectionPoolConfig.Pooling,
             LoadBalanceTimeout = DbConnectionPoolConfig.LoadBalanceTimeout,
-            ConnectionLifetime = DbConnectionPoolConfig.ConnectionLifetime,
-
-            // 启用异步操作
-            AsynchronousProcessing = true,
 
             // 连接重试配置
             ConnectRetryCount = 3,

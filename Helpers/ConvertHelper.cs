@@ -515,7 +515,7 @@ public static class ConvertHelper
     /// <summary>
     /// 从数据库读取器安全获取值
     /// </summary>
-    public static T GetValue<T>(System.Data.SqlClient.SqlDataReader reader, string columnName, T defaultValue)
+    public static T GetValue<T>(Microsoft.Data.SqlClient.SqlDataReader reader, string columnName, T defaultValue)
     {
         try
         {
@@ -535,7 +535,7 @@ public static class ConvertHelper
     /// <summary>
     /// 从数据库读取器安全获取可空值
     /// </summary>
-    public static T? GetNullableValue<T>(System.Data.SqlClient.SqlDataReader reader, string columnName) where T : struct
+    public static T? GetNullableValue<T>(Microsoft.Data.SqlClient.SqlDataReader reader, string columnName) where T : struct
     {
         try
         {
@@ -555,7 +555,7 @@ public static class ConvertHelper
     /// <summary>
     /// 从数据库读取器安全获取字符串
     /// </summary>
-    public static string GetString(System.Data.SqlClient.SqlDataReader reader, string columnName, string defaultValue = "")
+    public static string GetString(Microsoft.Data.SqlClient.SqlDataReader reader, string columnName, string defaultValue = "")
     {
         try
         {

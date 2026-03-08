@@ -51,7 +51,7 @@ public partial class ScrapApplyForm : Form
             Padding = new Padding(10, 5, 10, 5)
         };
 
-        var lblStatus = new Label { Text = "审核状态：", Location = new Point(10, 12), AutoSize = true };
+        var lblFilterStatus = new Label { Text = "审核状态：", Location = new Point(10, 12), AutoSize = true };
         cboFilterStatus = new ComboBox 
         { 
             Location = new Point(80, 9), 
@@ -68,7 +68,7 @@ public partial class ScrapApplyForm : Form
         var btnFilter = new Button { Text = "筛选", Location = new Point(210, 8), Size = new Size(80, 28) };
         btnFilter.Click += (s, e) => ApplyFilters();
 
-        panelSearch.Controls.AddRange(new Control[] { lblStatus, cboFilterStatus, btnFilter });
+        panelSearch.Controls.AddRange(new Control[] { lblFilterStatus, cboFilterStatus, btnFilter });
 
         // 数据表格
         dgvRecords = new DataGridView

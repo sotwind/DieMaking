@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using Microsoft.Data.SqlClient;
+using DieMaking.Forms;
 
 namespace DieMaking.Helpers;
 
@@ -136,8 +137,8 @@ public static class ExceptionHelper
                 result.CanRetry = false;
                 break;
 
-            case ArgumentException argEx:
             case ArgumentNullException argNullEx:
+            case ArgumentException argEx:
                 result.ExceptionType = ExceptionType.Validation;
                 result.UserMessage = "输入数据无效，请检查输入内容后重试。";
                 result.CanRetry = false;

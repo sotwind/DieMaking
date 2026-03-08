@@ -530,7 +530,7 @@ public class WarehouseService : BaseService
             BorrowID = ConvertHelper.ToInt(reader["BorrowID"]),
             DieID = ConvertHelper.ToInt(reader["DieID"]),
             InventoryID = ConvertHelper.ToInt(reader["InventoryID"]),
-            BorrowType = ConvertHelper.ToEnum(reader["BorrowType"], BorrowType.Internal),
+            BorrowType = ConvertHelper.ToEnum(reader["BorrowType"], BorrowType.Production),
             BorrowerNo = ConvertHelper.ToString(reader["BorrowerNo"]),
             BorrowerName = ConvertHelper.ToString(reader["BorrowerName"]),
             BorrowDept = ConvertHelper.ToString(reader["BorrowDept"]),
@@ -720,6 +720,44 @@ public class WarehouseService : BaseService
             CustomerName = ConvertHelper.ToString(reader["CustomerName"]),
             ProductName = ConvertHelper.ToString(reader["ProductName"])
         };
+    }
+
+    #endregion
+
+    #region 入库管理
+
+    /// <summary>
+    /// 刀模入库
+    /// </summary>
+    public bool InStockDie(int dieId, int locationId, DateTime inStockTime, string operatorName, string remark)
+    {
+        return ExecuteInTransaction((connection, transaction) =>
+        {
+            // 创建入库记录
+            var sql = @"INSERT INTO DM_DieInventory (DieID, LocationID, Status, InStockTime, OperatorName, Remark, CreateTime)
+                         VALUES (@DieID, @LocationID, @Status, @InStockTime, @OperatorName, @Remark, @CreateTime);
+                         SELECT SCOPE_IDENTITY();";
+            
+            using var command = new SqlCommand(sql, connection, transaction);
+            command.Parameters.AddWithValue("@DieID", dieId);
+            command.Parameters.AddWithValue("@LocationID", locationId);
+            command.Parameters.AddWithValue("@Status", (int)InventoryStatus.InStock);
+            command.Parameters.AddWithValue("@InStockTime", inStockTime);
+            command.Parameters.AddWithValue("@OperatorName", operatorName);
+            command.Parameters.AddWithValue("@Remark", remark ?? "");
+            command.Parameters.AddWithValue("@CreateTime", DateTime.Now);
+            
+            var inventoryId = Convert.ToInt32(command.ExecuteScalar());
+            
+            // 更新库位状态为占用
+            var updateLocationSql = "UPDATE DM_StorageLocation SET Status = @Status WHERE LocationID = @LocationID";
+            using var updateCmd = new SqlCommand(updateLocationSql, connection, transaction);
+            updateCmd.Parameters.AddWithValue("@Status", (int)LocationStatus.Occupied);
+            updateCmd.Parameters.AddWithValue("@LocationID", locationId);
+            updateCmd.ExecuteNonQuery();
+            
+            return inventoryId > 0;
+        }, "刀模入库");
     }
 
     #endregion

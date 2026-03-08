@@ -1,11 +1,13 @@
-namespace DieMaking.Forms.SystemForms;
+using System.ComponentModel;
+
+namespace DieMaking.Forms.System;
 
 partial class BackupManageForm
 {
     /// <summary>
     /// Required designer variable.
     /// </summary>
-    private System.ComponentModel.IContainer components = null;
+    private IContainer components = null;
 
     /// <summary>
     /// Clean up any resources being used.
@@ -54,7 +56,7 @@ partial class BackupManageForm
         this.panelTop.SuspendLayout();
         this.groupBoxStats.SuspendLayout();
         this.panelButtons.SuspendLayout();
-        ((System.ComponentModel.ISupportInitialize)this.dgvBackups).BeginInit();
+        ((ISupportInitialize)this.dgvBackups).BeginInit();
         this.SuspendLayout();
         //
         // panelTop
@@ -305,7 +307,7 @@ partial class BackupManageForm
         this.groupBoxStats.PerformLayout();
         this.panelButtons.ResumeLayout(false);
         this.panelButtons.PerformLayout();
-        ((System.ComponentModel.ISupportInitialize)this.dgvBackups).EndInit();
+        ((ISupportInitialize)this.dgvBackups).EndInit();
         this.ResumeLayout(false);
     }
 

@@ -350,7 +350,7 @@ public partial class LocationManageForm : BaseListForm
             {
                 var importExportService = new ImportExportService();
 
-                var dataTable = new System.Data.DataTable();
+                var dataTable = new global::System.Data.DataTable();
                 dataTable.Columns.Add("库位编号", typeof(string));
                 dataTable.Columns.Add("区域", typeof(string));
                 dataTable.Columns.Add("货架号", typeof(string));

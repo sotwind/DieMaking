@@ -774,12 +774,12 @@ public partial class SettingsForm : Form
             btnBackupNow.Text = "备份中...";
 
             var backupService = new BackupService();
-            var result = backupService.BackupDatabase();
+            var result = backupService.Backup();
 
             if (result.Success)
             {
-                MessageBox.Show($"备份成功！\n文件：{result.FilePath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LogOperation("手动备份", $"备份文件：{result.FilePath}");
+                MessageBox.Show($"备份成功！\n文件：{result.BackupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                LogOperation("手动备份", $"备份文件：{result.BackupPath}");
             }
             else
             {
