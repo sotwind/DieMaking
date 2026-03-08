@@ -1,0 +1,36 @@
+{
+  "report_date": "2026-03-07",
+  "generated_at": "2026-03-08 08:00:20",
+  "plants": {
+    "集团总部": {
+      "status": "error",
+      "error": "DPI-1047: Cannot locate a 64-bit Oracle Client library: \"libclntsh.so: cannot open shared object file: No such file or directory\". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help",
+      "order_count": 0,
+      "details": []
+    },
+    "临海厂区": {
+      "status": "error",
+      "error": "DPI-1047: Cannot locate a 64-bit Oracle Client library: \"libclntsh.so: cannot open shared object file: No such file or directory\". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help",
+      "order_count": 0,
+      "details": []
+    },
+    "新昌厂区": {
+      "status": "error",
+      "error": "DPI-1047: Cannot locate a 64-bit Oracle Client library: \"libclntsh.so: cannot open shared object file: No such file or directory\". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help",
+      "order_count": 0,
+      "details": []
+    },
+    "老厂厂区": {
+      "status": "error",
+      "error": "DPI-1047: Cannot locate a 64-bit Oracle Client library: \"libclntsh.so: cannot open shared object file: No such file or directory\". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help",
+      "order_count": 0,
+      "details": []
+    },
+    "文森厂区": {
+      "status": "error",
+      "error": "DPI-1047: Cannot locate a 64-bit Oracle Client library: \"libclntsh.so: cannot open shared object file: No such file or directory\". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help",
+      "order_count": 0,
+      "details": []
+    }
+  }
+}

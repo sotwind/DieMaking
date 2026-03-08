@@ -1,0 +1,40 @@
+{
+  "date": "2026-03-06",
+  "generatedAt": "2026-03-07T00:04:48.147Z",
+  "factories": [
+    {
+      "factory": "集团总部",
+      "orders": 0,
+      "amount": 0,
+      "error": "NJS-138: connections to this database server version are not supported by node-oracledb in Thin mode"
+    },
+    {
+      "factory": "临海厂区",
+      "orders": 0,
+      "amount": 0,
+      "error": "NJS-138: connections to this database server version are not supported by node-oracledb in Thin mode"
+    },
+    {
+      "factory": "新昌厂区",
+      "orders": 0,
+      "amount": 0,
+      "error": "NJS-138: connections to this database server version are not supported by node-oracledb in Thin mode"
+    },
+    {
+      "factory": "老厂厂区",
+      "orders": 225,
+      "amount": 677011.62,
+      "error": null
+    },
+    {
+      "factory": "文森厂区",
+      "orders": 1196,
+      "amount": 2157924.879,
+      "error": null
+    }
+  ],
+  "summary": {
+    "totalOrders": 1421,
+    "totalAmount": 2834936.4990000003
+  }
+}

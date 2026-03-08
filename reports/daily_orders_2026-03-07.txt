@@ -1,0 +1,16 @@
+📊 易捷各厂区接单日报 (2026-03-07)
+==================================================
+
+🏭 集团总部: ❌ 查询失败 (DPI-1047: Cannot locate a 64-bit Oracle Client library: "libclntsh.so: cannot open shared object file: No such file or directory". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help)
+
+🏭 临海厂区: ❌ 查询失败 (DPI-1047: Cannot locate a 64-bit Oracle Client library: "libclntsh.so: cannot open shared object file: No such file or directory". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help)
+
+🏭 新昌厂区: ❌ 查询失败 (DPI-1047: Cannot locate a 64-bit Oracle Client library: "libclntsh.so: cannot open shared object file: No such file or directory". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help)
+
+🏭 老厂厂区: ❌ 查询失败 (DPI-1047: Cannot locate a 64-bit Oracle Client library: "libclntsh.so: cannot open shared object file: No such file or directory". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help)
+
+🏭 文森厂区: ❌ 查询失败 (DPI-1047: Cannot locate a 64-bit Oracle Client library: "libclntsh.so: cannot open shared object file: No such file or directory". See https://cx-oracle.readthedocs.io/en/latest/user_guide/installation.html for help)
+
+==================================================
+📈 合计: 0 单
+⏰ 生成时间: 2026-03-08 08:00:20

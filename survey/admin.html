@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调查后台管理</title>
+    <link rel="stylesheet" href="admin-styles.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header>
+            <h1>📊 调查问卷后台管理</h1>
+            <p class="subtitle">查看提交数据、统计分析和导出</p>
+        </header>
+
+        <!-- 统计概览 -->
+        <section class="stats-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📝</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalSubmissions">0</div>
+                        <div class="stat-label">总提交数</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">⭐</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="avgOverall">0</div>
+                        <div class="stat-label">平均总分</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">📈</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="avgScore">0</div>
+                        <div class="stat-label">平均单项分</div>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon">🖼️</div>
+                    <div class="stat-info">
+                        <div class="stat-value" id="totalImages">0</div>
+                        <div class="stat-label">上传图片总数</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 分项统计 -->
+        <section class="charts-section">
+            <h2>📋 各维度平均分</h2>
+            <div class="score-bars">
+                <div class="score-bar-item">
+                    <div class="score-bar-label">产品质量</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" id="barQuality" style="width: 0%"></div>
+                    </div>
+                    <div class="score-bar-value" id="valQuality">0</div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label">服务态度</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" id="barService" style="width: 0%"></div>
+                    </div>
+                    <div class="score-bar-value" id="valService">0</div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label">配送效率</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" id="barDelivery" style="width: 0%"></div>
+                    </div>
+                    <div class="score-bar-value" id="valDelivery">0</div>
+                </div>
+                <div class="score-bar-item">
+                    <div class="score-bar-label">整体体验</div>
+                    <div class="score-bar-container">
+                        <div class="score-bar" id="barOverall" style="width: 0%"></div>
+                    </div>
+                    <div class="score-bar-value" id="valOverall">0</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 数据表格 -->
+        <section class="data-section">
+            <div class="section-header">
+                <h2>📄 提交记录</h2>
+                <div class="section-actions">
+                    <button class="btn-action" id="exportBtn">📥 导出 Excel</button>
+                    <button class="btn-action btn-danger" id="clearBtn">🗑️ 清空数据</button>
+                    <button class="btn-action" id="refreshBtn">🔄 刷新</button>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>编号</th>
+                            <th>姓名</th>
+                            <th>联系方式</th>
+                            <th>产品质量</th>
+                            <th>服务态度</th>
+                            <th>配送效率</th>
+                            <th>整体体验</th>
+                            <th>总分</th>
+                            <th>平均分</th>
+                            <th>图片</th>
+                            <th>提交时间</th>
+                            <th>操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody">
+                        <!-- 数据由 JS 填充 -->
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="empty-state" id="emptyState">
+                <div class="empty-icon">📭</div>
+                <p>暂无提交数据</p>
+                <p class="empty-hint">等待用户提交调查问卷...</p>
+            </div>
+        </section>
+
+        <!-- 详情弹窗 -->
+        <div class="modal" id="detailModal">
+            <div class="modal-content modal-large">
+                <span class="close-modal">&times;</span>
+                <h2>提交详情</h2>
+                <div class="detail-content" id="detailContent">
+                    <!-- 详情内容由 JS 填充 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="admin.js"></script>
+</body>
+</html>

@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>调查问卷</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>📋 调查问卷</h1>
+            <p class="subtitle">感谢您的参与，请完成以下调查内容</p>
+        </header>
+
+        <form id="surveyForm">
+            <!-- 基本信息 -->
+            <section class="form-section">
+                <h2>基本信息</h2>
+                <div class="form-group">
+                    <label for="name">姓名 *</label>
+                    <input type="text" id="name" name="name" required placeholder="请输入您的姓名">
+                </div>
+                <div class="form-group">
+                    <label for="email">邮箱</label>
+                    <input type="email" id="email" name="email" placeholder="请输入您的邮箱">
+                </div>
+                <div class="form-group">
+                    <label for="phone">手机号</label>
+                    <input type="tel" id="phone" name="phone" placeholder="请输入您的手机号">
+                </div>
+            </section>
+
+            <!-- 图片上传 -->
+            <section class="form-section">
+                <h2>上传图片</h2>
+                <div class="form-group">
+                    <label for="imageUpload">请上传相关图片（支持多张）</label>
+                    <div class="upload-area" id="uploadArea">
+                        <input type="file" id="imageUpload" name="imageUpload" accept="image/*" multiple>
+                        <div class="upload-placeholder">
+                            <span class="upload-icon">📷</span>
+                            <p>点击或拖拽图片到此处上传</p>
+                            <p class="upload-hint">支持 JPG、PNG、GIF、WebP 格式，最多 20 张</p>
+                        </div>
+                        <div class="preview-container" id="previewContainer"></div>
+                    </div>
+                    <div class="upload-info">
+                        <span>已选择 <strong id="imageCount">0</strong> / 20 张图片</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 打分部分 -->
+            <section class="form-section">
+                <h2>满意度评分（满分 100 分）</h2>
+                <p class="section-desc">请对以下四个方面进行评分，每项满分 100 分</p>
+                
+                <div class="form-group">
+                    <label for="score1">1. 产品质量 *</label>
+                    <div class="score-input-container">
+                        <input type="number" id="score1" name="score1" class="score-input" 
+                               min="0" max="100" placeholder="0-100" required>
+                        <div class="score-slider">
+                            <input type="range" class="score-range" data-target="score1" 
+                                   min="0" max="100" value="0">
+                        </div>
+                        <span class="score-label" id="score1Label">未评分</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="score2">2. 服务态度 *</label>
+                    <div class="score-input-container">
+                        <input type="number" id="score2" name="score2" class="score-input" 
+                               min="0" max="100" placeholder="0-100" required>
+                        <div class="score-slider">
+                            <input type="range" class="score-range" data-target="score2" 
+                                   min="0" max="100" value="0">
+                        </div>
+                        <span class="score-label" id="score2Label">未评分</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="score3">3. 配送效率 *</label>
+                    <div class="score-input-container">
+                        <input type="number" id="score3" name="score3" class="score-input" 
+                               min="0" max="100" placeholder="0-100" required>
+                        <div class="score-slider">
+                            <input type="range" class="score-range" data-target="score3" 
+                                   min="0" max="100" value="0">
+                        </div>
+                        <span class="score-label" id="score3Label">未评分</span>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="score4">4. 整体体验 *</label>
+                    <div class="score-input-container">
+                        <input type="number" id="score4" name="score4" class="score-input" 
+                               min="0" max="100" placeholder="0-100" required>
+                        <div class="score-slider">
+                            <input type="range" class="score-range" data-target="score4" 
+                                   min="0" max="100" value="0">
+                        </div>
+                        <span class="score-label" id="score4Label">未评分</span>
+                    </div>
+                </div>
+
+                <div class="total-score">
+                    <span>总分：</span>
+                    <strong id="totalScore">0</strong> / 400
+                    <span class="avg-score">平均分：<strong id="avgScore">0</strong></span>
+                </div>
+            </section>
+
+            <!-- 评论部分 -->
+            <section class="form-section">
+                <h2>意见与建议</h2>
+                <div class="form-group">
+                    <label for="comment">请留下您的宝贵意见 *</label>
+                    <textarea id="comment" name="comment" rows="5" required 
+                              placeholder="请详细描述您的体验和建议，帮助我们做得更好..."></textarea>
+                    <span class="char-count"><span id="charCount">0</span>/500</span>
+                </div>
+            </section>
+
+            <!-- 提交按钮 -->
+            <div class="form-actions">
+                <button type="submit" class="btn-submit">提交问卷</button>
+                <button type="reset" class="btn-reset">重置</button>
+            </div>
+        </form>
+
+        <!-- 提交成功提示 -->
+        <div class="success-modal" id="successModal">
+            <div class="modal-content">
+                <span class="close-modal">&times;</span>
+                <div class="success-icon">✓</div>
+                <h2>提交成功！</h2>
+                <p>感谢您的参与，您的反馈对我们非常重要。</p>
+                <div class="submit-info" id="submitInfo"></div>
+                <button class="btn-close" id="closeModal">关闭</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

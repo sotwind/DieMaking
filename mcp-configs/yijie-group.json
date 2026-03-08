@@ -1,0 +1,22 @@
+{
+  "mcpServers": {
+    "yijie-group": {
+      "command": "docker",
+      "args": [
+        "run",
+        "-i",
+        "--rm",
+        "-e", "ORACLE_CONNECTION_STRING",
+        "-e", "TARGET_SCHEMA",
+        "-e", "CACHE_DIR",
+        "dmeppiel/oracle-mcp-server"
+      ],
+      "env": {
+        "ORACLE_CONNECTION_STRING": "fgrp/kuke.fgrp@36.138.130.91:1521/dbms",
+        "TARGET_SCHEMA": "",
+        "CACHE_DIR": ".cache",
+        "READ_ONLY_MODE": "1"
+      }
+    }
+  }
+}

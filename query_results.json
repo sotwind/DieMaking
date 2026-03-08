@@ -1,0 +1,1094 @@
+{
+  "pb_dept_member_structure": {
+    "table": "PB_DEPT_MEMBER",
+    "success": true,
+    "columns": [
+      {
+        "column_name": "ID",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "CLIENTID",
+        "data_type": "VARCHAR2",
+        "data_length": 20
+      },
+      {
+        "column_name": "CREATED",
+        "data_type": "DATE",
+        "data_length": 7
+      },
+      {
+        "column_name": "CREATEDBY",
+        "data_type": "VARCHAR2",
+        "data_length": 44
+      },
+      {
+        "column_name": "DPTNME",
+        "data_type": "VARCHAR2",
+        "data_length": 160
+      },
+      {
+        "column_name": "EMPCDE",
+        "data_type": "VARCHAR2",
+        "data_length": 44
+      },
+      {
+        "column_name": "EMPNME",
+        "data_type": "VARCHAR2",
+        "data_length": 80
+      },
+      {
+        "column_name": "ISACTIVE",
+        "data_type": "VARCHAR2",
+        "data_length": 4
+      },
+      {
+        "column_name": "ORGCDE",
+        "data_type": "VARCHAR2",
+        "data_length": 20
+      },
+      {
+        "column_name": "UPDATED",
+        "data_type": "DATE",
+        "data_length": 7
+      },
+      {
+        "column_name": "UPDATEDBY",
+        "data_type": "VARCHAR2",
+        "data_length": 44
+      },
+      {
+        "column_name": "ISMANAGER",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "AGNTCDE",
+        "data_type": "VARCHAR2",
+        "data_length": 48
+      },
+      {
+        "column_name": "AGNTNME",
+        "data_type": "VARCHAR2",
+        "data_length": 80
+      },
+      {
+        "column_name": "DATAID",
+        "data_type": "NUMBER",
+        "data_length": 22
+      }
+    ]
+  },
+  "pb_dept_structure": {
+    "table": "PB_DEPT",
+    "success": true,
+    "columns": [
+      {
+        "column_name": "ID",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "CLIENTID",
+        "data_type": "VARCHAR2",
+        "data_length": 20
+      },
+      {
+        "column_name": "CREATED",
+        "data_type": "DATE",
+        "data_length": 7
+      },
+      {
+        "column_name": "CREATEDBY",
+        "data_type": "VARCHAR2",
+        "data_length": 44
+      },
+      {
+        "column_name": "DPTCDE",
+        "data_type": "VARCHAR2",
+        "data_length": 40
+      },
+      {
+        "column_name": "DPTNME",
+        "data_type": "VARCHAR2",
+        "data_length": 240
+      },
+      {
+        "column_name": "DPTYPE",
+        "data_type": "VARCHAR2",
+        "data_length": 20
+      },
+      {
+        "column_name": "EMPSUM",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "FID",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "ISACTIVE",
+        "data_type": "VARCHAR2",
+        "data_length": 4
+      },
+      {
+        "column_name": "ORGCDE",
+        "data_type": "VARCHAR2",
+        "data_length": 20
+      },
+      {
+        "column_name": "QUENCE",
+        "data_type": "NUMBER",
+        "data_length": 22
+      },
+      {
+        "column_name": "REMARK",
+        "data_type": "VARCHAR2",
+        "data_length": 800
+      },
+      {
+        "column_name": "UPDATED",
+        "data_type": "DATE",
+        "data_length": 7
+      },
+      {
+        "column_name": "UPDATEDBY",
+        "data_type": "VARCHAR2",
+        "data_length": 44
+      }
+    ]
+  },
+  "fixed_query": {
+    "sql": "SELECT m.EMPCDE, \n                   m.DPTNME, \n                   m.EMPNME\n            FROM pb_dept_member m\n            WHERE m.ISACTIVE = 'Y'\n            ORDER BY m.DPTNME, m.EMPNME",
+    "success": true,
+    "columns": [
+      "EMPCDE",
+      "DPTNME",
+      "EMPNME"
+    ],
+    "rows": [
+      {
+        "EMPCDE": "13958584922",
+        "DPTNME": "临海生产事业部",
+        "EMPNME": "周兴隆"
+      },
+      {
+        "EMPCDE": "18806763063",
+        "DPTNME": "临海生产事业部",
+        "EMPNME": "袁鸿"
+      },
+      {
+        "EMPCDE": "15868616608",
+        "DPTNME": "临海生产事业部",
+        "EMPNME": "邹艳"
+      },
+      {
+        "EMPCDE": "18258638011",
+        "DPTNME": "国际事业部",
+        "EMPNME": "孙露露"
+      },
+      {
+        "EMPCDE": "18855906899",
+        "DPTNME": "国际事业部",
+        "EMPNME": "汪倩倩"
+      },
+      {
+        "EMPCDE": "13738650213",
+        "DPTNME": "国际事业部",
+        "EMPNME": "潘福朝"
+      },
+      {
+        "EMPCDE": "13056926358",
+        "DPTNME": "国际事业部",
+        "EMPNME": "王晨微"
+      },
+      {
+        "EMPCDE": "18157675844",
+        "DPTNME": "国际事业部",
+        "EMPNME": "罗芳芳"
+      },
+      {
+        "EMPCDE": "13336756227",
+        "DPTNME": "国际事业部",
+        "EMPNME": "胡梦希"
+      },
+      {
+        "EMPCDE": "17857063815",
+        "DPTNME": "国际事业部",
+        "EMPNME": "陈雯"
+      },
+      {
+        "EMPCDE": "15877015331",
+        "DPTNME": "国际事业部",
+        "EMPNME": "陈青青"
+      },
+      {
+        "EMPCDE": "18006863389",
+        "DPTNME": "快印包",
+        "EMPNME": "卢豪"
+      },
+      {
+        "EMPCDE": "13105666665",
+        "DPTNME": "快印包",
+        "EMPNME": "庄云龙"
+      },
+      {
+        "EMPCDE": "15727879737",
+        "DPTNME": "快印包",
+        "EMPNME": "杨婷雅"
+      },
+      {
+        "EMPCDE": "15868605256",
+        "DPTNME": "快印包",
+        "EMPNME": "王芳"
+      },
+      {
+        "EMPCDE": "13291667672",
+        "DPTNME": "快印包",
+        "EMPNME": "谢兴广"
+      },
+      {
+        "EMPCDE": "17857933398",
+        "DPTNME": "快印包",
+        "EMPNME": "赵瑜佳"
+      },
+      {
+        "EMPCDE": "13606682553",
+        "DPTNME": "快印包",
+        "EMPNME": "赵金丹"
+      },
+      {
+        "EMPCDE": "15257684651",
+        "DPTNME": "快印包",
+        "EMPNME": "陈张婷"
+      },
+      {
+        "EMPCDE": "13736658168",
+        "DPTNME": "森林集团",
+        "EMPNME": "林昊"
+      },
+      {
+        "EMPCDE": "18357645466",
+        "DPTNME": "森林集团",
+        "EMPNME": "潘灵燕"
+      },
+      {
+        "EMPCDE": "13732300223",
+        "DPTNME": "森林集团",
+        "EMPNME": "陈华来"
+      },
+      {
+        "EMPCDE": "18806580371",
+        "DPTNME": "精品盒",
+        "EMPNME": "秦瑞林"
+      },
+      {
+        "EMPCDE": "13666813013",
+        "DPTNME": "老厂生产部",
+        "EMPNME": "江传富"
+      },
+      {
+        "EMPCDE": "13586269539",
+        "DPTNME": "老厂生产部",
+        "EMPNME": "莫梦辉"
+      },
+      {
+        "EMPCDE": "15757608514",
+        "DPTNME": "销售10部",
+        "EMPNME": "卢斌"
+      },
+      {
+        "EMPCDE": "15606762398",
+        "DPTNME": "销售10部",
+        "EMPNME": "卢雨薇"
+      },
+      {
+        "EMPCDE": "15868662836",
+        "DPTNME": "销售10部",
+        "EMPNME": "叶萌"
+      },
+      {
+        "EMPCDE": "17857063502",
+        "DPTNME": "销售10部",
+        "EMPNME": "吴玉龙"
+      },
+      {
+        "EMPCDE": "13968521114",
+        "DPTNME": "销售10部",
+        "EMPNME": "孙丹红"
+      },
+      {
+        "EMPCDE": "13750636482",
+        "DPTNME": "销售10部",
+        "EMPNME": "张双双"
+      },
+      {
+        "EMPCDE": "15867014101",
+        "DPTNME": "销售10部",
+        "EMPNME": "张小利"
+      },
+      {
+        "EMPCDE": "13575872636",
+        "DPTNME": "销售10部",
+        "EMPNME": "张海龙"
+      },
+      {
+        "EMPCDE": "18357638488",
+        "DPTNME": "销售10部",
+        "EMPNME": "杨张"
+      },
+      {
+        "EMPCDE": "15867014222",
+        "DPTNME": "销售10部",
+        "EMPNME": "测试"
+      },
+      {
+        "EMPCDE": "13505865982",
+        "DPTNME": "销售10部",
+        "EMPNME": "王泽昊"
+      },
+      {
+        "EMPCDE": "13566469967",
+        "DPTNME": "销售10部",
+        "EMPNME": "谢书磊"
+      },
+      {
+        "EMPCDE": "13566828528",
+        "DPTNME": "销售10部",
+        "EMPNME": "谢玲玲"
+      },
+      {
+        "EMPCDE": "15168644241",
+        "DPTNME": "销售10部",
+        "EMPNME": "赵文云"
+      },
+      {
+        "EMPCDE": "15558520137",
+        "DPTNME": "销售10部",
+        "EMPNME": "赵杭杨"
+      },
+      {
+        "EMPCDE": "15557668333",
+        "DPTNME": "销售10部",
+        "EMPNME": "赵鹏"
+      },
+      {
+        "EMPCDE": "13106020809",
+        "DPTNME": "销售10部",
+        "EMPNME": "陈海龙"
+      },
+      {
+        "EMPCDE": "13867632331",
+        "DPTNME": "销售12部",
+        "EMPNME": "刘正利"
+      },
+      {
+        "EMPCDE": "13757648305",
+        "DPTNME": "销售12部",
+        "EMPNME": "卓星波"
+      },
+      {
+        "EMPCDE": "15057233397",
+        "DPTNME": "销售12部",
+        "EMPNME": "周全华"
+      },
+      {
+        "EMPCDE": "15168669522",
+        "DPTNME": "销售12部",
+        "EMPNME": "崔敏娇"
+      },
+      {
+        "EMPCDE": "13758634501",
+        "DPTNME": "销售12部",
+        "EMPNME": "应谨阳"
+      },
+      {
+        "EMPCDE": "17857063819",
+        "DPTNME": "销售12部",
+        "EMPNME": "张小鹏"
+      },
+      {
+        "EMPCDE": "13957610187",
+        "DPTNME": "销售12部",
+        "EMPNME": "李宇航"
+      },
+      {
+        "EMPCDE": "13586293590",
+        "DPTNME": "销售12部",
+        "EMPNME": "李海燕"
+      },
+      {
+        "EMPCDE": "17857063810",
+        "DPTNME": "销售12部",
+        "EMPNME": "林佳"
+      },
+      {
+        "EMPCDE": "17857066302",
+        "DPTNME": "销售12部",
+        "EMPNME": "梁子航"
+      },
+      {
+        "EMPCDE": "13586032043",
+        "DPTNME": "销售12部",
+        "EMPNME": "梁晨佳"
+      },
+      {
+        "EMPCDE": "13626646527",
+        "DPTNME": "销售12部",
+        "EMPNME": "潘挺龙"
+      },
+      {
+        "EMPCDE": "17857063811",
+        "DPTNME": "销售12部",
+        "EMPNME": "潘梦婷"
+      },
+      {
+        "EMPCDE": "13372350279",
+        "DPTNME": "销售12部",
+        "EMPNME": "潘鑫驰"
+      },
+      {
+        "EMPCDE": "18758636631",
+        "DPTNME": "销售12部",
+        "EMPNME": "肖永兴"
+      },
+      {
+        "EMPCDE": "17857063611",
+        "DPTNME": "销售12部",
+        "EMPNME": "范艳娥"
+      },
+      {
+        "EMPCDE": "13626605979",
+        "DPTNME": "销售12部",
+        "EMPNME": "董小浩"
+      },
+      {
+        "EMPCDE": "13958548833",
+        "DPTNME": "销售12部",
+        "EMPNME": "董美亚"
+      },
+      {
+        "EMPCDE": "15757674430",
+        "DPTNME": "销售12部",
+        "EMPNME": "赵正勇"
+      },
+      {
+        "EMPCDE": "17857063817",
+        "DPTNME": "销售12部",
+        "EMPNME": "郑国棋"
+      },
+      {
+        "EMPCDE": "15867619587",
+        "DPTNME": "销售12部",
+        "EMPNME": "阮灵斌"
+      },
+      {
+        "EMPCDE": "13858637074",
+        "DPTNME": "销售12部",
+        "EMPNME": "颜上蔚"
+      },
+      {
+        "EMPCDE": "17857063609",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "倪青华"
+      },
+      {
+        "EMPCDE": "17857063620",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "梁正鑫"
+      },
+      {
+        "EMPCDE": "17857063803",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "程金阳"
+      },
+      {
+        "EMPCDE": "15857617102",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "陆伟龙"
+      },
+      {
+        "EMPCDE": "17857063615",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "陈文广"
+      },
+      {
+        "EMPCDE": "13666482919",
+        "DPTNME": "销售12部A组",
+        "EMPNME": "陈良君"
+      },
+      {
+        "EMPCDE": "15988936883",
+        "DPTNME": "销售12部B组",
+        "EMPNME": "崔海帽"
+      },
+      {
+        "EMPCDE": "13586114281",
+        "DPTNME": "销售12部B组",
+        "EMPNME": "蒋杰"
+      },
+      {
+        "EMPCDE": "17857066301",
+        "DPTNME": "销售12部B组",
+        "EMPNME": "陈世钰"
+      },
+      {
+        "EMPCDE": "17857063612",
+        "DPTNME": "销售12部B组",
+        "EMPNME": "陶金龙"
+      },
+      {
+        "EMPCDE": "13968464042",
+        "DPTNME": "销售12部内勤组",
+        "EMPNME": "杨满意"
+      },
+      {
+        "EMPCDE": "13858694856",
+        "DPTNME": "销售12部内勤组",
+        "EMPNME": "毛思睿"
+      },
+      {
+        "EMPCDE": "18257681551",
+        "DPTNME": "销售12部内勤组",
+        "EMPNME": "王梦洁"
+      },
+      {
+        "EMPCDE": "13575847274",
+        "DPTNME": "销售12部内勤组",
+        "EMPNME": "阮小效"
+      },
+      {
+        "EMPCDE": "17857063802",
+        "DPTNME": "销售12部内勤组",
+        "EMPNME": "顾婷"
+      },
+      {
+        "EMPCDE": "18868430330",
+        "DPTNME": "销售13部",
+        "EMPNME": "何必敏"
+      },
+      {
+        "EMPCDE": "15057514591",
+        "DPTNME": "销售13部",
+        "EMPNME": "吕华贵"
+      },
+      {
+        "EMPCDE": "17681651057",
+        "DPTNME": "销售13部",
+        "EMPNME": "林禹兆"
+      },
+      {
+        "EMPCDE": "13736690182",
+        "DPTNME": "销售13部",
+        "EMPNME": "潘金华"
+      },
+      {
+        "EMPCDE": "15957651035",
+        "DPTNME": "销售13部",
+        "EMPNME": "王新黎"
+      },
+      {
+        "EMPCDE": "13635756039",
+        "DPTNME": "销售13部",
+        "EMPNME": "田海艳"
+      },
+      {
+        "EMPCDE": "18257697640",
+        "DPTNME": "销售13部",
+        "EMPNME": "蔡灵刚"
+      },
+      {
+        "EMPCDE": "17857063756",
+        "DPTNME": "销售14部",
+        "EMPNME": "傅胜顺"
+      },
+      {
+        "EMPCDE": "18857618369",
+        "DPTNME": "销售14部",
+        "EMPNME": "吴万洪"
+      },
+      {
+        "EMPCDE": "18057609434",
+        "DPTNME": "销售14部",
+        "EMPNME": "吴陈毅"
+      },
+      {
+        "EMPCDE": "13958675457",
+        "DPTNME": "销售14部",
+        "EMPNME": "张攀"
+      },
+      {
+        "EMPCDE": "13656791166",
+        "DPTNME": "销售14部",
+        "EMPNME": "张辉"
+      },
+      {
+        "EMPCDE": "15167698695",
+        "DPTNME": "销售14部",
+        "EMPNME": "杨林光"
+      },
+      {
+        "EMPCDE": "15868617320",
+        "DPTNME": "销售14部",
+        "EMPNME": "林珂懿"
+      },
+      {
+        "EMPCDE": "17300995290",
+        "DPTNME": "销售14部",
+        "EMPNME": "梁兴宇"
+      },
+      {
+        "EMPCDE": "13858628405",
+        "DPTNME": "销售14部",
+        "EMPNME": "梁星晨"
+      },
+      {
+        "EMPCDE": "13968600326",
+        "DPTNME": "销售14部",
+        "EMPNME": "沈佳仁"
+      },
+      {
+        "EMPCDE": "13968654660",
+        "DPTNME": "销售14部",
+        "EMPNME": "沈筠涵"
+      },
+      {
+        "EMPCDE": "18989687296",
+        "DPTNME": "销售14部",
+        "EMPNME": "熊玉江"
+      },
+      {
+        "EMPCDE": "13566667819",
+        "DPTNME": "销售14部",
+        "EMPNME": "王红波"
+      },
+      {
+        "EMPCDE": "15757638582",
+        "DPTNME": "销售14部",
+        "EMPNME": "陈剑"
+      },
+      {
+        "EMPCDE": "15958093007",
+        "DPTNME": "销售14部",
+        "EMPNME": "颜斌斌"
+      },
+      {
+        "EMPCDE": "13216930306",
+        "DPTNME": "销售14部",
+        "EMPNME": "颜玲佳"
+      },
+      {
+        "EMPCDE": "15558251888",
+        "DPTNME": "销售14部",
+        "EMPNME": "黄杰"
+      },
+      {
+        "EMPCDE": "18815220168",
+        "DPTNME": "销售1部",
+        "EMPNME": "中转调整"
+      },
+      {
+        "EMPCDE": "13655860812",
+        "DPTNME": "销售1部",
+        "EMPNME": "李仰忠"
+      },
+      {
+        "EMPCDE": "13858649687",
+        "DPTNME": "销售1部",
+        "EMPNME": "李高峰"
+      },
+      {
+        "EMPCDE": "13136577871",
+        "DPTNME": "销售1部",
+        "EMPNME": "杨叶"
+      },
+      {
+        "EMPCDE": "13736588897",
+        "DPTNME": "销售1部",
+        "EMPNME": "林吉纯"
+      },
+      {
+        "EMPCDE": "13588966388",
+        "DPTNME": "销售1部",
+        "EMPNME": "童浩宇"
+      },
+      {
+        "EMPCDE": "15057269070",
+        "DPTNME": "销售1部",
+        "EMPNME": "胡永明"
+      },
+      {
+        "EMPCDE": "19129461754",
+        "DPTNME": "销售1部",
+        "EMPNME": "许鑫瑶"
+      },
+      {
+        "EMPCDE": "17857063395",
+        "DPTNME": "销售1部",
+        "EMPNME": "郑美燕"
+      },
+      {
+        "EMPCDE": "17857063517",
+        "DPTNME": "销售2部",
+        "EMPNME": "丁利琪"
+      },
+      {
+        "EMPCDE": "13586277999",
+        "DPTNME": "销售2部",
+        "EMPNME": "林俊"
+      },
+      {
+        "EMPCDE": "18967668552",
+        "DPTNME": "销售2部",
+        "EMPNME": "林志豪"
+      },
+      {
+        "EMPCDE": "17857063527",
+        "DPTNME": "销售2部",
+        "EMPNME": "林旖旎"
+      },
+      {
+        "EMPCDE": "17706765950",
+        "DPTNME": "销售2部",
+        "EMPNME": "梁新"
+      },
+      {
+        "EMPCDE": "13566487703",
+        "DPTNME": "销售2部",
+        "EMPNME": "罗仁"
+      },
+      {
+        "EMPCDE": "13566662019",
+        "DPTNME": "销售2部",
+        "EMPNME": "蔡海燕"
+      },
+      {
+        "EMPCDE": "15057671315",
+        "DPTNME": "销售2部",
+        "EMPNME": "郑文龙"
+      },
+      {
+        "EMPCDE": "13736522071",
+        "DPTNME": "销售3部",
+        "EMPNME": "张满江"
+      },
+      {
+        "EMPCDE": "17857063529",
+        "DPTNME": "销售3部",
+        "EMPNME": "张满江"
+      },
+      {
+        "EMPCDE": "15968698120",
+        "DPTNME": "销售3部",
+        "EMPNME": "李佩"
+      },
+      {
+        "EMPCDE": "18767276701",
+        "DPTNME": "销售3部",
+        "EMPNME": "潘灵斌"
+      },
+      {
+        "EMPCDE": "15867687990",
+        "DPTNME": "销售3部",
+        "EMPNME": "王寻避"
+      },
+      {
+        "EMPCDE": "13676693139",
+        "DPTNME": "销售3部",
+        "EMPNME": "王梦婷"
+      },
+      {
+        "EMPCDE": "13738506350",
+        "DPTNME": "销售3部",
+        "EMPNME": "郑志东"
+      },
+      {
+        "EMPCDE": "13968672013",
+        "DPTNME": "销售3部",
+        "EMPNME": "金保田"
+      },
+      {
+        "EMPCDE": "15005763721",
+        "DPTNME": "销售3部",
+        "EMPNME": "陈利君"
+      },
+      {
+        "EMPCDE": "13958628002",
+        "DPTNME": "销售4部",
+        "EMPNME": "丁建森"
+      },
+      {
+        "EMPCDE": "15157618385",
+        "DPTNME": "销售4部",
+        "EMPNME": "周华明"
+      },
+      {
+        "EMPCDE": "17857063652",
+        "DPTNME": "销售4部",
+        "EMPNME": "娄益萍"
+      },
+      {
+        "EMPCDE": "18257660656",
+        "DPTNME": "销售4部",
+        "EMPNME": "孙丽丽"
+      },
+      {
+        "EMPCDE": "15967677786",
+        "DPTNME": "销售4部",
+        "EMPNME": "徐城康"
+      },
+      {
+        "EMPCDE": "15867699969",
+        "DPTNME": "销售4部",
+        "EMPNME": "朱斌斌"
+      },
+      {
+        "EMPCDE": "15967653377",
+        "DPTNME": "销售4部",
+        "EMPNME": "李斌"
+      },
+      {
+        "EMPCDE": "13968591224",
+        "DPTNME": "销售4部",
+        "EMPNME": "杨帅"
+      },
+      {
+        "EMPCDE": "13676667036",
+        "DPTNME": "销售4部",
+        "EMPNME": "窦高辉"
+      },
+      {
+        "EMPCDE": "15325666527",
+        "DPTNME": "销售4部",
+        "EMPNME": "章凯铨"
+      },
+      {
+        "EMPCDE": "13777682320",
+        "DPTNME": "销售4部",
+        "EMPNME": "綦再志"
+      },
+      {
+        "EMPCDE": "15057617491",
+        "DPTNME": "销售4部",
+        "EMPNME": "贺远婷"
+      },
+      {
+        "EMPCDE": "13626680602",
+        "DPTNME": "销售4部",
+        "EMPNME": "高琴琴"
+      },
+      {
+        "EMPCDE": "13736622821",
+        "DPTNME": "销售5部",
+        "EMPNME": "李灵周"
+      },
+      {
+        "EMPCDE": "13655865805",
+        "DPTNME": "销售5部",
+        "EMPNME": "王跃"
+      },
+      {
+        "EMPCDE": "13706765668",
+        "DPTNME": "销售5部",
+        "EMPNME": "马海涛"
+      },
+      {
+        "EMPCDE": "13968556796",
+        "DPTNME": "销售6部",
+        "EMPNME": "刘士东"
+      },
+      {
+        "EMPCDE": "15867093113",
+        "DPTNME": "销售6部",
+        "EMPNME": "周松芽"
+      },
+      {
+        "EMPCDE": "13566673001",
+        "DPTNME": "销售6部",
+        "EMPNME": "应斌骞"
+      },
+      {
+        "EMPCDE": "18767637907",
+        "DPTNME": "销售6部",
+        "EMPNME": "王小博"
+      },
+      {
+        "EMPCDE": "13676660115",
+        "DPTNME": "销售6部",
+        "EMPNME": "胡云贤"
+      },
+      {
+        "EMPCDE": "17857063591",
+        "DPTNME": "销售6部",
+        "EMPNME": "胡泽品"
+      },
+      {
+        "EMPCDE": "15868611579",
+        "DPTNME": "销售6部",
+        "EMPNME": "莫驾齐"
+      },
+      {
+        "EMPCDE": "18857511134",
+        "DPTNME": "销售6部",
+        "EMPNME": "谢敏敏"
+      },
+      {
+        "EMPCDE": "18989688586",
+        "DPTNME": "销售7部",
+        "EMPNME": "吕智俊"
+      },
+      {
+        "EMPCDE": "15858600088",
+        "DPTNME": "销售7部",
+        "EMPNME": "吴志勇"
+      },
+      {
+        "EMPCDE": "13626641725",
+        "DPTNME": "销售7部",
+        "EMPNME": "张学菊"
+      },
+      {
+        "EMPCDE": "13857656097",
+        "DPTNME": "销售7部",
+        "EMPNME": "潘丹红"
+      },
+      {
+        "EMPCDE": "17706765950",
+        "DPTNME": "销售7部",
+        "EMPNME": "许晓虎"
+      },
+      {
+        "EMPCDE": "13511475554",
+        "DPTNME": "销售8部",
+        "EMPNME": "刘溪平"
+      },
+      {
+        "EMPCDE": "13586041532",
+        "DPTNME": "销售8部",
+        "EMPNME": "古金燕"
+      },
+      {
+        "EMPCDE": "15858622295",
+        "DPTNME": "销售8部",
+        "EMPNME": "叶恩辉"
+      },
+      {
+        "EMPCDE": "18357678804",
+        "DPTNME": "销售8部",
+        "EMPNME": "吴琴琴"
+      },
+      {
+        "EMPCDE": "13858623346",
+        "DPTNME": "销售8部",
+        "EMPNME": "朱文静"
+      },
+      {
+        "EMPCDE": "13456692886",
+        "DPTNME": "销售8部",
+        "EMPNME": "林小芬"
+      },
+      {
+        "EMPCDE": "13969755955",
+        "DPTNME": "销售8部",
+        "EMPNME": "梁宽"
+      },
+      {
+        "EMPCDE": "18258646381",
+        "DPTNME": "销售8部",
+        "EMPNME": "江涛"
+      },
+      {
+        "EMPCDE": "13357665789",
+        "DPTNME": "销售8部",
+        "EMPNME": "王城"
+      },
+      {
+        "EMPCDE": "17757665387",
+        "DPTNME": "销售8部",
+        "EMPNME": "王婷"
+      },
+      {
+        "EMPCDE": "13058884733",
+        "DPTNME": "销售8部",
+        "EMPNME": "王成龙"
+      },
+      {
+        "EMPCDE": "18267636649",
+        "DPTNME": "销售8部",
+        "EMPNME": "覃州"
+      },
+      {
+        "EMPCDE": "18069330973",
+        "DPTNME": "销售8部",
+        "EMPNME": "陈陈"
+      },
+      {
+        "EMPCDE": "13757649919",
+        "DPTNME": "销售8部",
+        "EMPNME": "颜宏骞"
+      },
+      {
+        "EMPCDE": "15967029906",
+        "DPTNME": "销售9部",
+        "EMPNME": "吴新斌"
+      },
+      {
+        "EMPCDE": "15958681668",
+        "DPTNME": "销售9部",
+        "EMPNME": "李明波"
+      },
+      {
+        "EMPCDE": "15268856397",
+        "DPTNME": "销售9部",
+        "EMPNME": "李顺恒"
+      },
+      {
+        "EMPCDE": "17857063602",
+        "DPTNME": "销售9部",
+        "EMPNME": "林越"
+      },
+      {
+        "EMPCDE": "18164565132",
+        "DPTNME": "销售9部",
+        "EMPNME": "游团结"
+      },
+      {
+        "EMPCDE": "13486265295",
+        "DPTNME": "销售9部",
+        "EMPNME": "苏承鸣雷"
+      },
+      {
+        "EMPCDE": "17857063596",
+        "DPTNME": "销售9部",
+        "EMPNME": "赵小龙"
+      },
+      {
+        "EMPCDE": "15258596705",
+        "DPTNME": "销售9部",
+        "EMPNME": "陈东舟"
+      },
+      {
+        "EMPCDE": "15068665302",
+        "DPTNME": "销售9部",
+        "EMPNME": "陈亨妙"
+      }
+    ]
+  ],
+  "order_count": {
+    "sql": "SELECT COUNT(*) as cnt \n            FROM ord_bas \n            WHERE created >= TO_DATE(:date_from, 'YYYY-MM-DD') \n              AND created < TO_DATE(:date_to, 'YYYY-MM-DD') \n              AND isactive = 'Y'",
+    "date_from": "2026-03-04",
+    "date_to": "2026-03-05",
+    "success": true,
+    "columns": [
+      "CNT"
+    ],
+    "rows": [
+      {
+        "CNT": 0
+      }
+    ]
+  }
+}

@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📋 在线评分问卷系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+        }
+        .section {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+            border-left: 4px solid #667eea;
+        }
+        .section h2 {
+            color: #764ba2;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .form-group {
+            margin: 15px 0;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+        .image-upload {
+            border: 2px dashed #667eea;
+            border-radius: 8px;
+            padding: 30px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #fff;
+        }
+        .image-upload:hover {
+            background: #f0f0ff;
+            border-color: #764ba2;
+        }
+        .image-upload input {
+            display: none;
+        }
+        .image-preview {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .image-preview img {
+            width: 120px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 2px solid #667eea;
+        }
+        .rating-item {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin: 15px 0;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .rating-item h3 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        .rating-input {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .rating-input input[type="number"] {
+            width: 100px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .rating-input span {
+            color: #666;
+        }
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 16px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin: 10px 5px;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+        .btn-secondary {
+            background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%);
+        }
+        .btn-success {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+        }
+        .btn-danger {
+            background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+        }
+        .stats-container {
+            background: #fff;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 20px 0;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.1);
+        }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .stat-card .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .records-list {
+            margin-top: 20px;
+        }
+        .record-item {
+            background: #f8f9ff;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 10px 0;
+            border-left: 3px solid #667eea;
+        }
+        .record-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .record-name {
+            font-weight: bold;
+            color: #667eea;
+        }
+        .record-time {
+            color: #999;
+            font-size: 12px;
+        }
+        .record-scores {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            margin: 10px 0;
+        }
+        .score-badge {
+            background: white;
+            padding: 8px;
+            border-radius: 5px;
+            text-align: center;
+            border: 1px solid #667eea;
+        }
+        .score-badge .score {
+            font-weight: bold;
+            color: #667eea;
+            font-size: 18px;
+        }
+        .score-badge .label {
+            font-size: 11px;
+            color: #666;
+        }
+        .record-total {
+            text-align: right;
+            font-weight: bold;
+            color: #764ba2;
+            font-size: 18px;
+        }
+        .record-images {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .record-images img {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: transform 0.3s;
+        }
+        .record-images img:hover {
+            transform: scale(1.1);
+        }
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e0e0e0;
+            padding-bottom: 10px;
+        }
+        .tab {
+            padding: 10px 25px;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f0f0f0;
+            font-weight: 500;
+        }
+        .tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        .alert {
+            padding: 15px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .alert-success {
+            background: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .alert-info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+        }
+        .alert-warning {
+            background: #fff3cd;
+            border: 1px solid #ffeaa7;
+            color: #856404;
+        }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            max-width: 90%;
+            max-height: 90%;
+        }
+        .modal-content img {
+            max-width: 100%;
+            max-height: 90vh;
+            border-radius: 10px;
+        }
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            font-size: 40px;
+            color: white;
+            cursor: pointer;
+        }
+        .export-section {
+            background: #f8f9ff;
+            border-radius: 12px;
+            padding: 25px;
+            margin: 25px 0;
+        }
+        .export-section h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        .export-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+            }
+            .record-scores {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📋 在线评分问卷系统</h1>
+        <p class="subtitle">支持图片上传 · 四项打分 · 自动统计</p>
+
+        <div class="tabs">
+            <div class="tab active" onclick="switchTab('submit')">📝 提交评分</div>
+            <div class="tab" onclick="switchTab('stats')">📊 统计结果</div>
+            <div class="tab" onclick="switchTab('export')">📤 导出数据</div>
+        </div>
+
+        <!-- 提交评分页面 -->
+        <div id="submit-tab" class="tab-content active">
+            <div class="alert alert-info">
+                ℹ️ 请填写评分信息，每项满分 100 分，支持上传多张图片
+            </div>
+
+            <form id="ratingForm">
+                <div class="section">
+                    <h2>👤 基本信息</h2>
+                    <div class="form-group">
+                        <label for="evaluatorName">评分人姓名 *</label>
+                        <input type="text" id="evaluatorName" required placeholder="请输入您的姓名">
+                    </div>
+                    <div class="form-group">
+                        <label for="projectName">项目名称/被评对象 *</label>
+                        <input type="text" id="projectName" required placeholder="请输入项目名称或被评对象">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📸 图片资料</h2>
+                    <div class="form-group">
+                        <label>上传图片（支持多选，可上传多张）</label>
+                        <div class="image-upload" onclick="document.getElementById('imageInput').click()">
+                            <p>📷 点击选择图片或拖拽图片到此处</p>
+                            <p style="color: #999; font-size: 12px;">支持 JPG、PNG、GIF 格式</p>
+                            <input type="file" id="imageInput" accept="image/*" multiple onchange="handleImageUpload(event)">
+                        </div>
+                        <div class="image-preview" id="imagePreview"></div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>📝 文字介绍</h2>
+                    <div class="form-group">
+                        <label for="description">详细说明</label>
+                        <textarea id="description" placeholder="请输入详细的文字介绍或评价说明..."></textarea>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <h2>⭐ 评分项目（每项满分 100 分）</h2>
+                    
+                    <div class="rating-item">
+                        <h3>1️⃣ 项目一：专业性</h3>
+                        <div class="rating-input">
+                            <input type="number" id="score1" min="0" max="100" value="80" required>
+                            <span>分（0-100）</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <h3>2️⃣ 项目二：创新性</h3>
+                        <div class="rating-input">
+                            <input type="number" id="score2" min="0" max="100" value="80" required>
+                            <span>分（0-100）</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <h3>3️⃣ 项目三：实用性</h3>
+                        <div class="rating-input">
+                            <input type="number" id="score3" min="0" max="100" value="80" required>
+                            <span>分（0-100）</span>
+                        </div>
+                    </div>
+
+                    <div class="rating-item">
+                        <h3>4️⃣ 项目四：完成度</h3>
+                        <div class="rating-input">
+                            <input type="number" id="score4" min="0" max="100" value="80" required>
+                            <span>分（0-100）</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div style="text-align: center; margin: 30px 0;">
+                    <button type="submit" class="btn btn-success">✅ 提交评分</button>
+                    <button type="reset" class="btn btn-secondary">🔄 重置表单</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- 统计结果页面 -->
+        <div id="stats-tab" class="tab-content">
+            <div class="alert alert-success">
+                ✅ 实时统计所有评分数据，自动计算平均分
+            </div>
+
+            <div class="stats-container">
+                <h2>📊 统计概览</h2>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="label">评分总数</div>
+                        <div class="value" id="totalCount">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">平均总分</div>
+                        <div class="value" id="avgTotal">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">最高分</div>
+                        <div class="value" id="maxScore">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="label">最低分</div>
+                        <div class="value" id="minScore">0</div>
+                    </div>
+                </div>
+
+                <h3 style="margin: 25px 0 15px; color: #667eea;">📈 各项平均分</h3>
+                <div class="stats-grid">
+                    <div class="stat-card" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);">
+                        <div class="label">专业性</div>
+                        <div class="value" id="avgScore1">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);">
+                        <div class="label">创新性</div>
+                        <div class="value" id="avgScore2">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);">
+                        <div class="label">实用性</div>
+                        <div class="value" id="avgScore3">0</div>
+                    </div>
+                    <div class="stat-card" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+                        <div class="label">完成度</div>
+                        <div class="value" id="avgScore4">0</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2>📋 评分记录</h2>
+                <div class="records-list" id="recordsList">
+                    <p style="text-align: center; color: #999; padding: 40px;">暂无评分记录</p>
+                </div>
+                <div style="text-align: center; margin-top: 20px;">
+                    <button class="btn btn-danger" onclick="clearAllData()">🗑️ 清空所有数据</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 导出数据页面 -->
+        <div id="export-tab" class="tab-content">
+            <div class="export-section">
+                <h3>📤 导出评分数据</h3>
+                <p style="color: #666; margin-bottom: 20px;">将评分数据导出为 Excel 格式，方便进一步分析和存档</p>
+                <div class="export-btns">
+                    <button class="btn" onclick="exportToCSV()">📊 导出 CSV (Excel)</button>
+                    <button class="btn btn-secondary" onclick="exportToJSON()">📁 导出 JSON</button>
+                    <button class="btn btn-secondary" onclick="window.print()">🖨️ 打印页面</button>
+                </div>
+            </div>
+
+            <div class="section">
+                <h3>💡 使用说明</h3>
+                <ul style="margin-left: 20px; color: #666; line-height: 2;">
+                    <li><strong>CSV 格式：</strong>可用 Excel 打开，适合数据分析和统计</li>
+                    <li><strong>JSON 格式：</strong>适合程序处理和备份</li>
+                    <li><strong>打印页面：</strong>直接打印当前统计结果</li>
+                    <li><strong>数据存储：</strong>数据保存在浏览器本地，清除缓存会丢失</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图片预览弹窗 -->
+    <div class="modal" id="imageModal" onclick="closeImageModal()">
+        <span class="close-modal">&times;</span>
+        <div class="modal-content">
+            <img id="modalImage" src="" alt="预览">
+        </div>
+    </div>
+
+    <script>
+        // 数据存储
+        let ratings = JSON.parse(localStorage.getItem('ratingData')) || [];
+        let uploadedImages = [];
+
+        // 切换标签页
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+            
+            if (tabName === 'stats') {
+                updateStats();
+            }
+        }
+
+        // 处理图片上传
+        function handleImageUpload(event) {
+            const files = event.target.files;
+            for (let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    uploadedImages.push(e.target.result);
+                    renderImagePreview();
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 渲染图片预览
+        function renderImagePreview() {
+            const preview = document.getElementById('imagePreview');
+            preview.innerHTML = uploadedImages.map((img, index) => `
+                <img src="${img}" onclick="showImageModal('${img}')" style="cursor: pointer;">
+            `).join('');
+        }
+
+        // 显示图片弹窗
+        function showImageModal(src) {
+            document.getElementById('modalImage').src = src;
+            document.getElementById('imageModal').classList.add('active');
+        }
+
+        // 关闭图片弹窗
+        function closeImageModal() {
+            document.getElementById('imageModal').classList.remove('active');
+        }
+
+        // 表单提交
+        document.getElementById('ratingForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const score1 = parseInt(document.getElementById('score1').value);
+            const score2 = parseInt(document.getElementById('score2').value);
+            const score3 = parseInt(document.getElementById('score3').value);
+            const score4 = parseInt(document.getElementById('score4').value);
+            
+            if ([score1, score2, score3, score4].some(s => s < 0 || s > 100)) {
+                alert('❌ 每项分数必须在 0-100 之间！');
+                return;
+            }
+
+            const rating = {
+                id: Date.now(),
+                evaluatorName: document.getElementById('evaluatorName').value,
+                projectName: document.getElementById('projectName').value,
+                description: document.getElementById('description').value,
+                scores: [score1, score2, score3, score4],
+                totalScore: score1 + score2 + score3 + score4,
+                images: [...uploadedImages],
+                timestamp: new Date().toLocaleString('zh-CN')
+            };
+
+            ratings.push(rating);
+            localStorage.setItem('ratingData', JSON.stringify(ratings));
+
+            alert('✅ 评分提交成功！');
+            this.reset();
+            uploadedImages = [];
+            renderImagePreview();
+            updateStats();
+        });
+
+        // 更新统计
+        function updateStats() {
+            const recordsList = document.getElementById('recordsList');
+            
+            if (ratings.length === 0) {
+                recordsList.innerHTML = '<p style="text-align: center; color: #999; padding: 40px;">暂无评分记录</p>';
+                document.getElementById('totalCount').textContent = '0';
+                document.getElementById('avgTotal').textContent = '0';
+                document.getElementById('maxScore').textContent = '0';
+                document.getElementById('minScore').textContent = '0';
+                document.getElementById('avgScore1').textContent = '0';
+                document.getElementById('avgScore2').textContent = '0';
+                document.getElementById('avgScore3').textContent = '0';
+                document.getElementById('avgScore4').textContent = '0';
+                return;
+            }
+
+            // 计算统计
+            const totalCount = ratings.length;
+            const totalScores = ratings.map(r => r.totalScore);
+            const avgTotal = (totalScores.reduce((a, b) => a + b, 0) / totalCount).toFixed(1);
+            const maxScore = Math.max(...totalScores);
+            const minScore = Math.min(...totalScores);
+            
+            const avg1 = (ratings.reduce((a, r) => a + r.scores[0], 0) / totalCount).toFixed(1);
+            const avg2 = (ratings.reduce((a, r) => a + r.scores[1], 0) / totalCount).toFixed(1);
+            const avg3 = (ratings.reduce((a, r) => a + r.scores[2], 0) / totalCount).toFixed(1);
+            const avg4 = (ratings.reduce((a, r) => a + r.scores[3], 0) / totalCount).toFixed(1);
+
+            // 更新统计卡片
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('avgTotal').textContent = avgTotal;
+            document.getElementById('maxScore').textContent = maxScore;
+            document.getElementById('minScore').textContent = minScore;
+            document.getElementById('avgScore1').textContent = avg1;
+            document.getElementById('avgScore2').textContent = avg2;
+            document.getElementById('avgScore3').textContent = avg3;
+            document.getElementById('avgScore4').textContent = avg4;
+
+            // 更新记录列表
+            recordsList.innerHTML = ratings.map(r => `
+                <div class="record-item">
+                    <div class="record-header">
+                        <span class="record-name">👤 ${r.evaluatorName} | 📌 ${r.projectName}</span>
+                        <span class="record-time">⏰ ${r.timestamp}</span>
+                    </div>
+                    <div class="record-scores">
+                        <div class="score-badge">
+                            <div class="score">${r.scores[0]}</div>
+                            <div class="label">专业性</div>
+                        </div>
+                        <div class="score-badge">
+                            <div class="score">${r.scores[1]}</div>
+                            <div class="label">创新性</div>
+                        </div>
+                        <div class="score-badge">
+                            <div class="score">${r.scores[2]}</div>
+                            <div class="label">实用性</div>
+                        </div>
+                        <div class="score-badge">
+                            <div class="score">${r.scores[3]}</div>
+                            <div class="label">完成度</div>
+                        </div>
+                    </div>
+                    <div class="record-total">总分：${r.totalScore} / 400</div>
+                    ${r.description ? `<p style="margin-top: 10px; color: #666; font-size: 14px;">📝 ${r.description}</p>` : ''}
+                    ${r.images.length > 0 ? `
+                        <div class="record-images">
+                            ${r.images.map(img => `<img src="${img}" onclick="showImageModal('${img}')">`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+            `).join('');
+        }
+
+        // 清空数据
+        function clearAllData() {
+            if (confirm('⚠️ 确定要清空所有评分数据吗？此操作不可恢复！')) {
+                ratings = [];
+                localStorage.removeItem('ratingData');
+                updateStats();
+                alert('✅ 数据已清空');
+            }
+        }
+
+        // 导出 CSV
+        function exportToCSV() {
+            if (ratings.length === 0) {
+                alert('❌ 暂无数据可导出！');
+                return;
+            }
+
+            const headers = ['ID', '评分人', '项目名称', '说明', '专业性', '创新性', '实用性', '完成度', '总分', '图片数量', '时间'];
+            const rows = ratings.map(r => [
+                r.id,
+                r.evaluatorName,
+                r.projectName,
+                r.description.replace(/[\n\r,]/g, ' '),
+                r.scores[0],
+                r.scores[1],
+                r.scores[2],
+                r.scores[3],
+                r.totalScore,
+                r.images.length,
+                r.timestamp
+            ]);
+
+            const csv = [headers, ...rows].map(row => row.join(',')).join('\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `评分数据_${new Date().toLocaleDateString('zh-CN')}.csv`;
+            link.click();
+        }
+
+        // 导出 JSON
+        function exportToJSON() {
+            if (ratings.length === 0) {
+                alert('❌ 暂无数据可导出！');
+                return;
+            }
+
+            const data = {
+                exportTime: new Date().toLocaleString('zh-CN'),
+                totalCount: ratings.length,
+                ratings: ratings
+            };
+
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `评分数据_${new Date().toLocaleDateString('zh-CN')}.json`;
+            link.click();
+        }
+
+        // 初始化
+        updateStats();
+    </script>
+</body>
+</html>

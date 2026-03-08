@@ -1,0 +1,54 @@
+{
+  "mcpServers": {
+    "yijie-db-01": {
+      "command": "python",
+      "args": ["-m", "oracle_mcp_server"],
+      "env": {
+        "ORACLE_DSN": "192.168.1.101:1521/ORCL",
+        "ORACLE_USER": "yijie",
+        "ORACLE_PASSWORD": "${YIJIE_DB_01_PASSWORD}",
+        "ORACLE_CHARSET": "AL32UTF8"
+      }
+    },
+    "yijie-db-02": {
+      "command": "python",
+      "args": ["-m", "oracle_mcp_server"],
+      "env": {
+        "ORACLE_DSN": "192.168.1.102:1521/ORCL",
+        "ORACLE_USER": "yijie",
+        "ORACLE_PASSWORD": "${YIJIE_DB_02_PASSWORD}",
+        "ORACLE_CHARSET": "AL32UTF8"
+      }
+    },
+    "yijie-db-03": {
+      "command": "python",
+      "args": ["-m", "oracle_mcp_server"],
+      "env": {
+        "ORACLE_DSN": "192.168.1.103:1521/ORCL",
+        "ORACLE_USER": "yijie",
+        "ORACLE_PASSWORD": "${YIJIE_DB_03_PASSWORD}",
+        "ORACLE_CHARSET": "AL32UTF8"
+      }
+    },
+    "yijie-db-04": {
+      "command": "python",
+      "args": ["-m", "oracle_mcp_server"],
+      "env": {
+        "ORACLE_DSN": "192.168.1.104:1521/ORCL",
+        "ORACLE_USER": "yijie",
+        "ORACLE_PASSWORD": "${YIJIE_DB_04_PASSWORD}",
+        "ORACLE_CHARSET": "AL32UTF8"
+      }
+    },
+    "yijie-db-05": {
+      "command": "python",
+      "args": ["-m", "oracle_mcp_server"],
+      "env": {
+        "ORACLE_DSN": "192.168.1.105:1521/ORCL",
+        "ORACLE_USER": "yijie",
+        "ORACLE_PASSWORD": "${YIJIE_DB_05_PASSWORD}",
+        "ORACLE_CHARSET": "AL32UTF8"
+      }
+    }
+  }
+}

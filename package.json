@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "agent-browser": "^0.16.3",
+    "oracledb": "^6.10.0"
+  }
+}
