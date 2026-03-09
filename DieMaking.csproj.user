@@ -1,0 +1,84 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup />
+  <ItemGroup>
+    <Compile Update="Forms\Common\BaseForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Common\ErrorDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Common\ImportPreviewForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Die\DieAddForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Die\DieListForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\LoginForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\MainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Production\CompletionQueryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Production\ProcessReportForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Production\ProductionBoardForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Report\CompletionStatsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Report\DeliveryWarningForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Report\EmployeePerformanceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Report\InventoryStatsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Report\ProcessStatsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\System\BackupManageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\System\OperationLogForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\System\SettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\System\UserManageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\System\UserSettingsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\BorrowRecordForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\DieBorrowForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\DieReturnForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\DieStorageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\LocationManageForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Forms\Warehouse\ScrapApplyForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

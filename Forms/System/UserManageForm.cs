@@ -78,8 +78,12 @@ public partial class UserManageForm : BaseListForm
         ApplyButtonStyle(btnToggleStatus, ButtonStyle.Default);
         btnToggleStatus.Click += BtnToggleStatus_Click;
 
+        btnDelete = UIStyleHelper.CreateDeleteButton("删除用户");
+        btnDelete.Location = new Point(910, 50);
+        btnDelete.Click += BtnDelete_Click;
+
         btnRefresh = UIStyleHelper.CreateSearchButton("刷新");
-        btnRefresh.Location = new Point(910, 50);
+        btnRefresh.Location = new Point(1020, 50);
         btnRefresh.Click += BtnRefresh_Click;
 
         // 数据表格
@@ -171,6 +175,7 @@ public partial class UserManageForm : BaseListForm
         this.Controls.Add(btnEdit);
         this.Controls.Add(btnResetPassword);
         this.Controls.Add(btnToggleStatus);
+        this.Controls.Add(btnDelete);
         this.Controls.Add(btnRefresh);
         this.Controls.Add(dgvUsers);
         this.Controls.Add(statusStrip);
@@ -182,6 +187,7 @@ public partial class UserManageForm : BaseListForm
     private Button btnEdit = null!;
     private Button btnResetPassword = null!;
     private Button btnToggleStatus = null!;
+    private Button btnDelete = null!;
     private Button btnRefresh = null!;
     private DataGridView dgvUsers = null!;
 
@@ -368,6 +374,53 @@ public partial class UserManageForm : BaseListForm
         }
     }
 
+    private void BtnDelete_Click(object? sender, EventArgs e)
+    {
+        if (dgvUsers.CurrentRow == null)
+        {
+            MessageBox.Show("请先选择一个用户", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            return;
+        }
+
+        var user = (User)dgvUsers.CurrentRow.DataBoundItem;
+
+        // 不能删除自己
+        if (user.UserID == CurrentUser.User?.UserID)
+        {
+            MessageBox.Show("不能删除当前登录的用户！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        // 不能删除admin用户
+        if (user.Username.ToLower() == "admin")
+        {
+            MessageBox.Show("不能删除系统管理员账号！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        if (MessageBox.Show($"确定要删除用户 [{user.Username}] 吗？\n此操作不可恢复！",
+            "确认删除", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
+        {
+            try
+            {
+                if (_userService.DeleteUser(user.UserID))
+                {
+                    ShowSuccess("用户删除成功！");
+                    LogOperation("删除用户", $"删除用户 {user.Username}");
+                    LoadData();
+                }
+                else
+                {
+                    ShowError("用户删除失败！");
+                }
+            }
+            catch (Exception ex)
+            {
+                ShowError($"删除失败：{ex.Message}");
+            }
+        }
+    }
+
     private void BtnRefresh_Click(object? sender, EventArgs e)
     {
         LoadData();
@@ -403,6 +456,8 @@ public partial class UserEditForm : BaseDialogForm
 
     public UserEditForm(User? user = null)
     {
+        InitializeComponent();
+
         _userService = new UserService();
         _user = user;
         _isEdit = user != null;
@@ -426,7 +481,7 @@ public partial class UserEditForm : BaseDialogForm
 
     private void InitializeComponent()
     {
-        this.Size = new Size(450, 450);
+        this.Size = new Size(450, 520);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -538,7 +593,6 @@ public partial class UserEditForm : BaseDialogForm
         if (_user == null) return;
 
         txtUsername.Text = _user.Username;
-        txtUsername.ReadOnly = true; // 编辑时用户名不可修改
         txtPassword.Text = ""; // 编辑时密码为空表示不修改
         txtRealName.Text = _user.RealName;
         txtWorkstation.Text = _user.Workstation;
@@ -615,7 +669,18 @@ public partial class UserEditForm : BaseDialogForm
         {
             if (_isEdit && _user != null)
             {
+                // 检查用户名是否已存在（排除当前用户）
+                if (_userService.IsUsernameExists(username, _user.UserID))
+                {
+                    UIStyleHelper.SetValidationError(txtUsername, true);
+                    MessageBox.Show("该用户名已存在！", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    txtUsername.Focus();
+                    return;
+                }
+                UIStyleHelper.SetValidationError(txtUsername, false);
+
                 // 编辑用户
+                _user.Username = username;
                 _user.RealName = realName;
                 _user.Workstation = txtWorkstation.Text.Trim();
                 _user.Permissions = string.Join(",", selectedPermissions);

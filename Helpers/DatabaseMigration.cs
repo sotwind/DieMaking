@@ -385,30 +385,8 @@ public static class DatabaseMigration
             END
         ");
 
-        // 版本 1.0.2 - 添加数据备份记录表
-        RegisterMigration("1.0.2", "添加数据备份记录表", @"
-            IF NOT EXISTS (SELECT * FROM sys.tables WHERE name = 'DM_BackupRecord')
-            BEGIN
-                CREATE TABLE DM_BackupRecord (
-                    BackupID INT IDENTITY(1,1) PRIMARY KEY,
-                    BackupFileName NVARCHAR(500) NOT NULL,
-                    BackupPath NVARCHAR(500) NOT NULL,
-                    BackupSize BIGINT,
-                    BackupType INT DEFAULT 0,
-                    StartTime DATETIME2 DEFAULT GETDATE(),
-                    EndTime DATETIME2,
-                    Status INT DEFAULT 0,
-                    ErrorMessage NVARCHAR(MAX),
-                    CreatedBy NVARCHAR(50),
-                    Remark NVARCHAR(500)
-                );
-                CREATE INDEX IX_DM_BackupRecord_CreateTime ON DM_BackupRecord(StartTime);
-                CREATE INDEX IX_DM_BackupRecord_Status ON DM_BackupRecord(Status);
-            END
-        ");
-
-        // 版本 1.0.3 - 优化索引
-        RegisterMigration("1.0.3", "优化常用查询索引", @"
+        // 版本 1.0.2 - 优化索引
+        RegisterMigration("1.0.2", "优化常用查询索引", @"
             -- 刀模信息表额外索引
             IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_DM_DieInfo_DeliveryDate')
                 CREATE INDEX IX_DM_DieInfo_DeliveryDate ON DM_DieInfo(DeliveryDate);
@@ -420,6 +398,24 @@ public static class DatabaseMigration
             -- 借用记录表额外索引
             IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_DM_DieBorrowRecord_BorrowerNo')
                 CREATE INDEX IX_DM_DieBorrowRecord_BorrowerNo ON DM_DieBorrowRecord(BorrowerNo);
+        ");
+
+        // 版本 1.0.3 - 操作日志表添加日志级别字段
+        RegisterMigration("1.0.3", "操作日志表添加日志级别字段", @"
+            -- 添加 LogLevel 字段到操作日志表
+            IF NOT EXISTS (SELECT * FROM sys.columns 
+                          WHERE Name = N'LogLevel' 
+                          AND Object_ID = Object_ID(N'DM_OperationLog'))
+            BEGIN
+                ALTER TABLE DM_OperationLog ADD LogLevel NVARCHAR(20) DEFAULT 'Info';
+                
+                -- 更新现有记录的日志级别为 Info
+                UPDATE DM_OperationLog SET LogLevel = 'Info' WHERE LogLevel IS NULL;
+            END
+
+            -- 添加日志级别索引
+            IF NOT EXISTS (SELECT * FROM sys.indexes WHERE name = 'IX_DM_OperationLog_LogLevel')
+                CREATE INDEX IX_DM_OperationLog_LogLevel ON DM_OperationLog(LogLevel);
         ");
     }
 

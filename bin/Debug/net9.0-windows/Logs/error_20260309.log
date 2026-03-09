@@ -1,0 +1,286 @@
+﻿[2026-03-09 09:31:34.750] [LogID: ERR202603090931345911]
+[操作] 获取完工统计数据（按刀模）
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "dc.CompleteTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ReportService.GetCompletionStatsByDie(Nullable`1 startDate, Nullable`1 endDate, String dieCode, String customerName, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ReportService.cs:line 63
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:31:37.289] [LogID: ERR202603090931376043]
+[操作] 获取完工统计数据（按刀模）
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "dc.CompleteTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ReportService.GetCompletionStatsByDie(Nullable`1 startDate, Nullable`1 endDate, String dieCode, String customerName, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ReportService.cs:line 63
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:10.299] [LogID: ERR202603090932101341]
+[操作] 获取刀模列表(Status:Pending)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:11.743] [LogID: ERR202603090932117774]
+[操作] 获取刀模列表(Status:InProgress)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:13.126] [LogID: ERR202603090932135530]
+[操作] 获取刀模列表(Status:Completed)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:37.230] [LogID: ERR202603090932372216]
+[操作] 获取刀模列表(Status:Pending)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:38.492] [LogID: ERR202603090932387954]
+[操作] 获取刀模列表(Status:InProgress)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:32:39.044] [LogID: ERR202603090932396910]
+[操作] 获取刀模列表(Status:Completed)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:59:50.745] [LogID: ERR202603090959509847]
+[操作] 获取完工统计数据（按刀模）
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "dc.CompleteTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ReportService.GetCompletionStatsByDie(Nullable`1 startDate, Nullable`1 endDate, String dieCode, String customerName, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ReportService.cs:line 63
+--------------------------------------------------------------------------------
+
+[2026-03-09 09:59:51.847] [LogID: ERR202603090959518684]
+[操作] 获取完工统计数据（按刀模）
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "dc.CompleteTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ReportService.GetCompletionStatsByDie(Nullable`1 startDate, Nullable`1 endDate, String dieCode, String customerName, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ReportService.cs:line 63
+--------------------------------------------------------------------------------
+
+[2026-03-09 10:00:06.086] [LogID: ERR202603091000064338]
+[操作] 获取刀模列表(Status:Pending)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 10:00:07.089] [LogID: ERR202603091000073926]
+[操作] 获取刀模列表(Status:InProgress)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+
+[2026-03-09 10:00:07.841] [LogID: ERR202603091000072713]
+[操作] 获取刀模列表(Status:Completed)
+[异常类型] Database
+[用户消息] 数据库操作失败，请稍后重试或联系管理员。
+[异常详情] Microsoft.Data.SqlClient.SqlException: 无法绑定由多个部分组成的标识符 "d.CreateTime"。
+[堆栈跟踪]    at Microsoft.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at Microsoft.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, SqlCommand command, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at Microsoft.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at Microsoft.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at Microsoft.Data.SqlClient.SqlDataReader.get_MetaData()
+   at Microsoft.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString, Boolean isInternal, Boolean forDescribeParameterEncryption, Boolean shouldCacheForAlwaysEncrypted)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean isAsync, Int32 timeout, Task& task, Boolean asyncWrite, Boolean inRetry, SqlDataReader ds, Boolean describeParameterEncryptionRequest)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean& usedCache, Boolean asyncWrite, Boolean inRetry, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   at Microsoft.Data.SqlClient.SqlCommand.ExecuteReader()
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Int32 commandTimeout, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 475
+   at DieMaking.Helpers.DbHelper.ExecutePagedQuery[T](String baseSql, String orderBy, Int32 pageIndex, Int32 pageSize, Func`2 mapper, SqlParameter[] parameters) in H:\TraeDev\DieMaking\Helpers\DbHelper.cs:line 432
+   at DieMaking.Services.ProductionService.GetDieListByStatus(DieStatus status, Nullable`1 startDate, Nullable`1 endDate, String customerName, String dieCode, Int32 pageIndex, Int32 pageSize) in H:\TraeDev\DieMaking\Services\ProductionService.cs:line 97
+--------------------------------------------------------------------------------
+

@@ -304,11 +304,13 @@ public static class TableCreator
             OperationDesc NVARCHAR(500) NOT NULL,
             DieID INT,
             IPAddress NVARCHAR(50),
+            LogLevel NVARCHAR(20) DEFAULT 'Info',
             CreateTime DATETIME2 DEFAULT GETDATE()
         );
         CREATE INDEX IX_DM_OperationLog_UserID ON DM_OperationLog(UserID);
         CREATE INDEX IX_DM_OperationLog_CreateTime ON DM_OperationLog(CreateTime);
-        CREATE INDEX IX_DM_OperationLog_OperationType ON DM_OperationLog(OperationType);";
+        CREATE INDEX IX_DM_OperationLog_OperationType ON DM_OperationLog(OperationType);
+        CREATE INDEX IX_DM_OperationLog_LogLevel ON DM_OperationLog(LogLevel);";
 
     private static string GetSystemConfigTableSql() => @"
         CREATE TABLE DM_SystemConfig (

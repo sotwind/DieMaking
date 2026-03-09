@@ -115,6 +115,7 @@ public class UserService : BaseService
     public bool UpdateUser(User user)
     {
         var sql = @"UPDATE DM_User SET 
+                     Username = @Username,
                      RealName = @RealName,
                      Permissions = @Permissions, 
                      Workstation = @Workstation,
@@ -123,6 +124,7 @@ public class UserService : BaseService
 
         return ExecuteNonQuerySafe(sql, $"更新用户(ID:{user.UserID})",
             new SqlParameter("@UserID", user.UserID),
+            new SqlParameter("@Username", user.Username),
             new SqlParameter("@RealName", user.RealName),
             new SqlParameter("@Permissions", user.Permissions),
             new SqlParameter("@Workstation", user.Workstation),

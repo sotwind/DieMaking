@@ -27,6 +27,9 @@ public partial class MainForm : Form
 
         // 订阅配置变更事件
         ConfigHelper.ConfigChanged += OnConfigChanged;
+
+        // 订阅主题变更事件
+        ThemeManager.ThemeChanged += OnThemeChanged;
     }
 
     /// <summary>
@@ -62,18 +65,25 @@ public partial class MainForm : Form
             // 加载用户偏好设置
             UserConfigContext.LoadUserPreference();
 
-            // 应用主题（如果有深色主题支持）
-            var theme = UserConfigContext.GetTheme();
-            if (theme == "Dark")
-            {
-                // 可以在这里应用深色主题
-                // 目前Windows Forms原生支持有限，可以后续扩展
-            }
+            // 加载并应用主题
+            ThemeManager.LoadThemeFromUserPreference();
+            ThemeManager.ApplyTheme(this);
         }
         catch (Exception ex)
         {
             ExceptionHelper.HandleExceptionSilent(ex, "应用用户偏好设置");
         }
+    }
+
+    /// <summary>
+    /// 主题变更事件处理
+    /// </summary>
+    private void OnThemeChanged(object? sender, EventArgs e)
+    {
+        this.Invoke(() =>
+        {
+            ThemeManager.ApplyTheme(this);
+        });
     }
 
     /// <summary>

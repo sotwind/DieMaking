@@ -375,8 +375,8 @@ public partial class UserSettingsForm : Form
     {
         int labelWidth = 100;
         int inputWidth = 250;
-        int startY = 30;
-        int rowHeight = 45;
+        int startY = 20;
+        int rowHeight = 40;
 
         // 当前密码
         var lblOldPassword = new Label
@@ -428,8 +428,8 @@ public partial class UserSettingsForm : Form
         lblPasswordPolicy = new Label
         {
             Text = "",
-            Location = new Point(20, startY + rowHeight * 3 + 10),
-            Size = new Size(450, 40),
+            Location = new Point(20, startY + rowHeight * 3 + 5),
+            Size = new Size(450, 25),
             ForeColor = Color.Gray
         };
 
@@ -437,14 +437,14 @@ public partial class UserSettingsForm : Form
         lblPasswordStrength = new Label
         {
             Text = "",
-            Location = new Point(125, startY + rowHeight * 4 + 10),
+            Location = new Point(125, startY + rowHeight * 4),
             Size = new Size(250, 25)
         };
 
         btnChangePassword = new Button
         {
             Text = "修改密码",
-            Location = new Point(125, startY + rowHeight * 5 + 10),
+            Location = new Point(125, startY + rowHeight * 5),
             Size = new Size(100, 30)
         };
         btnChangePassword.Click += BtnChangePassword_Click;
@@ -582,10 +582,14 @@ public partial class UserSettingsForm : Form
                 // 更新当前用户上下文
                 UserConfigContext.CurrentPreference = _preference;
 
-                // 记录操作日志
-                LogOperation("修改个人设置", "修改了个人偏好设置");
+                // 应用主题变更
+                var newTheme = _preference.Theme;
+                ThemeManager.SetTheme(newTheme);
 
-                MessageBox.Show("设置保存成功！", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 记录操作日志
+                LogOperation("修改个人设置", $"修改了个人偏好设置，主题切换为：{(newTheme == "Dark" ? "深色" : "浅色")}");
+
+                MessageBox.Show("设置保存成功！主题将在下次打开窗体时生效。", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
             {

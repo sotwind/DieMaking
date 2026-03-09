@@ -686,12 +686,6 @@ public static class DatabaseInitializer
             ("LogLevel", "Info", "日志级别"),
             ("LogRetentionDays", "30", "日志保留天数"),
 
-            // 备份设置
-            ("AutoBackup", "false", "自动备份"),
-            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
-            ("BackupRetentionDays", "30", "备份保留天数"),
-            ("BackupTime", "02:00", "备份时间"),
-
             // 功能开关
             ("EnableAudit", "true", "启用审核流程"),
             ("EnableOperationLog", "true", "启用操作日志")
@@ -756,12 +750,6 @@ public static class DatabaseInitializer
             // 日志设置
             ("LogLevel", "Info", "日志级别"),
             ("LogRetentionDays", "30", "日志保留天数"),
-
-            // 备份设置
-            ("AutoBackup", "false", "自动备份"),
-            ("BackupPath", @"C:\DieMaking\Backup", "备份路径"),
-            ("BackupRetentionDays", "30", "备份保留天数"),
-            ("BackupTime", "02:00", "备份时间"),
 
             // 功能开关
             ("EnableAudit", "true", "启用审核流程"),
@@ -1135,11 +1123,13 @@ public static class DatabaseInitializer
             OperationDesc NVARCHAR(500) NOT NULL,
             DieID INT,
             IPAddress NVARCHAR(50),
+            LogLevel NVARCHAR(20) DEFAULT 'Info',
             CreateTime DATETIME2 DEFAULT GETDATE()
         );
         CREATE INDEX IX_DM_OperationLog_UserID ON DM_OperationLog(UserID);
         CREATE INDEX IX_DM_OperationLog_CreateTime ON DM_OperationLog(CreateTime);
-        CREATE INDEX IX_DM_OperationLog_OperationType ON DM_OperationLog(OperationType);";
+        CREATE INDEX IX_DM_OperationLog_OperationType ON DM_OperationLog(OperationType);
+        CREATE INDEX IX_DM_OperationLog_LogLevel ON DM_OperationLog(LogLevel);";
 
     private static string GetSystemConfigTableSql() => @"
         CREATE TABLE DM_SystemConfig (

@@ -32,7 +32,6 @@ public static class ConfigHelper
 
     // 路径
     public static string FileUploadPath { get; private set; } = @"C:\DieMaking\Uploads";
-    public static string BackupPath { get; private set; } = @"C:\DieMaking\Backup";
 
     // 日志
     public static LogLevel LogLevel { get; private set; } = LogLevel.Info;
@@ -330,9 +329,6 @@ public static class ConfigHelper
                 break;
             case ConfigKeys.FileUploadPath:
                 FileUploadPath = value;
-                break;
-            case ConfigKeys.BackupPath:
-                BackupPath = value;
                 break;
             case ConfigKeys.LogLevel:
                 if (Enum.TryParse<LogLevel>(value, true, out var logLevel))

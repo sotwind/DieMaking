@@ -55,12 +55,6 @@ public static class ConfigKeys
     public const string LogLevel = "LogLevel";
     public const string LogRetentionDays = "LogRetentionDays";
 
-    // 备份设置
-    public const string AutoBackup = "AutoBackup";
-    public const string BackupPath = "BackupPath";
-    public const string BackupRetentionDays = "BackupRetentionDays";
-    public const string BackupTime = "BackupTime";
-
     // 功能开关
     public const string EnableAudit = "EnableAudit";
     public const string EnableOperationLog = "EnableOperationLog";

@@ -316,12 +316,6 @@ public class ConfigService
             { ConfigKeys.LogLevel, ("Info", "日志级别") },
             { ConfigKeys.LogRetentionDays, ("30", "日志保留天数") },
 
-            // 备份设置
-            { ConfigKeys.AutoBackup, ("false", "自动备份") },
-            { ConfigKeys.BackupPath, (@"C:\DieMaking\Backup", "备份路径") },
-            { ConfigKeys.BackupRetentionDays, ("30", "备份保留天数") },
-            { ConfigKeys.BackupTime, ("02:00", "备份时间") },
-
             // 功能开关
             { ConfigKeys.EnableAudit, ("true", "启用审核流程") },
             { ConfigKeys.EnableOperationLog, ("true", "启用操作日志") }

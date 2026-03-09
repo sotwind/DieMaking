@@ -69,11 +69,6 @@ public partial class SettingsForm : Form
         InitializeLogSettings(tabLog);
         tabControl.TabPages.Add(tabLog);
 
-        // 备份设置页
-        var tabBackup = new TabPage("备份设置");
-        InitializeBackupSettings(tabBackup);
-        tabControl.TabPages.Add(tabBackup);
-
         // 按钮区域
         btnSave = new Button
         {
@@ -520,126 +515,6 @@ public partial class SettingsForm : Form
         tab.Controls.Add(lblNote);
     }
 
-    private void InitializeBackupSettings(TabPage tab)
-    {
-        int labelWidth = 100;
-        int startY = 20;
-        int rowHeight = 50;
-
-        // 自动备份
-        chkAutoBackup = new CheckBox
-        {
-            Text = "启用自动备份",
-            Location = new Point(20, startY),
-            Size = new Size(200, 25),
-            Tag = ConfigKeys.AutoBackup
-        };
-        chkAutoBackup.CheckedChanged += (s, e) =>
-        {
-            ConfigValueChanged(s, e);
-            EnableBackupControls(chkAutoBackup.Checked);
-        };
-
-        // 备份路径
-        var lblBackupPath = new Label
-        {
-            Text = "备份路径：",
-            Location = new Point(20, startY + rowHeight),
-            Size = new Size(labelWidth, 25)
-        };
-        txtBackupPath = new TextBox
-        {
-            Location = new Point(125, startY + rowHeight),
-            Size = new Size(350, 25),
-            Tag = ConfigKeys.BackupPath
-        };
-        txtBackupPath.TextChanged += ConfigValueChanged;
-
-        btnBrowseBackup = new Button
-        {
-            Text = "浏览...",
-            Location = new Point(485, startY + rowHeight),
-            Size = new Size(70, 25)
-        };
-        btnBrowseBackup.Click += (s, e) =>
-        {
-            using var dialog = new FolderBrowserDialog();
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                txtBackupPath.Text = dialog.SelectedPath;
-            }
-        };
-
-        // 备份时间
-        var lblBackupTime = new Label
-        {
-            Text = "备份时间：",
-            Location = new Point(20, startY + rowHeight * 2),
-            Size = new Size(labelWidth, 25)
-        };
-        txtBackupTime = new TextBox
-        {
-            Location = new Point(125, startY + rowHeight * 2),
-            Size = new Size(100, 25),
-            Tag = ConfigKeys.BackupTime
-        };
-        txtBackupTime.TextChanged += ConfigValueChanged;
-
-        var lblBackupTimeHint = new Label
-        {
-            Text = "（格式：HH:mm，如 02:00 表示凌晨2点）",
-            Location = new Point(235, startY + rowHeight * 2 + 2),
-            Size = new Size(300, 25),
-            ForeColor = Color.Gray
-        };
-
-        // 备份保留天数
-        var lblBackupRetention = new Label
-        {
-            Text = "保留天数：",
-            Location = new Point(20, startY + rowHeight * 3),
-            Size = new Size(labelWidth, 25)
-        };
-        numBackupRetentionDays = new NumericUpDown
-        {
-            Location = new Point(125, startY + rowHeight * 3),
-            Size = new Size(80, 25),
-            Minimum = 7,
-            Maximum = 365,
-            Tag = ConfigKeys.BackupRetentionDays
-        };
-        numBackupRetentionDays.ValueChanged += ConfigValueChanged;
-
-        var lblBackupRetentionHint = new Label
-        {
-            Text = "天（超过此天数的备份将被自动清理）",
-            Location = new Point(215, startY + rowHeight * 3 + 2),
-            Size = new Size(300, 25),
-            ForeColor = Color.Gray
-        };
-
-        // 立即备份按钮
-        btnBackupNow = new Button
-        {
-            Text = "立即备份",
-            Location = new Point(125, startY + rowHeight * 4 + 10),
-            Size = new Size(100, 30)
-        };
-        btnBackupNow.Click += BtnBackupNow_Click;
-
-        tab.Controls.Add(chkAutoBackup);
-        tab.Controls.Add(lblBackupPath);
-        tab.Controls.Add(txtBackupPath);
-        tab.Controls.Add(btnBrowseBackup);
-        tab.Controls.Add(lblBackupTime);
-        tab.Controls.Add(txtBackupTime);
-        tab.Controls.Add(lblBackupTimeHint);
-        tab.Controls.Add(lblBackupRetention);
-        tab.Controls.Add(numBackupRetentionDays);
-        tab.Controls.Add(lblBackupRetentionHint);
-        tab.Controls.Add(btnBackupNow);
-    }
-
     #endregion
 
     #region 数据加载与保存
@@ -678,28 +553,12 @@ public partial class SettingsForm : Form
             cmbLogLevel.SelectedItem = logLevel ?? "Info";
             numLogRetentionDays.Value = _configService.GetConfigValueInt(ConfigKeys.LogRetentionDays, 30);
 
-            // 备份设置
-            chkAutoBackup.Checked = _configService.GetConfigValueBool(ConfigKeys.AutoBackup, false);
-            txtBackupPath.Text = _configService.GetConfigValue(ConfigKeys.BackupPath, @"C:\DieMaking\Backup");
-            txtBackupTime.Text = _configService.GetConfigValue(ConfigKeys.BackupTime, "02:00");
-            numBackupRetentionDays.Value = _configService.GetConfigValueInt(ConfigKeys.BackupRetentionDays, 30);
-
-            EnableBackupControls(chkAutoBackup.Checked);
-
             _modifiedConfigs.Clear();
         }
         catch (Exception ex)
         {
             MessageBox.Show($"加载设置失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
         }
-    }
-
-    private void EnableBackupControls(bool enabled)
-    {
-        txtBackupPath.Enabled = enabled;
-        btnBrowseBackup.Enabled = enabled;
-        txtBackupTime.Enabled = enabled;
-        numBackupRetentionDays.Enabled = enabled;
     }
 
     private void ConfigValueChanged(object? sender, EventArgs e)
@@ -766,37 +625,6 @@ public partial class SettingsForm : Form
         }
     }
 
-    private void BtnBackupNow_Click(object? sender, EventArgs e)
-    {
-        try
-        {
-            btnBackupNow.Enabled = false;
-            btnBackupNow.Text = "备份中...";
-
-            var backupService = new BackupService();
-            var result = backupService.Backup();
-
-            if (result.Success)
-            {
-                MessageBox.Show($"备份成功！\n文件：{result.BackupPath}", "成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                LogOperation("手动备份", $"备份文件：{result.BackupPath}");
-            }
-            else
-            {
-                MessageBox.Show($"备份失败：{result.ErrorMessage}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show($"备份失败：{ex.Message}", "错误", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-        finally
-        {
-            btnBackupNow.Enabled = true;
-            btnBackupNow.Text = "立即备份";
-        }
-    }
-
     private void LogOperation(string operationType, string operationDesc)
     {
         try
@@ -847,14 +675,6 @@ public partial class SettingsForm : Form
     // 日志设置
     private ComboBox cmbLogLevel = null!;
     private NumericUpDown numLogRetentionDays = null!;
-
-    // 备份设置
-    private CheckBox chkAutoBackup = null!;
-    private TextBox txtBackupPath = null!;
-    private Button btnBrowseBackup = null!;
-    private TextBox txtBackupTime = null!;
-    private NumericUpDown numBackupRetentionDays = null!;
-    private Button btnBackupNow = null!;
 
     #endregion
 }
