@@ -2,14 +2,86 @@ using DieMaking.Helpers;
 using DieMaking.Models;
 using Microsoft.Data.SqlClient;
 using System.Net;
+using System.Collections.Concurrent;
 
 namespace DieMaking.Services;
 
 /// <summary>
 /// 通用日志服务 - 提供操作日志记录功能
+/// 使用队列保证日志顺序
 /// </summary>
 public static class LogService
 {
+    // 日志队列，保证顺序
+    private static readonly ConcurrentQueue<LogEntry> _logQueue = new ConcurrentQueue<LogEntry>();
+    private static readonly SemaphoreSlim _logSemaphore = new SemaphoreSlim(0);
+    private static readonly CancellationTokenSource _cts = new CancellationTokenSource();
+    private static Task? _processingTask;
+    private static bool _isInitialized = false;
+    private static readonly object _initLock = new object();
+
+    /// <summary>
+    /// 日志条目
+    /// </summary>
+    private class LogEntry
+    {
+        public string OperationType { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string? DieNo { get; set; }
+        public LogLevel LogLevel { get; set; }
+        public DateTime EnqueueTime { get; set; }
+    }
+
+    /// <summary>
+    /// 初始化日志服务
+    /// </summary>
+    private static void EnsureInitialized()
+    {
+        if (_isInitialized) return;
+
+        lock (_initLock)
+        {
+            if (_isInitialized) return;
+
+            _processingTask = Task.Run(ProcessLogQueueAsync);
+            _isInitialized = true;
+        }
+    }
+
+    /// <summary>
+    /// 异步处理日志队列
+    /// </summary>
+    private static async Task ProcessLogQueueAsync()
+    {
+        while (!_cts.Token.IsCancellationRequested)
+        {
+            try
+            {
+                await _logSemaphore.WaitAsync(_cts.Token);
+
+                while (_logQueue.TryDequeue(out var entry))
+                {
+                    try
+                    {
+                        DoLogOperation(entry.OperationType, entry.Content, entry.DieNo, entry.LogLevel);
+                    }
+                    catch
+                    {
+                        // 单条日志失败不影响其他日志
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch
+            {
+                // 队列处理异常，继续
+            }
+        }
+    }
+
     /// <summary>
     /// 检查当前日志级别是否满足记录条件
     /// </summary>
@@ -43,6 +115,7 @@ public static class LogService
 
     /// <summary>
     /// 记录操作日志（自动根据操作类型判断级别）
+    /// 使用队列保证顺序
     /// </summary>
     /// <param name="operationType">操作类型（如：新增、修改、删除、审核等）</param>
     /// <param name="content">操作内容描述</param>
@@ -58,8 +131,20 @@ public static class LogService
             if (!ShouldLog(logLevel))
                 return;
 
-            // 异步记录日志，避免阻塞主流程
-            Task.Run(() => DoLogOperation(operationType, content, dieNo, logLevel));
+            // 确保服务已初始化
+            EnsureInitialized();
+
+            // 将日志加入队列，保证顺序
+            _logQueue.Enqueue(new LogEntry
+            {
+                OperationType = operationType,
+                Content = content,
+                DieNo = dieNo,
+                LogLevel = logLevel,
+                EnqueueTime = DateTime.Now
+            });
+
+            _logSemaphore.Release();
         }
         catch
         {
@@ -69,6 +154,7 @@ public static class LogService
 
     /// <summary>
     /// 记录指定级别的日志
+    /// 使用队列保证顺序
     /// </summary>
     /// <param name="logLevel">日志级别</param>
     /// <param name="operationType">操作类型</param>
@@ -82,8 +168,20 @@ public static class LogService
             if (!ShouldLog(logLevel))
                 return;
 
-            // 异步记录日志
-            Task.Run(() => DoLogOperation(operationType, content, dieNo, logLevel));
+            // 确保服务已初始化
+            EnsureInitialized();
+
+            // 将日志加入队列，保证顺序
+            _logQueue.Enqueue(new LogEntry
+            {
+                OperationType = operationType,
+                Content = content,
+                DieNo = dieNo,
+                LogLevel = logLevel,
+                EnqueueTime = DateTime.Now
+            });
+
+            _logSemaphore.Release();
         }
         catch
         {
@@ -271,25 +369,48 @@ public static class LogService
 
     /// <summary>
     /// 异步清理过期日志
+    /// 使用队列保证顺序
     /// </summary>
     public static void CleanupExpiredLogsAsync()
     {
-        Task.Run(() =>
+        try
         {
-            try
+            EnsureInitialized();
+
+            // 将清理任务加入队列
+            _logQueue.Enqueue(new LogEntry
             {
-                var count = CleanupExpiredLogs();
-                if (count > 0)
+                OperationType = "日志清理",
+                Content = "执行过期日志清理",
+                DieNo = null,
+                LogLevel = LogLevel.Info,
+                EnqueueTime = DateTime.Now
+            });
+
+            _logSemaphore.Release();
+
+            // 在队列处理中执行实际的清理
+            Task.Run(async () =>
+            {
+                try
                 {
-                    // 记录清理操作
-                    LogInfo("日志清理", $"自动清理了 {count} 条过期日志记录");
+                    var count = CleanupExpiredLogs();
+                    if (count > 0)
+                    {
+                        // 记录清理操作（通过队列）
+                        LogInfo("日志清理", $"自动清理了 {count} 条过期日志记录");
+                    }
                 }
-            }
-            catch
-            {
-                // 清理失败不抛出异常
-            }
-        });
+                catch
+                {
+                    // 清理失败不抛出异常
+                }
+            });
+        }
+        catch
+        {
+            // 清理失败不抛出异常
+        }
     }
 
     /// <summary>

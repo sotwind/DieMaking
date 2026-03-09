@@ -180,8 +180,16 @@ public partial class MainForm : Form
                 var refreshMethod = activeForm.GetType().GetMethod("RefreshData");
                 if (refreshMethod != null)
                 {
-                    refreshMethod.Invoke(activeForm, null);
-                    UpdateStatus("数据已刷新");
+                    try
+                    {
+                        refreshMethod.Invoke(activeForm, null);
+                        UpdateStatus("数据已刷新");
+                    }
+                    catch (TargetInvocationException tie)
+                    {
+                        // 捕获反射调用目标方法时抛出的异常
+                        ExceptionHelper.HandleException(tie.InnerException ?? tie, "刷新窗体数据");
+                    }
                 }
                 else
                 {

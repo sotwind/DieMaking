@@ -12,6 +12,12 @@ public partial class SettingsForm : Form
 {
     private readonly ConfigService _configService;
     private readonly Dictionary<string, string> _modifiedConfigs = new();
+    private bool _permissionDenied = false;
+
+    /// <summary>
+    /// 检查是否因权限不足而被拒绝访问
+    /// </summary>
+    public bool IsPermissionDenied => _permissionDenied;
 
     public SettingsForm()
     {
@@ -575,12 +581,58 @@ public partial class SettingsForm : Form
                 _ => ""
             };
 
+            // 空值检查：对于关键配置项，如果值为空则给出警告
+            if (string.IsNullOrEmpty(value) && IsRequiredConfigKey(configKey))
+            {
+                // 不保存空值，使用默认值
+                return;
+            }
+
             _modifiedConfigs[configKey] = value;
         }
     }
 
+    /// <summary>
+    /// 检查配置键是否为必填项
+    /// </summary>
+    private bool IsRequiredConfigKey(string configKey)
+    {
+        var requiredKeys = new[]
+        {
+            ConfigKeys.DateFormat,
+            ConfigKeys.TimeFormat,
+            ConfigKeys.LogLevel
+        };
+        return requiredKeys.Contains(configKey);
+    }
+
     private void BtnSave_Click(object? sender, EventArgs e)
     {
+        // 空值检查：确保下拉框有选中项
+        if (cmbDateFormat.SelectedItem == null)
+        {
+            MessageBox.Show("请选择日期格式", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            tabControl.SelectedTab = tabControl.TabPages[0]; // 切换到基本设置页
+            cmbDateFormat.Focus();
+            return;
+        }
+
+        if (cmbTimeFormat.SelectedItem == null)
+        {
+            MessageBox.Show("请选择时间格式", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            tabControl.SelectedTab = tabControl.TabPages[0]; // 切换到基本设置页
+            cmbTimeFormat.Focus();
+            return;
+        }
+
+        if (cmbLogLevel.SelectedItem == null)
+        {
+            MessageBox.Show("请选择日志级别", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            tabControl.SelectedTab = tabControl.TabPages[2]; // 切换到日志设置页
+            cmbLogLevel.Focus();
+            return;
+        }
+
         if (_modifiedConfigs.Count == 0)
         {
             MessageBox.Show("没有需要保存的更改", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);

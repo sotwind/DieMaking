@@ -459,6 +459,7 @@ public partial class UserManageForm : BaseListForm
 public partial class UserEditForm : BaseDialogForm
 {
     private readonly UserService _userService;
+    private readonly ConfigService _configService;
     private readonly User? _user;
     private readonly bool _isEdit;
 
@@ -467,6 +468,7 @@ public partial class UserEditForm : BaseDialogForm
         InitializeComponent();
 
         _userService = new UserService();
+        _configService = new ConfigService();
         _user = user;
         _isEdit = user != null;
 
@@ -645,8 +647,7 @@ public partial class UserEditForm : BaseDialogForm
         // 验证密码策略（新增用户或修改密码时）
         if (!string.IsNullOrEmpty(password))
         {
-            var configService = new ConfigService();
-            var (isValid, message) = configService.ValidatePassword(password);
+            var (isValid, message) = _configService.ValidatePassword(password);
             if (!isValid)
             {
                 UIStyleHelper.SetValidationError(txtPassword, true);

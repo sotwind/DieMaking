@@ -13,8 +13,12 @@ public class ImportExportService
     #region Excel导出
 
     /// <summary>
-    /// 导出DataTable到Excel文件（使用OLEDB）
+    /// 导出DataTable到Excel兼容格式文件（实际为CSV格式，可被Excel打开）
     /// </summary>
+    /// <remarks>
+    /// 注意：此方法实际导出的是CSV格式文件，但使用.xlsx扩展名以便Excel直接打开。
+    /// 如需真正的Excel格式，请使用EPPlus或ClosedXML库。
+    /// </remarks>
     public void ExportToExcel(DataTable data, string sheetName, string filePath)
     {
         // 确保文件名以.xlsx结尾

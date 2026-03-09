@@ -104,7 +104,7 @@ public class UserService : BaseService
     }
 
     /// <summary>
-    /// 创建用户
+    /// 创建用户（密码使用BCrypt哈希存储）
     /// </summary>
     public int CreateUser(User user)
     {
@@ -114,9 +114,12 @@ public class UserService : BaseService
                          VALUES (@Username, @Password, @RealName, @Permissions, @Workstation, @IsActive, GETDATE());
                          SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
+            // 对密码进行BCrypt哈希
+            var hashedPassword = HashPassword(user.Password);
+
             var result = ExecuteScalarSafe(sql, "创建用户",
                 new SqlParameter("@Username", user.Username),
-                new SqlParameter("@Password", user.Password),
+                new SqlParameter("@Password", hashedPassword),
                 new SqlParameter("@RealName", user.RealName),
                 new SqlParameter("@Permissions", user.Permissions),
                 new SqlParameter("@Workstation", user.Workstation),

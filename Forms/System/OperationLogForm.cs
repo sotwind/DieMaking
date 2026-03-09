@@ -306,12 +306,12 @@ public partial class OperationLogForm : Form
         {
             LogID = Convert.ToInt32(reader["LogID"]),
             UserID = reader["UserID"] != DBNull.Value ? Convert.ToInt32(reader["UserID"]) : null,
-            Username = reader["Username"].ToString() ?? "",
-            OperationType = reader["OperationType"].ToString() ?? "",
-            OperationDesc = reader["OperationDesc"].ToString() ?? "",
+            Username = reader["Username"] != DBNull.Value ? reader["Username"].ToString() ?? "" : "",
+            OperationType = reader["OperationType"] != DBNull.Value ? reader["OperationType"].ToString() ?? "" : "",
+            OperationDesc = reader["OperationDesc"] != DBNull.Value ? reader["OperationDesc"].ToString() ?? "" : "",
             DieID = reader["DieID"] != DBNull.Value ? Convert.ToInt32(reader["DieID"]) : null,
-            DieCode = reader["DieCode"].ToString() ?? "",
-            IPAddress = reader["IPAddress"].ToString() ?? "",
+            DieCode = reader["DieCode"] != DBNull.Value ? reader["DieCode"].ToString() ?? "" : "",
+            IPAddress = reader["IPAddress"] != DBNull.Value ? reader["IPAddress"].ToString() ?? "" : "",
             CreateTime = Convert.ToDateTime(reader["CreateTime"])
         };
     }

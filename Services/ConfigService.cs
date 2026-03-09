@@ -55,8 +55,8 @@ public class ConfigService
 
             var value = result?.ToString() ?? defaultValue;
 
-            // 添加到缓存
-            if (value != null)
+            // 添加到缓存（仅当值不为null时）
+            if (!string.IsNullOrEmpty(value))
             {
                 ConfigHelper.AddToCache(key, value);
             }
@@ -244,6 +244,9 @@ public class ConfigService
     {
         try
         {
+            // 收集变更信息，用于批量触发事件
+            var changedConfigs = new List<(string key, string oldValue, string newValue)>();
+
             return DbHelper.ExecuteTransaction((connection, transaction) =>
             {
                 foreach (var (key, value) in configs)
@@ -269,12 +272,18 @@ public class ConfigService
                     // 更新缓存
                     ConfigHelper.AddToCache(key, value);
 
-                    // 触发变更事件
-                    OnConfigChanged(key, oldValue ?? "", value);
+                    // 记录变更信息
+                    changedConfigs.Add((key, oldValue ?? "", value));
                 }
 
                 return true;
             });
+
+            // 事务成功后统一触发变更事件
+            foreach (var (key, oldValue, newValue) in changedConfigs)
+            {
+                OnConfigChanged(key, oldValue, newValue);
+            }
         }
         catch (Exception ex)
         {
