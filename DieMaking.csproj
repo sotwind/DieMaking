@@ -16,6 +16,7 @@
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.11" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.0" />
+    <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
   <!-- 排除测试文件和临时修复文件 -->

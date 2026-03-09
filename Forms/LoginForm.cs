@@ -53,9 +53,10 @@ public partial class LoginForm : Form
                 }
             }
         }
-        catch
+        catch (Exception ex)
         {
-            // 如果读取失败，忽略错误
+            // 如果读取失败，记录日志但忽略错误
+            ExceptionHelper.HandleExceptionSilent(ex, "加载保存的登录信息");
         }
     }
 
@@ -80,9 +81,10 @@ public partial class LoginForm : Form
 
             File.WriteAllLines(_configFilePath, lines);
         }
-        catch
+        catch (Exception ex)
         {
-            // 如果保存失败，忽略错误
+            // 如果保存失败，记录日志但忽略错误
+            ExceptionHelper.HandleExceptionSilent(ex, "保存登录信息");
         }
     }
 

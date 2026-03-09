@@ -7,6 +7,28 @@ namespace DieMaking.Services;
 public class UserService : BaseService
 {
     /// <summary>
+    /// 验证密码（支持明文旧密码和BCrypt哈希新密码）
+    /// </summary>
+    private bool VerifyPassword(string inputPassword, string storedPassword)
+    {
+        // 如果存储的密码是BCrypt格式（以$2开头），使用BCrypt验证
+        if (!string.IsNullOrEmpty(storedPassword) && storedPassword.StartsWith("$2"))
+        {
+            return BCrypt.Net.BCrypt.Verify(inputPassword, storedPassword);
+        }
+        // 否则使用明文比较（旧密码兼容）
+        return inputPassword == storedPassword;
+    }
+
+    /// <summary>
+    /// 哈希密码
+    /// </summary>
+    private string HashPassword(string password)
+    {
+        return BCrypt.Net.BCrypt.HashPassword(password);
+    }
+
+    /// <summary>
     /// 用户登录
     /// </summary>
     public User? Login(string username, string password)
@@ -25,7 +47,7 @@ public class UserService : BaseService
             if (reader.Read())
             {
                 var dbPassword = reader["Password"].ToString() ?? "";
-                if (password == dbPassword)
+                if (VerifyPassword(password, dbPassword))
                 {
                     var user = MapToUser(reader);
                     // 更新最后登录时间
@@ -132,14 +154,15 @@ public class UserService : BaseService
     }
 
     /// <summary>
-    /// 更新用户密码
+    /// 更新用户密码（使用BCrypt哈希存储）
     /// </summary>
     public bool UpdatePassword(int userId, string newPassword)
     {
+        var hashedPassword = HashPassword(newPassword);
         var sql = "UPDATE DM_User SET Password = @Password WHERE UserID = @UserID";
         return ExecuteNonQuerySafe(sql, $"更新密码(UserID:{userId})",
             new SqlParameter("@UserID", userId),
-            new SqlParameter("@Password", newPassword)) > 0;
+            new SqlParameter("@Password", hashedPassword)) > 0;
     }
 
     /// <summary>

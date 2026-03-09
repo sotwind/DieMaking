@@ -188,11 +188,11 @@ public partial class DieListForm : BaseListForm
             Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
-        btnNext = new Button { Text = "下一页", Location = new Point(1135, 15), Size = new Size(60, 28) };
+        btnNext = new Button { Text = "下一页", Location = new Point(1020, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnNext, ButtonStyle.Default);
         btnNext.Click += (s, e) => GoToPage(_currentPage + 1);
 
-        btnLast = new Button { Text = "末页", Location = new Point(1200, 15), Size = new Size(60, 28) };
+        btnLast = new Button { Text = "末页", Location = new Point(1090, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnLast, ButtonStyle.Default);
         btnLast.Click += (s, e) => GoToPage((_totalCount + _pageSize - 1) / _pageSize);
 

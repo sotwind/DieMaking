@@ -16,16 +16,24 @@ public partial class UserManageForm : BaseListForm
         InitializeComponent();
         _userService = new UserService();
 
-        // 检查权限
+        // 检查权限 - 由调用方处理权限不足的情况
         if (!CurrentUser.HasPermission(PermissionKeys.UserManage))
         {
             MessageBox.Show("您没有权限访问用户管理功能！", "权限不足", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            this.Close();
+            // 不立即关闭窗体，设置标记让调用方处理
+            _permissionDenied = true;
             return;
         }
 
         this.Text = "用户管理";
     }
+
+    private bool _permissionDenied = false;
+
+    /// <summary>
+    /// 检查是否因权限不足而被拒绝访问
+    /// </summary>
+    public bool IsPermissionDenied => _permissionDenied;
 
     private void InitializeComponent()
     {

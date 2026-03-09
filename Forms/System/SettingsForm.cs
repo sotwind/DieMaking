@@ -18,11 +18,12 @@ public partial class SettingsForm : Form
         InitializeComponent();
         _configService = new ConfigService();
 
-        // 检查权限
-        if (!CurrentUser.HasPermission(PermissionKeys.UserManage))
+        // 检查权限 - 使用系统设置专用权限键
+        if (!CurrentUser.HasPermission(PermissionKeys.SystemSettings))
         {
             MessageBox.Show("您没有权限访问系统设置功能！", "权限不足", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            this.Close();
+            // 不立即关闭窗体，设置标记让调用方处理
+            _permissionDenied = true;
             return;
         }
 

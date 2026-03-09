@@ -92,6 +92,8 @@ public static class PermissionKeys
     public const string Report = "报表统计";
     /// <summary>用户管理</summary>
     public const string UserManage = "用户管理";
+    /// <summary>系统设置</summary>
+    public const string SystemSettings = "系统设置";
     /// <summary>系统管理员</summary>
     public const string SystemAdmin = "系统管理员";
 }
