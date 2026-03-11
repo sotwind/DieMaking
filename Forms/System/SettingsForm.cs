@@ -273,9 +273,7 @@ public partial class SettingsForm : Form
     private void InitializeSecuritySettings(TabPage tab)
     {
         int labelWidth = 150;
-        int inputWidth = 100;
         int startY = 20;
-        int rowHeight = 40;
 
         // 密码策略组
         var grpPassword = new GroupBox

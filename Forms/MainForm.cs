@@ -1,3 +1,4 @@
+using System.Reflection;
 using DieMaking.Helpers;
 using DieMaking.Models;
 using DieMaking.Services;
@@ -355,10 +356,6 @@ F1 - 显示帮助";
         {
             dieMenu.DropDownItems.Add("刀模列表", null, (s, e) => ShowForm<Die.DieListForm>());
         }
-        if (CurrentUser.HasPermission(PermissionKeys.DieAdd))
-        {
-            dieMenu.DropDownItems.Add("添加刀模", null, (s, e) => ShowForm<Die.DieAddForm>());
-        }
         menuStrip.Items.Add(dieMenu);
 
         // 生产管理菜单
@@ -377,6 +374,8 @@ F1 - 显示帮助";
         {
             if (CurrentUser.HasPermission(PermissionKeys.LocationManage))
                 warehouseMenu.DropDownItems.Add("库位管理", null, (s, e) => ShowForm<Warehouse.LocationManageForm>());
+            if (CurrentUser.HasPermission(PermissionKeys.DieInStock))
+                warehouseMenu.DropDownItems.Add("刀模入库", null, (s, e) => ShowForm<Warehouse.DieStorageForm>());
             if (CurrentUser.HasPermission(PermissionKeys.DieBorrow))
                 warehouseMenu.DropDownItems.Add("刀模领用", null, (s, e) => ShowForm<Warehouse.DieBorrowForm>());
             if (CurrentUser.HasPermission(PermissionKeys.DieReturn))

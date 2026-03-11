@@ -44,7 +44,7 @@ public partial class DieAddForm : BaseEditForm
     private void InitializeComponent()
     {
         this.Text = _isViewMode ? "查看刀模" : (_dieId.HasValue ? "编辑刀模" : "新增刀模");
-        this.Size = UIStyleHelper.SizeEditForm;
+        this.Size = new Size(800, 700);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -197,12 +197,13 @@ public partial class DieAddForm : BaseEditForm
         dgvProcesses = new DataGridView
         {
             Location = new Point(15, 25),
-            Size = new Size(730, 130)
+            Size = new Size(730, 130),
+            AutoGenerateColumns = false
         };
         ApplyDataGridViewStyle(dgvProcesses);
 
-        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessID", HeaderText = "ID", Visible = false });
-        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessName", HeaderText = "工序名称", Width = 120 });
+        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessID", HeaderText = "ID", Visible = false, DataPropertyName = "ProcessID" });
+        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "ProcessName", HeaderText = "工序名称", Width = 120, DataPropertyName = "ProcessName" });
         dgvProcesses.Columns.Add(new DataGridViewComboBoxColumn
         {
             Name = "Status",
@@ -213,9 +214,9 @@ public partial class DieAddForm : BaseEditForm
             ValueMember = "Value",
             DataPropertyName = "Status"
         });
-        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "OperatorName", HeaderText = "操作员", Width = 80 });
-        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "Formula", HeaderText = "计算公式", Width = 150 });
-        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "Amount", HeaderText = "金额", Width = 80 });
+        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "OperatorName", HeaderText = "操作员", Width = 80, DataPropertyName = "OperatorName" });
+        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "Formula", HeaderText = "计算公式", Width = 150, DataPropertyName = "Formula" });
+        dgvProcesses.Columns.Add(new DataGridViewTextBoxColumn { Name = "Amount", HeaderText = "金额", Width = 80, DataPropertyName = "Amount" });
 
         // 工序按钮
         btnAddProcess = UIStyleHelper.CreateAddButton("添加工序");
@@ -249,7 +250,7 @@ public partial class DieAddForm : BaseEditForm
         grpProcess.Controls.Add(btnMoveDown);
 
         // ===== 备注区域 =====
-        var grpRemark = UIStyleHelper.CreateGroupBox("备注", new Point(10, 490), new Size(760, 60));
+        var grpRemark = UIStyleHelper.CreateGroupBox("备注", new Point(10, 550), new Size(760, 60));
 
         txtRemark = new TextBox
         {
@@ -262,7 +263,7 @@ public partial class DieAddForm : BaseEditForm
         grpRemark.Controls.Add(txtRemark);
 
         // ===== 按钮区域 =====
-        int btnY = 560;
+        int btnY = 620;
         if (!_isViewMode)
         {
             btnSave = UIStyleHelper.CreateSaveButton();
@@ -270,14 +271,10 @@ public partial class DieAddForm : BaseEditForm
             btnSave.Click += BtnSave_Click;
             this.Controls.Add(btnSave);
 
-            btnSaveDraft = new Button { Text = "保存草稿", Location = new Point(360, btnY), Size = UIStyleHelper.SizeButton };
-            ApplyButtonStyle(btnSaveDraft, ButtonStyle.Default);
-            btnSaveDraft.Click += BtnSaveDraft_Click;
-            this.Controls.Add(btnSaveDraft);
         }
 
         btnCancel = UIStyleHelper.CreateCancelButton(_isViewMode ? "关闭" : "取消");
-        btnCancel.Location = new Point(470, btnY);
+        btnCancel.Location = new Point(360, btnY);
         btnCancel.Click += (s, e) => this.DialogResult = DialogResult.Cancel;
         this.Controls.Add(btnCancel);
 
@@ -330,7 +327,6 @@ public partial class DieAddForm : BaseEditForm
     // 备注和按钮
     private TextBox txtRemark = null!;
     private Button btnSave = null!;
-    private Button btnSaveDraft = null!;
     private Button btnCancel = null!;
     #endregion
 
@@ -411,12 +407,7 @@ public partial class DieAddForm : BaseEditForm
 
     private void BtnSave_Click(object? sender, EventArgs e)
     {
-        SaveDie(false);
-    }
-
-    private void BtnSaveDraft_Click(object? sender, EventArgs e)
-    {
-        SaveDie(true);
+        SaveDie();
     }
 
     #endregion
@@ -477,7 +468,7 @@ public partial class DieAddForm : BaseEditForm
         dgvProcesses.DataSource = _processes;
     }
 
-    private void SaveDie(bool isDraft)
+    private void SaveDie()
     {
         // 验证必填字段
         if (string.IsNullOrWhiteSpace(txtDieCode.Text) || txtDieCode.Text == (string?)txtDieCode.Tag)
@@ -538,7 +529,6 @@ public partial class DieAddForm : BaseEditForm
             SourceFactory = txtSourceFactory.Text.Trim(),
             DeliveryDate = dtpDelivery.Value,
             Status = (DieStatus)cmbStatus.SelectedIndex,
-            AuditStatus = isDraft ? AuditStatus.Unaudited : AuditStatus.Unaudited,
             ManufactureLength = manuLength,
             ManufactureWidth = manuWidth,
             ManufactureHeight = manuHeight,

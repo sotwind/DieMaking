@@ -198,11 +198,34 @@ public partial class DieReturnForm : BaseDialogForm
         }
     }
 
+    private int GetSelectedBorrowId()
+    {
+        if (cboRecord.SelectedValue == null) return 0;
+
+        var selectedValue = cboRecord.SelectedValue;
+
+        // 如果已经是 int，直接返回
+        if (selectedValue is int intValue)
+            return intValue;
+
+        // 如果是匿名类型，通过反射获取 BorrowID 属性
+        var type = selectedValue.GetType();
+        var borrowIdProperty = type.GetProperty("BorrowID");
+        if (borrowIdProperty != null)
+        {
+            var value = borrowIdProperty.GetValue(selectedValue);
+            if (value is int borrowId)
+                return borrowId;
+        }
+
+        return 0;
+    }
+
     private void CboRecord_SelectedIndexChanged(object? sender, EventArgs e)
     {
         if (cboRecord.SelectedValue == null) return;
 
-        var borrowId = (int)cboRecord.SelectedValue;
+        var borrowId = GetSelectedBorrowId();
         var record = _borrowingRecords.FirstOrDefault(r => r.BorrowID == borrowId);
 
         if (record != null)
@@ -233,7 +256,7 @@ public partial class DieReturnForm : BaseDialogForm
 
         try
         {
-            var borrowId = (int)cboRecord.SelectedValue;
+            var borrowId = GetSelectedBorrowId();
             var operatorName = txtOperator.Text.Trim();
             var operatorNo = operatorName; // 简化处理，实际应该使用工号
 
@@ -268,7 +291,7 @@ public partial class DieReturnForm : BaseDialogForm
         dgvPrint.Columns.Add("Item", "项目");
         dgvPrint.Columns.Add("Value", "内容");
 
-        var borrowId = (int)cboRecord.SelectedValue;
+        var borrowId = GetSelectedBorrowId();
         var record = _borrowingRecords.FirstOrDefault(r => r.BorrowID == borrowId);
 
         if (record != null)

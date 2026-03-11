@@ -27,8 +27,6 @@ public class PrintService
     private float _footerHeight = 30f;
     private float _leftMargin = 50f;
     private float _topMargin = 60f;
-    private float _rightMargin = 50f;
-    private float _bottomMargin = 50f;
 
     /// <summary>
     /// 打印预览

@@ -48,19 +48,6 @@ public partial class DieListForm : BaseListForm
         cmbStatus.Items.AddRange(Enum.GetNames(typeof(DieStatus)).Select(s => ((DieStatus)Enum.Parse(typeof(DieStatus), s)).GetDisplayName()).ToArray());
         cmbStatus.SelectedIndex = 0;
 
-        // 审核状态
-        var lblAuditStatus = UIStyleHelper.CreateLabel("审核状态：", new Point(590, 25), new Size(70, 23));
-        cmbAuditStatus = new ComboBox
-        {
-            Location = new Point(660, 22),
-            Size = new Size(100, 23),
-            DropDownStyle = ComboBoxStyle.DropDownList,
-            Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
-        };
-        cmbAuditStatus.Items.Add("全部");
-        cmbAuditStatus.Items.AddRange(Enum.GetNames(typeof(AuditStatus)).Select(s => ((AuditStatus)Enum.Parse(typeof(AuditStatus), s)).GetDisplayName()).ToArray());
-        cmbAuditStatus.SelectedIndex = 0;
-
         // 创建日期范围
         var lblDateFrom = UIStyleHelper.CreateLabel("创建日期：", new Point(775, 25), new Size(70, 23));
         dtpDateFrom = new DateTimePicker
@@ -101,8 +88,6 @@ public partial class DieListForm : BaseListForm
         grpSearch.Controls.Add(txtCustomer);
         grpSearch.Controls.Add(lblStatus);
         grpSearch.Controls.Add(cmbStatus);
-        grpSearch.Controls.Add(lblAuditStatus);
-        grpSearch.Controls.Add(cmbAuditStatus);
         grpSearch.Controls.Add(lblDateFrom);
         grpSearch.Controls.Add(dtpDateFrom);
         grpSearch.Controls.Add(lblDateTo);
@@ -130,13 +115,11 @@ public partial class DieListForm : BaseListForm
         dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "ManufactureSize", HeaderText = "制造尺寸", DataPropertyName = "ManufactureSize", Width = 100 });
         dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "Material", HeaderText = "材质", DataPropertyName = "Material", Width = 80 });
         dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "StatusText", HeaderText = "状态", DataPropertyName = "StatusText", Width = 80 });
-        dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "AuditStatusText", HeaderText = "审核状态", DataPropertyName = "AuditStatusText", Width = 80 });
         dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreateTime", HeaderText = "创建时间", DataPropertyName = "CreateTime", Width = 120 });
         dgvDieList.Columns.Add(new DataGridViewTextBoxColumn { Name = "CreateUser", HeaderText = "创建人", DataPropertyName = "CreateUser", Width = 80 });
 
         // 添加右键菜单
         var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
-            onView: () => BtnView_Click(null, EventArgs.Empty),
             onEdit: () => BtnEdit_Click(null, EventArgs.Empty),
             onDelete: () => BtnDelete_Click(null, EventArgs.Empty)
         );
@@ -162,45 +145,35 @@ public partial class DieListForm : BaseListForm
         btnDelete.Location = new Point(235, 15);
         btnDelete.Click += BtnDelete_Click;
 
-        btnView = new Button { Text = "查看详情", Location = new Point(345, 15), Size = UIStyleHelper.SizeButton };
-        ApplyButtonStyle(btnView, ButtonStyle.Default);
-        btnView.Click += BtnView_Click;
-
-        btnAudit = new Button { Text = "审核", Location = new Point(455, 15), Size = UIStyleHelper.SizeButton };
-        ApplyButtonStyle(btnAudit, ButtonStyle.Default);
-        btnAudit.Click += BtnAudit_Click;
-
         // 分页控件
-        btnFirst = new Button { Text = "首页", Location = new Point(850, 15), Size = new Size(60, 28) };
+        btnFirst = new Button { Text = "首页", Location = new Point(565, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnFirst, ButtonStyle.Default);
-        btnFirst.Click += (s, e) => GoToPage(1);
+        btnFirst.Click += (s, e) => NavigateToPage(1);
 
-        btnPrev = new Button { Text = "上一页", Location = new Point(915, 15), Size = new Size(60, 28) };
+        btnPrev = new Button { Text = "上一页", Location = new Point(630, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnPrev, ButtonStyle.Default);
-        btnPrev.Click += (s, e) => GoToPage(_currentPage - 1);
+        btnPrev.Click += (s, e) => NavigateToPage(_currentPage - 1);
 
         lblPageInfo = new Label
         {
             Text = "第 1 页 / 共 1 页 (共 0 条)",
-            Location = new Point(980, 20),
-            Size = new Size(150, 23),
+            Location = new Point(695, 20),
+            Size = new Size(180, 23),
             TextAlign = ContentAlignment.MiddleCenter,
             Font = new Font(UIStyleHelper.FontName, UIStyleHelper.FontSizeNormal, FontStyle.Regular, GraphicsUnit.Point, 134)
         };
 
-        btnNext = new Button { Text = "下一页", Location = new Point(1020, 15), Size = new Size(60, 28) };
+        btnNext = new Button { Text = "下一页", Location = new Point(880, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnNext, ButtonStyle.Default);
-        btnNext.Click += (s, e) => GoToPage(_currentPage + 1);
+        btnNext.Click += (s, e) => NavigateToPage(_currentPage + 1);
 
-        btnLast = new Button { Text = "末页", Location = new Point(1090, 15), Size = new Size(60, 28) };
+        btnLast = new Button { Text = "末页", Location = new Point(945, 15), Size = new Size(60, 28) };
         ApplyButtonStyle(btnLast, ButtonStyle.Default);
-        btnLast.Click += (s, e) => GoToPage((_totalCount + _pageSize - 1) / _pageSize);
+        btnLast.Click += (s, e) => NavigateToPage((_totalCount + _pageSize - 1) / _pageSize);
 
         grpButtons.Controls.Add(btnAdd);
         grpButtons.Controls.Add(btnEdit);
         grpButtons.Controls.Add(btnDelete);
-        grpButtons.Controls.Add(btnView);
-        grpButtons.Controls.Add(btnAudit);
         grpButtons.Controls.Add(btnFirst);
         grpButtons.Controls.Add(btnPrev);
         grpButtons.Controls.Add(lblPageInfo);
@@ -220,7 +193,6 @@ public partial class DieListForm : BaseListForm
     private TextBox txtDieCode = null!;
     private TextBox txtCustomer = null!;
     private ComboBox cmbStatus = null!;
-    private ComboBox cmbAuditStatus = null!;
     private DateTimePicker dtpDateFrom = null!;
     private DateTimePicker dtpDateTo = null!;
     private Button btnSearch = null!;
@@ -229,8 +201,6 @@ public partial class DieListForm : BaseListForm
     private Button btnAdd = null!;
     private Button btnEdit = null!;
     private Button btnDelete = null!;
-    private Button btnView = null!;
-    private Button btnAudit = null!;
     private Button btnFirst = null!;
     private Button btnPrev = null!;
     private Button btnNext = null!;
@@ -251,7 +221,6 @@ public partial class DieListForm : BaseListForm
         txtDieCode.Clear();
         txtCustomer.Clear();
         cmbStatus.SelectedIndex = 0;
-        cmbAuditStatus.SelectedIndex = 0;
         dtpDateFrom.Checked = false;
         dtpDateTo.Checked = false;
         _currentPage = 1;
@@ -272,12 +241,6 @@ public partial class DieListForm : BaseListForm
         var die = GetSelectedDie();
         if (die == null) return;
 
-        if (die.AuditStatus == AuditStatus.Audited)
-        {
-            MessageBox.Show("已审核的刀模不能编辑", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
-
         var form = new DieAddForm(die.DieID);
         if (form.ShowDialog(this) == DialogResult.OK)
         {
@@ -289,12 +252,6 @@ public partial class DieListForm : BaseListForm
     {
         var die = GetSelectedDie();
         if (die == null) return;
-
-        if (die.AuditStatus == AuditStatus.Audited)
-        {
-            MessageBox.Show("已审核的刀模不能删除", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-            return;
-        }
 
         if (MessageBox.Show($"确定要删除刀模 [{die.DieCode}] 吗？", "确认删除",
             MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
@@ -329,41 +286,10 @@ public partial class DieListForm : BaseListForm
         form.ShowDialog(this);
     }
 
-    private void BtnAudit_Click(object? sender, EventArgs e)
-    {
-        var die = GetSelectedDie();
-        if (die == null) return;
-
-        string action = die.AuditStatus == AuditStatus.Audited ? "取消审核" : "审核";
-        if (MessageBox.Show($"确定要{action}刀模 [{die.DieCode}] 吗？", "确认",
-            MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
-        {
-            return;
-        }
-
-        try
-        {
-            bool isApproved = die.AuditStatus != AuditStatus.Audited;
-            if (_dieService.AuditDie(die.DieID, isApproved))
-            {
-                ShowSuccess($"{action}成功");
-                LoadData();
-            }
-            else
-            {
-                ShowError($"{action}失败");
-            }
-        }
-        catch (Exception ex)
-        {
-            ShowError($"{action}失败：{ex.Message}");
-        }
-    }
-
     private void DgvDieList_CellDoubleClick(object? sender, DataGridViewCellEventArgs e)
     {
         if (e.RowIndex < 0) return;
-        BtnView_Click(sender, e);
+        BtnEdit_Click(sender, e);
     }
 
     private void DgvDieList_ColumnHeaderMouseClick(object? sender, DataGridViewCellMouseEventArgs e)
@@ -395,12 +321,11 @@ public partial class DieListForm : BaseListForm
             string? customerName = string.IsNullOrWhiteSpace(txtCustomer.Text) || txtCustomer.Text == (string?)txtCustomer.Tag
                 ? null : txtCustomer.Text.Trim();
             DieStatus? status = cmbStatus.SelectedIndex > 0 ? (DieStatus?)(cmbStatus.SelectedIndex - 1) : null;
-            AuditStatus? auditStatus = cmbAuditStatus.SelectedIndex > 0 ? (AuditStatus?)(cmbAuditStatus.SelectedIndex - 1) : null;
             DateTime? startDate = dtpDateFrom.Checked ? dtpDateFrom.Value : null;
             DateTime? endDate = dtpDateTo.Checked ? dtpDateTo.Value : null;
 
             // 搜索数据
-            _dieList = _dieService.SearchDies(dieCode, customerName, status, auditStatus, startDate, endDate);
+            _dieList = _dieService.SearchDies(dieCode, customerName, status, startDate, endDate);
             _totalCount = _dieList.Count;
 
             // 分页显示
@@ -439,7 +364,7 @@ public partial class DieListForm : BaseListForm
         }
     }
 
-    private void GoToPage(int page)
+    private void NavigateToPage(int page)
     {
         int totalPages = (_totalCount + _pageSize - 1) / _pageSize;
         if (totalPages == 0) totalPages = 1;

@@ -37,7 +37,7 @@ public class DieService : BaseService
     /// 搜索刀模
     /// </summary>
     public List<DieInfo> SearchDies(string? dieCode = null, string? customerName = null, 
-                                     DieStatus? status = null, AuditStatus? auditStatus = null,
+                                     DieStatus? status = null,
                                      DateTime? startDate = null, DateTime? endDate = null)
     {
         var conditions = new List<string>();
@@ -61,12 +61,6 @@ public class DieService : BaseService
             parameters.Add(new SqlParameter("@Status", (int)status.Value));
         }
 
-        if (auditStatus.HasValue)
-        {
-            conditions.Add("d.AuditStatus = @AuditStatus");
-            parameters.Add(new SqlParameter("@AuditStatus", (int)auditStatus.Value));
-        }
-
         if (startDate.HasValue)
         {
             conditions.Add("d.CreateTime >= @StartDate");
@@ -76,7 +70,7 @@ public class DieService : BaseService
         if (endDate.HasValue)
         {
             conditions.Add("d.CreateTime <= @EndDate");
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1)));
+            parameters.Add(new SqlParameter("@EndDate", endDate.Value.Date.AddDays(1).AddSeconds(-1)));
         }
 
         var baseSql = @"SELECT d.*, u.RealName as CreateUserName 
@@ -104,12 +98,12 @@ public class DieService : BaseService
             var sql = @"INSERT INTO DM_DieInfo 
                          (DieCode, CustomerName, ProductName, Structure, ModelType, LayoutType, 
                           FluteType, Material, ManufactureLength, ManufactureWidth, ManufactureHeight,
-                          BlankLength, BlankWidth, ProcessDesc, RequiredProcesses, Status, AuditStatus,
+                          BlankLength, BlankWidth, ProcessDesc, RequiredProcesses, Status,
                           SourceFactory, ExternalOrderID, DeliveryDate, CreateTime, CreateUser, Remark)
                          VALUES 
                          (@DieCode, @CustomerName, @ProductName, @Structure, @ModelType, @LayoutType,
                           @FluteType, @Material, @ManufactureLength, @ManufactureWidth, @ManufactureHeight,
-                          @BlankLength, @BlankWidth, @ProcessDesc, @RequiredProcesses, @Status, @AuditStatus,
+                          @BlankLength, @BlankWidth, @ProcessDesc, @RequiredProcesses, @Status,
                           @SourceFactory, @ExternalOrderID, @DeliveryDate, GETDATE(), @CreateUser, @Remark);
                          SELECT CAST(SCOPE_IDENTITY() AS INT);";
 
@@ -165,7 +159,6 @@ public class DieService : BaseService
                          ProcessDesc = @ProcessDesc,
                          RequiredProcesses = @RequiredProcesses,
                          Status = @Status,
-                         AuditStatus = @AuditStatus,
                          SourceFactory = @SourceFactory,
                          ExternalOrderID = @ExternalOrderID,
                          DeliveryDate = @DeliveryDate,
@@ -222,17 +215,6 @@ public class DieService : BaseService
             deleteDieCmd.Parameters.AddWithValue("@DieID", dieId);
             return deleteDieCmd.ExecuteNonQuery() > 0;
         }, errorMessages, $"删除刀模(ID:{dieId})");
-    }
-
-    /// <summary>
-    /// 审核刀模
-    /// </summary>
-    public bool AuditDie(int dieId, bool isApproved)
-    {
-        var sql = "UPDATE DM_DieInfo SET AuditStatus = @AuditStatus WHERE DieID = @DieID";
-        return ExecuteNonQuerySafe(sql, $"审核刀模(ID:{dieId})",
-            new SqlParameter("@AuditStatus", isApproved ? (int)AuditStatus.Audited : (int)AuditStatus.Unaudited),
-            new SqlParameter("@DieID", dieId)) > 0;
     }
 
     /// <summary>
@@ -330,7 +312,6 @@ public class DieService : BaseService
         command.Parameters.AddWithValue("@ProcessDesc", die.ProcessDesc);
         command.Parameters.AddWithValue("@RequiredProcesses", die.RequiredProcesses);
         command.Parameters.AddWithValue("@Status", (int)die.Status);
-        command.Parameters.AddWithValue("@AuditStatus", (int)die.AuditStatus);
         command.Parameters.AddWithValue("@SourceFactory", die.SourceFactory);
         command.Parameters.AddWithValue("@ExternalOrderID", die.ExternalOrderID ?? (object)DBNull.Value);
         command.Parameters.AddWithValue("@DeliveryDate", die.DeliveryDate ?? (object)DBNull.Value);
@@ -359,7 +340,6 @@ public class DieService : BaseService
             ProcessDesc = ConvertHelper.ToString(reader["ProcessDesc"]),
             RequiredProcesses = ConvertHelper.ToString(reader["RequiredProcesses"]),
             Status = ConvertHelper.ToEnum(reader["Status"], DieStatus.Pending),
-            AuditStatus = ConvertHelper.ToEnum(reader["AuditStatus"], AuditStatus.Unaudited),
             SourceFactory = ConvertHelper.ToString(reader["SourceFactory"]),
             ExternalOrderID = ConvertHelper.ToNullableInt(reader["ExternalOrderID"]),
             DeliveryDate = ConvertHelper.ToNullableDateTime(reader["DeliveryDate"]),
@@ -409,16 +389,16 @@ public class DieService : BaseService
                      WHERE d.Status = @Status
                      AND NOT EXISTS (
                          SELECT 1 FROM DM_DieInventory i 
-                         WHERE i.DieID = d.DieID AND i.Status != @DeletedStatus
+                         WHERE i.DieID = d.DieID AND i.StorageStatus != @DeletedStatus
                      )
-                     ORDER BY d.CompleteTime DESC";
-        
+                     ORDER BY d.UpdateTime DESC";
+
         var parameters = new[]
         {
             new SqlParameter("@Status", (int)DieStatus.Completed),
-            new SqlParameter("@DeletedStatus", (int)InventoryStatus.Scrap)
+            new SqlParameter("@DeletedStatus", (int)StorageStatus.Scrapped)
         };
-        
+
         return ExecuteQuerySafe(sql, MapToDieInfo, "获取已完工未入库刀模", parameters);
     }
 

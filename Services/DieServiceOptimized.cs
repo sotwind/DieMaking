@@ -17,8 +17,7 @@ public class DieServiceOptimized : DieService
     public PagedResult<DieInfo> SearchDiesPaged(
         string? dieCode = null, 
         string? customerName = null, 
-        DieStatus? status = null, 
-        AuditStatus? auditStatus = null,
+        DieStatus? status = null,
         DateTime? startDate = null, 
         DateTime? endDate = null,
         int pageIndex = 1,
@@ -47,12 +46,6 @@ public class DieServiceOptimized : DieService
                 parameters.Add(new SqlParameter("@Status", (int)status.Value));
             }
 
-            if (auditStatus.HasValue)
-            {
-                conditions.Add("d.AuditStatus = @AuditStatus");
-                parameters.Add(new SqlParameter("@AuditStatus", (int)auditStatus.Value));
-            }
-
             if (startDate.HasValue)
             {
                 conditions.Add("d.CreateTime >= @StartDate");
@@ -62,7 +55,7 @@ public class DieServiceOptimized : DieService
             if (endDate.HasValue)
             {
                 conditions.Add("d.CreateTime <= @EndDate");
-                parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1)));
+                parameters.Add(new SqlParameter("@EndDate", endDate.Value.Date.AddDays(1).AddSeconds(-1)));
             }
 
             var whereClause = conditions.Count > 0 ? "WHERE " + string.Join(" AND ", conditions) : "";
@@ -73,7 +66,7 @@ public class DieServiceOptimized : DieService
                 LEFT JOIN DM_User u WITH (NOLOCK) ON d.CreateUser = u.Username
                 {whereClause}";
 
-            var countCacheKey = $"DieList_Count:{dieCode ?? "all"}:{customerName ?? "all"}:{status?.ToString() ?? "all"}:{auditStatus?.ToString() ?? "all"}";
+            var countCacheKey = $"DieList_Count:{dieCode ?? "all"}:{customerName ?? "all"}:{status?.ToString() ?? "all"}";
 
             return PaginationHelper.ExecutePagedQueryWithCountCache(
                 baseSql,
@@ -166,7 +159,6 @@ public class DieServiceOptimized : DieService
                 { "ProcessDesc", "ProcessDesc" },
                 { "RequiredProcesses", "RequiredProcesses" },
                 { "Status", "Status" },
-                { "AuditStatus", "AuditStatus" },
                 { "SourceFactory", "SourceFactory" },
                 { "ExternalOrderID", "ExternalOrderID" },
                 { "DeliveryDate", "DeliveryDate" },
@@ -193,7 +185,6 @@ public class DieServiceOptimized : DieService
                 d.ProcessDesc,
                 d.RequiredProcesses,
                 Status = (int)DieStatus.Pending,
-                AuditStatus = (int)AuditStatus.Unaudited,
                 d.SourceFactory,
                 d.ExternalOrderID,
                 d.DeliveryDate,
@@ -259,7 +250,6 @@ public class DieServiceOptimized : DieService
                 { "ProcessDesc", "ProcessDesc" },
                 { "RequiredProcesses", "RequiredProcesses" },
                 { "Status", "Status" },
-                { "AuditStatus", "AuditStatus" },
                 { "SourceFactory", "SourceFactory" },
                 { "ExternalOrderID", "ExternalOrderID" },
                 { "DeliveryDate", "DeliveryDate" },
@@ -285,7 +275,6 @@ public class DieServiceOptimized : DieService
                 d.ProcessDesc,
                 d.RequiredProcesses,
                 Status = (int)DieStatus.Pending,
-                AuditStatus = (int)AuditStatus.Unaudited,
                 d.SourceFactory,
                 d.ExternalOrderID,
                 d.DeliveryDate,
@@ -486,7 +475,6 @@ public class DieServiceOptimized : DieService
             ProcessDesc = ConvertHelper.ToString(reader["ProcessDesc"]),
             RequiredProcesses = ConvertHelper.ToString(reader["RequiredProcesses"]),
             Status = ConvertHelper.ToEnum(reader["Status"], DieStatus.Pending),
-            AuditStatus = ConvertHelper.ToEnum(reader["AuditStatus"], AuditStatus.Unaudited),
             SourceFactory = ConvertHelper.ToString(reader["SourceFactory"]),
             ExternalOrderID = ConvertHelper.ToNullableInt(reader["ExternalOrderID"]),
             DeliveryDate = ConvertHelper.ToNullableDateTime(reader["DeliveryDate"]),

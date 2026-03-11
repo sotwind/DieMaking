@@ -281,7 +281,7 @@ public partial class OperationLogForm : Form
                             l.IPAddress,
                             l.CreateTime
                         FROM DM_OperationLog l
-                        LEFT JOIN DM_Die d ON l.DieID = d.DieID
+                        LEFT JOIN DM_DieInfo d ON l.DieID = d.DieID
                         WHERE l.CreateTime BETWEEN @StartDate AND @EndDate
                         ORDER BY l.CreateTime DESC";
 

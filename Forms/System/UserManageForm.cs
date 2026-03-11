@@ -164,9 +164,8 @@ public partial class UserManageForm : BaseListForm
 
         // 添加右键菜单
         var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
-            onView: null,
             onEdit: () => BtnEdit_Click(null, EventArgs.Empty),
-            onDelete: null
+            onDelete: () => BtnDelete_Click(null, EventArgs.Empty)
         );
         dgvUsers.ContextMenuStrip = contextMenu;
 

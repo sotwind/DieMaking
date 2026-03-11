@@ -77,6 +77,7 @@ public partial class DieStorageForm : BaseListForm
         // 添加列
         dgvRecords.Columns.Add(new DataGridViewTextBoxColumn
         {
+            Name = "DieID",
             DataPropertyName = "DieID",
             HeaderText = "ID",
             Width = 60,
@@ -106,14 +107,14 @@ public partial class DieStorageForm : BaseListForm
 
         dgvRecords.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = "DieType",
+            DataPropertyName = "ModelType",
             HeaderText = "刀模类型",
             Width = 100
         });
 
         dgvRecords.Columns.Add(new DataGridViewTextBoxColumn
         {
-            DataPropertyName = "Size",
+            DataPropertyName = "ManufactureSize",
             HeaderText = "规格尺寸",
             Width = 100
         });
@@ -142,9 +143,7 @@ public partial class DieStorageForm : BaseListForm
 
         // 添加右键菜单
         var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
-            onView: null,
-            onEdit: () => ShowInStockDialog(),
-            onDelete: null
+            onEdit: () => ShowInStockDialog()
         );
         dgvRecords.ContextMenuStrip = contextMenu;
 
@@ -269,7 +268,7 @@ public class DieInStockEditForm : BaseDialogForm
     private void InitializeComponent()
     {
         this.Text = "刀模入库";
-        this.Size = UIStyleHelper.SizeDialog;
+        this.Size = new Size(600, 520);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -464,11 +463,14 @@ public class DieInStockEditForm : BaseDialogForm
 
             if (result)
             {
+                MessageBox.Show($"刀模入库成功！\n刀模编号：{_die.DieCode}\n入库库位：{cboLocation.Text}",
+                    "入库成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
+                this.Close();
             }
             else
             {
-                ShowError("入库失败");
+                ShowError("入库失败，请稍后重试");
             }
         }
         catch (Exception ex)

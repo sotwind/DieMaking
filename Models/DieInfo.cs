@@ -58,9 +58,6 @@ public class DieInfo
     // 状态
     /// <summary>刀模状态</summary>
     public DieStatus Status { get; set; } = DieStatus.Pending;
-    
-    /// <summary>审核状态</summary>
-    public AuditStatus AuditStatus { get; set; } = AuditStatus.Unaudited;
 
     // 关联信息
     /// <summary>来源工厂</summary>
@@ -94,9 +91,6 @@ public class DieInfo
     
     /// <summary>状态显示文本</summary>
     public string StatusText => Status.GetDisplayName();
-    
-    /// <summary>审核状态显示文本</summary>
-    public string AuditStatusText => AuditStatus.GetDisplayName();
 }
 
 /// <summary>
@@ -210,17 +204,6 @@ public enum DieStatus
 }
 
 /// <summary>
-/// 审核状态枚举
-/// </summary>
-public enum AuditStatus
-{
-    /// <summary>未审核</summary>
-    Unaudited = 0,
-    /// <summary>已审核</summary>
-    Audited = 1
-}
-
-/// <summary>
 /// 工序状态枚举
 /// </summary>
 public enum ProcessStatus
@@ -254,21 +237,6 @@ public static class DieEnumExtensions
             DieStatus.Completed => "已完成",
             DieStatus.OnHold => "暂不生产",
             DieStatus.NotRequired => "无需生产",
-            _ => "未知"
-        };
-    }
-
-    /// <summary>
-    /// 获取审核状态的显示名称
-    /// </summary>
-    /// <param name="status">审核状态</param>
-    /// <returns>显示名称</returns>
-    public static string GetDisplayName(this AuditStatus status)
-    {
-        return status switch
-        {
-            AuditStatus.Unaudited => "未审核",
-            AuditStatus.Audited => "已审核",
             _ => "未知"
         };
     }

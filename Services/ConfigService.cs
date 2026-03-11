@@ -247,7 +247,7 @@ public class ConfigService
             // 收集变更信息，用于批量触发事件
             var changedConfigs = new List<(string key, string oldValue, string newValue)>();
 
-            return DbHelper.ExecuteTransaction((connection, transaction) =>
+            var result = DbHelper.ExecuteTransaction((connection, transaction) =>
             {
                 foreach (var (key, value) in configs)
                 {
@@ -280,10 +280,15 @@ public class ConfigService
             });
 
             // 事务成功后统一触发变更事件
-            foreach (var (key, oldValue, newValue) in changedConfigs)
+            if (result)
             {
-                OnConfigChanged(key, oldValue, newValue);
+                foreach (var (key, oldValue, newValue) in changedConfigs)
+                {
+                    OnConfigChanged(key, oldValue, newValue);
+                }
             }
+
+            return result;
         }
         catch (Exception ex)
         {

@@ -248,7 +248,7 @@ public partial class CompletionQueryForm : Form
                 row.Cells["DieCode"].Value = record.DieCode;
                 row.Cells["CustomerName"].Value = record.CustomerName;
                 row.Cells["ProductName"].Value = record.ProductName;
-                row.Cells["CompleteTime"].Value = record.CompleteTime?.ToString("yyyy-MM-dd HH:mm") ?? "-";
+                row.Cells["CompleteTime"].Value = record.CompleteTime.ToString("yyyy-MM-dd HH:mm");
                 row.Cells["TotalAmount"].Value = record.TotalAmount;
                 row.Cells["OperatorName"].Value = record.OperatorName;
                 row.Cells["Remark"].Value = record.Remark;

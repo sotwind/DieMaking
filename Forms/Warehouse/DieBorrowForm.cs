@@ -20,7 +20,7 @@ public partial class DieBorrowForm : BaseDialogForm
     private void InitializeComponent()
     {
         this.Text = "刀模领用";
-        this.Size = UIStyleHelper.SizeEditForm;
+        this.Size = new Size(800, 680);
         this.StartPosition = FormStartPosition.CenterParent;
         this.FormBorderStyle = FormBorderStyle.FixedDialog;
         this.MaximizeBox = false;
@@ -181,8 +181,18 @@ public partial class DieBorrowForm : BaseDialogForm
             // 加载在库刀模
             _inStockDies = _warehouseService.GetInStockInventory();
             cboDie.DataSource = null;
-            cboDie.DisplayMember = "DieCode";
-            cboDie.ValueMember = "InventoryID";
+
+            if (_inStockDies.Count == 0)
+            {
+                cboDie.Enabled = false;
+                lblDieInfoValue.Text = "暂无可领用的刀模，请先进行入库操作";
+                lblLocationValue.Text = "-";
+                MessageBox.Show("当前没有在库的刀模可供领用，请先进行刀模入库操作。", "提示",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            cboDie.Enabled = true;
 
             // 创建显示列表
             var displayList = _inStockDies.Select(d => new
@@ -197,9 +207,10 @@ public partial class DieBorrowForm : BaseDialogForm
             cboDie.DisplayMember = "Display";
             cboDie.ValueMember = "InventoryID";
 
-            if (cboDie.Items.Count == 0)
+            // 默认选中第一项并触发事件
+            if (cboDie.Items.Count > 0)
             {
-                MessageBox.Show("当前没有在库的刀模可供领用", "提示", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                cboDie.SelectedIndex = 0;
             }
         }
         catch (Exception ex)
@@ -210,9 +221,14 @@ public partial class DieBorrowForm : BaseDialogForm
 
     private void CboDie_SelectedIndexChanged(object? sender, EventArgs e)
     {
-        if (cboDie.SelectedValue == null) return;
+        if (cboDie.SelectedItem == null) return;
 
-        var inventoryId = (int)cboDie.SelectedValue;
+        // 使用反射获取匿名类型的 InventoryID 属性
+        var selectedItem = cboDie.SelectedItem;
+        var inventoryIdProperty = selectedItem.GetType().GetProperty("InventoryID");
+        if (inventoryIdProperty == null) return;
+
+        var inventoryId = (int)inventoryIdProperty.GetValue(selectedItem)!;
         var die = _inStockDies.FirstOrDefault(d => d.InventoryID == inventoryId);
 
         if (die != null)
@@ -259,7 +275,20 @@ public partial class DieBorrowForm : BaseDialogForm
 
         try
         {
-            var inventoryId = (int)cboDie.SelectedValue;
+            // 使用反射获取匿名类型的 InventoryID 属性
+            var selectedItem = cboDie.SelectedItem;
+            if (selectedItem == null)
+            {
+                ShowError("请选择要领用的刀模");
+                return;
+            }
+            var inventoryIdProperty = selectedItem.GetType().GetProperty("InventoryID");
+            if (inventoryIdProperty == null)
+            {
+                ShowError("刀模数据格式错误");
+                return;
+            }
+            var inventoryId = (int)inventoryIdProperty.GetValue(selectedItem)!;
             var die = _inStockDies.FirstOrDefault(d => d.InventoryID == inventoryId);
 
             if (die == null)
@@ -286,11 +315,14 @@ public partial class DieBorrowForm : BaseDialogForm
 
             if (borrowId > 0)
             {
+                MessageBox.Show($"刀模领用成功！\n领用单号：{borrowId}\n刀模编号：{die.DieCode}",
+                    "领用成功", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.DialogResult = DialogResult.OK;
+                this.Close();
             }
             else
             {
-                ShowError("领用失败");
+                ShowError("领用失败，请稍后重试");
             }
         }
         catch (Exception ex)

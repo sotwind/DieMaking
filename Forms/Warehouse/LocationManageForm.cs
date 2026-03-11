@@ -157,7 +157,6 @@ public partial class LocationManageForm : BaseListForm
 
         // 添加右键菜单
         var contextMenu = UIStyleHelper.CreateDataGridViewContextMenu(
-            onView: null,
             onEdit: () => EditLocation(),
             onDelete: () => DeleteLocation()
         );
@@ -237,7 +236,7 @@ public partial class LocationManageForm : BaseListForm
         {
             try
             {
-                var location = form.Location;
+                var location = form.StorageLocation;
                 if (_warehouseService.IsLocationCodeExists(location.LocationCode))
                 {
                     MessageBox.Show("库位编号已存在", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -272,7 +271,7 @@ public partial class LocationManageForm : BaseListForm
         {
             try
             {
-                var updatedLocation = form.Location;
+                var updatedLocation = form.StorageLocation;
                 if (_warehouseService.IsLocationCodeExists(updatedLocation.LocationCode, updatedLocation.LocationID))
                 {
                     MessageBox.Show("库位编号已存在", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -396,13 +395,13 @@ public partial class LocationManageForm : BaseListForm
 // 库位编辑窗体
 public class LocationEditForm : BaseDialogForm
 {
-    public StorageLocation Location { get; private set; }
+    public StorageLocation StorageLocation { get; private set; }
     private bool _isEdit;
 
     public LocationEditForm(StorageLocation? location = null)
     {
         _isEdit = location != null;
-        Location = location ?? new StorageLocation { Status = LocationStatus.Free };
+        StorageLocation = location ?? new StorageLocation { Status = LocationStatus.Free };
         InitializeComponent();
         if (_isEdit) LoadData();
     }
@@ -496,13 +495,13 @@ public class LocationEditForm : BaseDialogForm
 
     private void LoadData()
     {
-        txtCode.Text = Location.LocationCode;
-        txtArea.Text = Location.Area;
-        txtShelf.Text = Location.ShelfNo;
-        txtLayer.Text = Location.LayerNo;
-        txtPosition.Text = Location.PositionNo;
-        txtDesc.Text = Location.Description;
-        cboStatus.SelectedIndex = (int)Location.Status;
+        txtCode.Text = StorageLocation.LocationCode;
+        txtArea.Text = StorageLocation.Area;
+        txtShelf.Text = StorageLocation.ShelfNo;
+        txtLayer.Text = StorageLocation.LayerNo;
+        txtPosition.Text = StorageLocation.PositionNo;
+        txtDesc.Text = StorageLocation.Description;
+        cboStatus.SelectedIndex = (int)StorageLocation.Status;
     }
 
     private void Save_Click(object? sender, EventArgs e)
@@ -525,13 +524,13 @@ public class LocationEditForm : BaseDialogForm
         }
         UIStyleHelper.SetValidationError(txtArea, false);
 
-        Location.LocationCode = txtCode.Text.Trim();
-        Location.Area = txtArea.Text.Trim();
-        Location.ShelfNo = txtShelf.Text.Trim();
-        Location.LayerNo = txtLayer.Text.Trim();
-        Location.PositionNo = txtPosition.Text.Trim();
-        Location.Description = txtDesc.Text.Trim();
-        Location.Status = (LocationStatus)((dynamic)cboStatus.SelectedItem!).Value;
+        StorageLocation.LocationCode = txtCode.Text.Trim();
+        StorageLocation.Area = txtArea.Text.Trim();
+        StorageLocation.ShelfNo = txtShelf.Text.Trim();
+        StorageLocation.LayerNo = txtLayer.Text.Trim();
+        StorageLocation.PositionNo = txtPosition.Text.Trim();
+        StorageLocation.Description = txtDesc.Text.Trim();
+        StorageLocation.Status = (LocationStatus)((dynamic)cboStatus.SelectedItem!).Value;
 
         this.DialogResult = DialogResult.OK;
     }

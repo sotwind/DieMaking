@@ -94,7 +94,7 @@ public class ProductionService
             // 使用分页查询
             if (pageSize > 0)
             {
-                var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "d.CreateTime DESC", pageIndex, pageSize,
+                var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "CreateTime DESC", pageIndex, pageSize,
                     reader => new DieBoardItem
                     {
                         DieID = Convert.ToInt32(reader["DieID"]),

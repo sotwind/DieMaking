@@ -58,7 +58,7 @@ public partial class DieService
         if (endDate.HasValue)
         {
             conditions.Add("d.CreateTime <= @EndDate");
-            parameters.Add(new SqlParameter("@EndDate", endDate.Value.AddDays(1)));
+            parameters.Add(new SqlParameter("@EndDate", endDate.Value.Date.AddDays(1).AddSeconds(-1)));
         }
 
         var baseSql = @"SELECT d.*, u.RealName as CreateUserName 
@@ -70,7 +70,7 @@ public partial class DieService
             baseSql += " WHERE " + string.Join(" AND ", conditions);
         }
 
-        return ExecutePagedQuery(baseSql, "d.CreateTime DESC", pageIndex, pageSize, 
+        return ExecutePagedQuery(baseSql, "CreateTime DESC", pageIndex, pageSize, 
             MapToDieInfo, parameters.ToArray());
     }
 }

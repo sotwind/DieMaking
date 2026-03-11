@@ -60,7 +60,7 @@ public class ReportService
             }
 
             // 使用分页查询
-            var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "dc.CompleteTime DESC", pageIndex, pageSize,
+            var pagedResult = DbHelper.ExecutePagedQuery(baseSql, "CompleteTime DESC", pageIndex, pageSize,
                 reader => new CompletionStatsByDie
                 {
                     DieID = Convert.ToInt32(reader["DieID"]),

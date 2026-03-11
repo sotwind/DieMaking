@@ -61,14 +61,16 @@ public static class PaginationHelper
 
             var offset = (pageIndex - 1) * pageSize;
 
-            // 构建分页SQL（使用 OFFSET FETCH）
+            // 构建分页SQL - 将ORDER BY放在CTE内部，避免外部无法识别表别名的问题
             var pagedSql = $@"
                 WITH PagedData AS (
-                    {baseSql}
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY {orderBy}) AS RowNum
+                    FROM (
+                        {baseSql}
+                    ) AS InnerQuery
                 )
                 SELECT * FROM PagedData
-                ORDER BY {orderBy}
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                WHERE RowNum > @Offset AND RowNum <= @Offset + @PageSize;
 
                 SELECT COUNT(*) FROM (
                     {baseSql}
@@ -160,14 +162,16 @@ public static class PaginationHelper
 
             var offset = (pageIndex - 1) * pageSize;
 
-            // 构建分页SQL
+            // 构建分页SQL - 将ORDER BY放在CTE内部，避免外部无法识别表别名的问题
             var pagedSql = $@"
                 WITH PagedData AS (
-                    {baseSql}
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY {orderBy}) AS RowNum
+                    FROM (
+                        {baseSql}
+                    ) AS InnerQuery
                 )
                 SELECT * FROM PagedData
-                ORDER BY {orderBy}
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY;
+                WHERE RowNum > @Offset AND RowNum <= @Offset + @PageSize;
 
                 SELECT COUNT(*) FROM (
                     {baseSql}
@@ -282,14 +286,16 @@ public static class PaginationHelper
             result.HasPreviousPage = pageIndex > 1;
             result.HasNextPage = pageIndex < result.TotalPages;
 
-            // 查询分页数据
+            // 查询分页数据 - 将ORDER BY放在CTE内部，避免外部无法识别表别名的问题
             var pagedSql = $@"
                 WITH PagedData AS (
-                    {baseSql}
+                    SELECT *, ROW_NUMBER() OVER (ORDER BY {orderBy}) AS RowNum
+                    FROM (
+                        {baseSql}
+                    ) AS InnerQuery
                 )
                 SELECT * FROM PagedData
-                ORDER BY {orderBy}
-                OFFSET @Offset ROWS FETCH NEXT @PageSize ROWS ONLY";
+                WHERE RowNum > @Offset AND RowNum <= @Offset + @PageSize";
 
             var pagedParameters = parameters.ToList();
             pagedParameters.Add(new SqlParameter("@Offset", offset));

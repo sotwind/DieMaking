@@ -177,13 +177,11 @@ public partial class ProcessReportForm : BaseForm
         _btnStart = UIStyleHelper.CreateAddButton("开始生产");
         _btnStart.Size = new Size(120, 40);
         _btnStart.Location = new Point(80, 260);
-        _btnStart.Enabled = false;
         _btnStart.Click += BtnStart_Click;
 
         _btnComplete = UIStyleHelper.CreateSaveButton("完成生产");
         _btnComplete.Size = new Size(120, 40);
         _btnComplete.Location = new Point(220, 260);
-        _btnComplete.Enabled = false;
         _btnComplete.Click += BtnComplete_Click;
 
         // 状态说明
@@ -257,7 +255,12 @@ public partial class ProcessReportForm : BaseForm
         {
             var processes = _productionService.GetDieProcessesForReport(dieId);
 
+            // 保存当前选中的工序ID
+            var currentSelectedId = _selectedProcessId;
+
             _dgvProcesses.Rows.Clear();
+
+            DataGridViewRow? rowToSelect = null;
 
             foreach (var process in processes)
             {
@@ -287,13 +290,33 @@ public partial class ProcessReportForm : BaseForm
                 }
 
                 row.Tag = process;
+
+                // 如果这是之前选中的工序，记录它
+                if (currentSelectedId.HasValue && process.ProcessID == currentSelectedId.Value)
+                {
+                    rowToSelect = row;
+                }
             }
 
-            // 清除选择
-            _selectedProcessId = null;
-            _lblSelectedProcess.Text = "请选择工序";
-            _btnStart.Enabled = false;
-            _btnComplete.Enabled = false;
+            // 如果有之前选中的工序，重新选中它
+            if (rowToSelect != null)
+            {
+                rowToSelect.Selected = true;
+                _dgvProcesses.FirstDisplayedScrollingRowIndex = rowToSelect.Index;
+                UpdateSelectedProcessInfo(rowToSelect);
+            }
+            else if (_dgvProcesses.Rows.Count > 0)
+            {
+                // 默认选中第一行
+                _dgvProcesses.Rows[0].Selected = true;
+                UpdateSelectedProcessInfo(_dgvProcesses.Rows[0]);
+            }
+            else
+            {
+                // 清除选择
+                _selectedProcessId = null;
+                _lblSelectedProcess.Text = "请选择工序";
+            }
         }
         catch (Exception ex)
         {
@@ -305,47 +328,74 @@ public partial class ProcessReportForm : BaseForm
     {
         if (_dgvProcesses.SelectedRows.Count > 0)
         {
-            var row = _dgvProcesses.SelectedRows[0];
-            if (row.Tag is DieProcessForReport process)
-            {
-                _selectedProcessId = process.ProcessID;
-                _lblSelectedProcess.Text = $"已选择：{process.ProcessName} ({process.StatusText})";
-
-                // 根据状态启用按钮
-                _btnStart.Enabled = process.CanStart;
-                _btnComplete.Enabled = process.CanComplete;
-
-                // 如果已有操作员信息，显示出来
-                if (!string.IsNullOrEmpty(process.OperatorNo))
-                {
-                    _txtOperatorNo.Text = process.OperatorNo;
-                    _txtOperatorName.Text = process.OperatorName;
-                }
-
-                // 如果已有金额，显示出来
-                if (process.Amount.HasValue)
-                {
-                    _txtAmount.Text = process.Amount.Value.ToString("N2");
-                }
-                else
-                {
-                    _txtAmount.Clear();
-                }
-            }
+            UpdateSelectedProcessInfo(_dgvProcesses.SelectedRows[0]);
         }
         else
         {
             _selectedProcessId = null;
             _lblSelectedProcess.Text = "请选择工序";
-            _btnStart.Enabled = false;
-            _btnComplete.Enabled = false;
+        }
+    }
+
+    private void UpdateSelectedProcessInfo(DataGridViewRow row)
+    {
+        if (row.Tag is DieProcessForReport process)
+        {
+            _selectedProcessId = process.ProcessID;
+
+            // 检查前道工序是否完成
+            bool prevProcessCompleted = _productionService.IsPrevProcessCompleted(process.ProcessID);
+
+            // 构建状态提示文本
+            string statusTip = "";
+            if (process.Status == ProcessStatus.Pending)
+            {
+                if (!prevProcessCompleted)
+                {
+                    statusTip = " [前道工序未完成]";
+                }
+                else
+                {
+                    statusTip = " [可开始生产]";
+                }
+            }
+            else if (process.Status == ProcessStatus.InProgress)
+            {
+                statusTip = " [可完成生产]";
+            }
+            else if (process.Status == ProcessStatus.Completed)
+            {
+                statusTip = " [已完工]";
+            }
+
+            _lblSelectedProcess.Text = $"已选择：{process.ProcessName} ({process.StatusText}){statusTip}";
+
+            // 如果已有操作员信息，显示出来
+            if (!string.IsNullOrEmpty(process.OperatorNo))
+            {
+                _txtOperatorNo.Text = process.OperatorNo;
+                _txtOperatorName.Text = process.OperatorName;
+            }
+
+            // 如果已有金额，显示出来
+            if (process.Amount.HasValue)
+            {
+                _txtAmount.Text = process.Amount.Value.ToString("N2");
+            }
+            else
+            {
+                _txtAmount.Clear();
+            }
         }
     }
 
     private void BtnStart_Click(object? sender, EventArgs e)
     {
         if (!_selectedProcessId.HasValue)
+        {
+            MessageBox.Show("请先选择要生产的工序", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
+        }
 
         // 验证输入
         if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()) || _txtOperatorNo.Text == (string?)_txtOperatorNo.Tag)
@@ -405,7 +455,10 @@ public partial class ProcessReportForm : BaseForm
     private void BtnComplete_Click(object? sender, EventArgs e)
     {
         if (!_selectedProcessId.HasValue)
+        {
+            MessageBox.Show("请先选择要完成的工序", "提示", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             return;
+        }
 
         // 验证输入
         if (string.IsNullOrEmpty(_txtOperatorNo.Text.Trim()) || _txtOperatorNo.Text == (string?)_txtOperatorNo.Tag)

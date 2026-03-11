@@ -253,23 +253,15 @@ public static class UIStyleHelper
     /// 为DataGridView添加右键菜单
     /// </summary>
     public static ContextMenuStrip CreateDataGridViewContextMenu(
-        Action? onView = null,
         Action? onEdit = null,
         Action? onDelete = null)
     {
         var contextMenu = new ContextMenuStrip();
 
-        if (onView != null)
-        {
-            var viewItem = new ToolStripMenuItem("查看详情", null, (s, e) => onView());
-            viewItem.ShortcutKeyDisplayString = "Enter";
-            contextMenu.Items.Add(viewItem);
-        }
-
         if (onEdit != null)
         {
             var editItem = new ToolStripMenuItem("编辑", null, (s, e) => onEdit());
-            editItem.ShortcutKeyDisplayString = "Ctrl+E";
+            editItem.ShortcutKeyDisplayString = "Enter";
             contextMenu.Items.Add(editItem);
         }
 
