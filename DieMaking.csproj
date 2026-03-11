@@ -14,6 +14,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Data.SqlClient" Version="6.1.4" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="23.26.100" />
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.11" />
     <PackageReference Include="System.Data.OleDb" Version="9.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
@@ -38,6 +39,9 @@
     <Compile Remove="Helpers\PaginationHelper.cs" />
 
     <Compile Remove="Helpers\VirtualDataGridView.cs" />
+    
+    <!-- 排除 DieMaking 子目录下与根目录重复的文件 -->
+    <Compile Remove="DieMaking\**" />
   </ItemGroup>
 
 </Project>

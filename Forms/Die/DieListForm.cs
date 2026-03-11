@@ -325,7 +325,7 @@ public partial class DieListForm : BaseListForm
             DateTime? endDate = dtpDateTo.Checked ? dtpDateTo.Value : null;
 
             // 搜索数据
-            _dieList = _dieService.SearchDies(dieCode, customerName, status, startDate, endDate);
+            _dieList = _dieService.SearchDies(dieCode, customerName, status, null, startDate, endDate);
             _totalCount = _dieList.Count;
 
             // 分页显示

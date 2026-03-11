@@ -355,7 +355,7 @@ public partial class BorrowRecordForm : Form
                         record.BorrowTypeText,
                         record.BorrowerName,
                         record.BorrowDept,
-                        record.BorrowTime.ToString("yyyy-MM-dd HH:mm"),
+                        record.BorrowTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
                         record.ExpectedReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
                         record.ActualReturnTime?.ToString("yyyy-MM-dd HH:mm") ?? "",
                         record.StatusText,

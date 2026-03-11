@@ -369,7 +369,7 @@ public partial class LocationManageForm : BaseListForm
                         loc.PositionNo,
                         loc.Description,
                         loc.StatusText,
-                        loc.CreateTime.ToString("yyyy-MM-dd HH:mm")
+                        loc.CreateTime?.ToString("yyyy-MM-dd HH:mm") ?? ""
                     );
                 }
 

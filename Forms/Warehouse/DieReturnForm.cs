@@ -300,7 +300,7 @@ public partial class DieReturnForm : BaseDialogForm
             dgvPrint.Rows.Add("客户名称", record.CustomerName);
             dgvPrint.Rows.Add("产品名称", record.ProductName);
             dgvPrint.Rows.Add("借用类型", record.BorrowTypeText);
-            dgvPrint.Rows.Add("借用时间", record.BorrowTime.ToString("yyyy-MM-dd HH:mm"));
+            dgvPrint.Rows.Add("借用时间", record.BorrowTime?.ToString("yyyy-MM-dd HH:mm") ?? "");
             dgvPrint.Rows.Add("领用人", record.BorrowerName);
             dgvPrint.Rows.Add("领用部门", record.BorrowDept);
             dgvPrint.Rows.Add("用途", record.Purpose);

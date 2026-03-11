@@ -741,7 +741,7 @@ public class WarehouseService : BaseService
             using var command = new SqlCommand(sql, connection, transaction);
             command.Parameters.AddWithValue("@DieID", dieId);
             command.Parameters.AddWithValue("@LocationID", locationId);
-            command.Parameters.AddWithValue("@Status", (int)InventoryStatus.InStock);
+            command.Parameters.AddWithValue("@Status", (int)StorageStatus.InStock);
             command.Parameters.AddWithValue("@InStockTime", inStockTime);
             command.Parameters.AddWithValue("@OperatorName", operatorName);
             command.Parameters.AddWithValue("@Remark", remark ?? "");
