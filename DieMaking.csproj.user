@@ -47,9 +47,6 @@
     <Compile Update="Forms\Report\ProcessStatsForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Update="Forms\System\BackupManageForm.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Update="Forms\System\OperationLogForm.cs">
       <SubType>Form</SubType>
     </Compile>

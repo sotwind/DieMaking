@@ -1,0 +1,558 @@
+/* ========================================
+   刀模管理系统 PWA - 手机端样式
+   ======================================== */
+
+/* 基础重置 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #333;
+    background-color: #f5f5f5;
+    height: 100%;
+    overflow: hidden;
+}
+
+#app {
+    height: 100%;
+    overflow: hidden;
+}
+
+/* 页面容器 */
+.page {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* ========================================
+   登录页面
+   ======================================== */
+.login-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 40px 20px;
+    background: linear-gradient(135deg, #1890ff 0%, #36cfc9 100%);
+}
+
+.logo {
+    text-align: center;
+    margin-bottom: 40px;
+    color: white;
+}
+
+.logo h1 {
+    font-size: 28px;
+    font-weight: 600;
+    margin-bottom: 8px;
+}
+
+.logo p {
+    font-size: 16px;
+    opacity: 0.9;
+}
+
+#login-form {
+    width: 100%;
+    max-width: 320px;
+    background: white;
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+
+.input-group {
+    margin-bottom: 20px;
+}
+
+.input-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 14px;
+    color: #666;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 16px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s;
+}
+
+.input-group input:focus {
+    outline: none;
+    border-color: #1890ff;
+}
+
+/* ========================================
+   按钮样式
+   ======================================== */
+.btn-primary {
+    width: 100%;
+    padding: 14px 24px;
+    background: #1890ff;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.btn-primary:hover {
+    background: #40a9ff;
+}
+
+.btn-primary:active {
+    background: #096dd9;
+}
+
+.btn-secondary {
+    width: 100%;
+    padding: 14px 24px;
+    background: white;
+    color: #666;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.btn-secondary:hover {
+    border-color: #1890ff;
+    color: #1890ff;
+}
+
+.btn-large {
+    padding: 18px 32px;
+    font-size: 18px;
+}
+
+.btn-text {
+    background: none;
+    border: none;
+    color: #1890ff;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 4px 8px;
+}
+
+.icon {
+    font-size: 20px;
+}
+
+/* ========================================
+   主页面头部
+   ======================================== */
+.app-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    background: #1890ff;
+    color: white;
+}
+
+.header-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.header-user {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 14px;
+}
+
+/* ========================================
+   主页面内容区
+   ======================================== */
+.app-main {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+}
+
+/* ========================================
+   扫码区域
+   ======================================== */
+.scan-section {
+    margin-bottom: 20px;
+}
+
+.scanner-container {
+    position: relative;
+    width: 100%;
+    height: 300px;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+}
+
+#scanner-video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.scan-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0,0,0,0.3);
+}
+
+.scan-frame {
+    width: 200px;
+    height: 200px;
+    border: 2px solid rgba(255,255,255,0.8);
+    border-radius: 12px;
+    position: relative;
+    overflow: hidden;
+}
+
+.scan-line {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: #52c41a;
+    animation: scan 2s linear infinite;
+}
+
+@keyframes scan {
+    0% { top: 0; }
+    50% { top: 100%; }
+    100% { top: 0; }
+}
+
+.scan-tip {
+    margin-top: 16px;
+    color: white;
+    font-size: 14px;
+    text-align: center;
+}
+
+/* ========================================
+   手动输入区域
+   ======================================== */
+.manual-section {
+    background: white;
+    padding: 16px;
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.section-title {
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 12px;
+    color: #333;
+}
+
+.input-row {
+    display: flex;
+    gap: 12px;
+}
+
+.input-row input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 1px solid #d9d9d9;
+    border-radius: 8px;
+    font-size: 16px;
+}
+
+.input-row input:focus {
+    outline: none;
+    border-color: #1890ff;
+}
+
+.input-row .btn-primary {
+    width: auto;
+    padding: 12px 24px;
+}
+
+/* ========================================
+   信息卡片
+   ======================================== */
+.info-card {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.card-header h3 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+}
+
+.status-pending {
+    background: #fff7e6;
+    color: #fa8c16;
+}
+
+.status-completed {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.card-body {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.info-row {
+    display: flex;
+    font-size: 14px;
+}
+
+.info-row .label {
+    color: #666;
+    width: 80px;
+}
+
+.info-row .value {
+    color: #333;
+    font-weight: 500;
+    flex: 1;
+}
+
+/* ========================================
+   工序列表
+   ======================================== */
+.process-section {
+    background: white;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.process-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.process-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.process-item:hover {
+    border-color: #1890ff;
+    background: #e6f7ff;
+}
+
+.process-item.completed {
+    background: #f6ffed;
+    border-color: #b7eb8f;
+}
+
+.process-item.completed .process-status {
+    color: #52c41a;
+}
+
+.process-info {
+    flex: 1;
+}
+
+.process-name {
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 4px;
+}
+
+.process-meta {
+    font-size: 12px;
+    color: #999;
+}
+
+.process-status {
+    font-size: 14px;
+    color: #999;
+}
+
+.process-action {
+    margin-left: 12px;
+}
+
+.btn-report {
+    padding: 8px 16px;
+    background: #1890ff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.btn-report:disabled {
+    background: #d9d9d9;
+    cursor: not-allowed;
+}
+
+/* ========================================
+   结果面板
+   ======================================== */
+.result-panel {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255,255,255,0.98);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.result-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 40px;
+    margin-bottom: 20px;
+}
+
+.result-icon.success {
+    background: #f6ffed;
+    color: #52c41a;
+}
+
+.result-icon.error {
+    background: #fff2f0;
+    color: #ff4d4f;
+}
+
+.result-message {
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 40px;
+}
+
+.result-message.success {
+    color: #52c41a;
+}
+
+.result-message.error {
+    color: #ff4d4f;
+}
+
+/* ========================================
+   响应式适配
+   ======================================== */
+@media (max-width: 375px) {
+    .logo h1 {
+        font-size: 24px;
+    }
+    
+    .scanner-container {
+        height: 250px;
+    }
+    
+    .scan-frame {
+        width: 160px;
+        height: 160px;
+    }
+}
+
+/* ========================================
+   加载动画
+   ======================================== */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #f3f3f3;
+    border-top: 2px solid #1890ff;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   提示消息
+   ======================================== */
+.toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    padding: 16px 24px;
+    background: rgba(0,0,0,0.8);
+    color: white;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}

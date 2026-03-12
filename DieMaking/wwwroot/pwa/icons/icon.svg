@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="80" fill="#2196F3"/>
+  <text x="256" y="320" font-family="Arial, sans-serif" font-size="200" font-weight="bold" text-anchor="middle" fill="white">DM</text>
+  <path d="M256 80 L280 140 L320 120 L300 160 L360 180 L300 200 L320 240 L280 220 L256 280 L232 220 L192 240 L212 200 L152 180 L212 160 L192 120 L232 140 Z" fill="#FFD700" opacity="0.8"/>
+</svg>

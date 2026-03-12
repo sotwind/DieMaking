@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- 背景 -->
+  <rect width="512" height="512" fill="#1890ff" rx="64" ry="64"/>
+  
+  <!-- 刀模主体 - 一个切割模具的形状 -->
+  <g transform="translate(256, 256)">
+    <!-- 外框 - 代表刀模的钢板 -->
+    <rect x="-140" y="-140" width="280" height="280" fill="none" stroke="#ffffff" stroke-width="16" rx="20" ry="20"/>
+    
+    <!-- 内部切割线 - 代表刀模的刃口 -->
+    <path d="M -80,-80 L 80,-80 L 80,80 L -80,80 Z" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+    
+    <!-- 中心圆 - 代表切割孔 -->
+    <circle cx="0" cy="0" r="40" fill="none" stroke="#ffffff" stroke-width="12"/>
+    
+    <!-- 对角线 - 代表切割线 -->
+    <line x1="-80" y1="-80" x2="80" y2="80" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    <line x1="80" y1="-80" x2="-80" y2="80" stroke="#ffffff" stroke-width="8" stroke-linecap="round"/>
+    
+    <!-- 小圆点 - 代表定位孔 -->
+    <circle cx="-100" cy="-100" r="12" fill="#ffffff"/>
+    <circle cx="100" cy="-100" r="12" fill="#ffffff"/>
+    <circle cx="-100" cy="100" r="12" fill="#ffffff"/>
+    <circle cx="100" cy="100" r="12" fill="#ffffff"/>
+  </g>
+</svg>

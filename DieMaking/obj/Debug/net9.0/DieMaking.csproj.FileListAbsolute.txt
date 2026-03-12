@@ -1,0 +1,13 @@
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.csproj.AssemblyReference.cache
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.GeneratedMSBuildEditorConfig.editorconfig
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.AssemblyInfoInputs.cache
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.AssemblyInfo.cs
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.csproj.CoreCompileInputs.cache
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.sourcelink.json
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/bin/Debug/net9.0/DieMaking.deps.json
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/bin/Debug/net9.0/DieMaking.dll
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/bin/Debug/net9.0/DieMaking.pdb
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.dll
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/refint/DieMaking.dll
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/DieMaking.pdb
+/home/admin/.openclaw/workspace/DieMaking/DieMaking/obj/Debug/net9.0/ref/DieMaking.dll
